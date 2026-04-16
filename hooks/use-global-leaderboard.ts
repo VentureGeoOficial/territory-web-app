@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { isFirebaseConfigured } from '@/lib/firebase/config'
-import { subscribeGlobalLeaderboard } from '@/lib/firebase/ranking'
 import { useTerritoryStore } from '@/lib/store/territory-store'
 import type { RankingEntry } from '@/lib/territory/types'
+import { getLeaderboardRepository } from '@/lib/data/territory-repository'
 
 function buildFromStore(): RankingEntry[] {
   const { users } = useTerritoryStore.getState()
@@ -22,18 +21,11 @@ function buildFromStore(): RankingEntry[] {
 }
 
 export function useGlobalLeaderboard(limit = 50) {
-  const users = useTerritoryStore((s) => s.users)
-  const territories = useTerritoryStore((s) => s.territories)
   const [entries, setEntries] = useState<RankingEntry[]>([])
 
   useEffect(() => {
-    if (isFirebaseConfigured()) return
-    setEntries(buildFromStore().slice(0, limit))
-  }, [limit, users, territories])
-
-  useEffect(() => {
-    if (!isFirebaseConfigured()) return
-    const unsub = subscribeGlobalLeaderboard(setEntries, limit)
+    const repo = getLeaderboardRepository()
+    const unsub = repo.subscribeGlobalLeaderboard(setEntries, limit)
     return () => unsub?.()
   }, [limit])
 

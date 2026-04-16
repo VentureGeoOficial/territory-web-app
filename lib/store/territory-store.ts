@@ -1,18 +1,8 @@
 import { create } from 'zustand'
 import { useAuthStore } from '@/lib/store/auth-store'
 import type { Position } from 'geojson'
-import type {
-  Territory,
-  User,
-  MapMode,
-  TerritoryFilters,
-  TerritoryStatus,
-} from '../territory/types'
-import { generateId, generateUserColor } from '../territory/geo'
-import {
-  calculateTerritoryFromPositions,
-  checkTerritoryIntersection,
-} from '../territory/territory-generator'
+import type { Territory, User, MapMode, TerritoryFilters } from '../territory/types'
+import { createTerritoryFromDrawing } from '../territory/domain'
 
 interface TerritoryState {
   // Data
@@ -154,55 +144,27 @@ export const useTerritoryStore = create<TerritoryState>((set, get) => ({
 
   finishDrawing: () => {
     const state = get()
-    const { drawingPoints, currentUserId, territories } = state
-
-    if (drawingPoints.length < 3) {
-      return null
-    }
+    const { drawingPoints, currentUserId, territories, users } = state
 
     try {
-      const calculation = calculateTerritoryFromPositions(drawingPoints)
-      const currentUser = state.users.find((u) => u.id === currentUserId)
+      const currentUser = users.find((u) => u.id === currentUserId)
       const authName = useAuthStore.getState().user?.displayName
 
-      // Check for disputes with existing territories
-      let status: TerritoryStatus = 'active'
-      for (const existingTerritory of territories) {
-        if (
-          checkTerritoryIntersection(calculation.polygon, existingTerritory.polygon)
-        ) {
-          status = 'disputed'
-          // Also mark the existing territory as disputed
-          set((s) => ({
-            territories: s.territories.map((t) =>
-              t.id === existingTerritory.id ? { ...t, status: 'disputed' } : t
-            ),
-          }))
-        }
-      }
+      const { territories: nextTerritories, newTerritory } =
+        createTerritoryFromDrawing({
+          drawingPoints,
+          currentUserId,
+          currentUser,
+          authDisplayName: authName,
+          existingTerritories: territories,
+        })
 
-      const newTerritory: Territory = {
-        id: generateId(),
-        userId: currentUserId,
-        userName: currentUser?.displayName || authName || 'Corredor',
-        userColor: currentUser?.color || '#B8FF00',
-        polygon: calculation.polygon,
-        areaM2: calculation.areaM2,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        protectedUntil: Date.now() + 3 * 60 * 60 * 1000, // 3h (regra produto MVP)
-        status,
-        dominanceLevel: 'bronze',
-        conquestCount: 1,
-        center: calculation.center,
-      }
-
-      set((s) => ({
-        territories: [...s.territories, newTerritory],
+      set({
+        territories: nextTerritories,
         drawingPoints: [],
         isDrawing: false,
         mapMode: 'view',
-      }))
+      })
 
       return newTerritory
     } catch (error) {

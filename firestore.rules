@@ -18,10 +18,29 @@ service cloud.firestore {
 
     match /territories/{territoryId} {
       allow read: if true;
+
+      function isValidTerritoryPayload() {
+        let data = request.resource.data;
+        return
+          // Owner consistente
+          data.userId == request.auth.uid
+          // Área razoável (0 < areaM2 <= 10 km²)
+          && data.areaM2 is number
+          && data.areaM2 > 0
+          && data.areaM2 <= 10_000_000
+          // Status conhecido
+          && data.status in ['active', 'disputed', 'protected', 'expired']
+          // PolygonJson com tamanho limitado
+          && data.polygonJson is string
+          && data.polygonJson.size() <= 200000;
+      }
+
       allow create: if request.auth != null
-        && request.resource.data.userId == request.auth.uid;
+        && isValidTerritoryPayload();
+
       allow update, delete: if request.auth != null
-        && resource.data.userId == request.auth.uid;
+        && resource.data.userId == request.auth.uid
+        && isValidTerritoryPayload();
     }
 
     match /friendRequests/{requestId} {
