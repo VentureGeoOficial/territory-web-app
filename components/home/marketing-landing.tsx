@@ -2,9 +2,11 @@ import Link from 'next/link'
 import { VentureGeoBrandLogo, VentureGeoMascot } from '@/components/brand/venture-geo-logo'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Map, Trophy, Users, Zap, ArrowRight, MapPin } from 'lucide-react'
+import { Map, Trophy, Users, Zap, ArrowRight, MapPin, Download } from 'lucide-react'
+import { useInstallPrompt } from '@/lib/pwa/use-install-prompt'
 
 export function MarketingLanding() {
+  const { canInstall, promptInstall } = useInstallPrompt()
   return (
     <div className="min-h-screen bg-background">
       <header className="relative overflow-hidden">
@@ -37,6 +39,17 @@ export function MarketingLanding() {
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
+              {canInstall && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="hidden sm:inline-flex gap-2"
+                  onClick={promptInstall}
+                >
+                  <Download className="h-4 w-4" />
+                  Instalar app
+                </Button>
+              )}
             </div>
           </nav>
 
@@ -70,6 +83,18 @@ export function MarketingLanding() {
                 <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg px-8 h-14" asChild>
                   <Link href="#como-funciona">Como funciona</Link>
                 </Button>
+                {canInstall && (
+                  <Button
+                    type="button"
+                    size="lg"
+                    variant="ghost"
+                    className="w-full sm:w-auto text-lg px-8 h-14"
+                    onClick={promptInstall}
+                  >
+                    <Download className="mr-2 h-5 w-5" />
+                    Instalar app
+                  </Button>
+                )}
               </div>
 
               <div className="mt-10 hidden md:flex xl:hidden justify-center">
