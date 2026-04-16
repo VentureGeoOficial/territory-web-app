@@ -6,6 +6,7 @@ import { useTerritoryStore } from '@/lib/store/territory-store'
 import { Header } from '@/components/layout/header'
 import { TerritorySidebar } from '@/components/territory/territory-sidebar'
 import { MapWrapper } from '@/components/map/map-wrapper'
+import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 
 export default function MapaPage() {
   const initMockData = useTerritoryStore((state) => state.initMockData)
@@ -20,9 +21,9 @@ export default function MapaPage() {
   }, [initMockData, territories.length])
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex h-screen flex-col overflow-hidden">
       <Header />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden pb-14 lg:pb-0">
         {/* Sidebar fixa só em telas grandes; em mobile o acesso é via menu/header */}
         <div className="hidden lg:block h-full">
           <TerritorySidebar />
@@ -31,6 +32,7 @@ export default function MapaPage() {
           <MapWrapper />
         </main>
       </div>
+      <MobileBottomNav />
     </div>
   )
 }

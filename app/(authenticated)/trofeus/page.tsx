@@ -7,6 +7,7 @@ import { useTerritoryStore } from '@/lib/store/territory-store'
 import { useFriendsCount } from '@/hooks/use-friends-count'
 import { computeTrophyProgress } from '@/lib/gamification/trophies'
 import { AuthenticatedShell } from '@/components/layout/authenticated-shell'
+import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { TrophiesListSkeleton } from '@/components/ui/skeletons'
@@ -52,7 +53,7 @@ export default function TrofeusPage() {
 
   return (
     <AuthenticatedShell>
-      <div className="space-y-6 max-w-2xl">
+      <div className="space-y-6 max-w-2xl pb-16 lg:pb-0">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Troféus</h1>
           <p className="text-muted-foreground text-sm mt-1">
@@ -114,6 +115,7 @@ export default function TrofeusPage() {
           </div>
         )}
       </div>
+      <MobileBottomNav />
     </AuthenticatedShell>
   )
 }

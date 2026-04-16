@@ -16,6 +16,7 @@ import { getUserProfile } from '@/lib/firebase/user-profile'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { useTerritoryStore } from '@/lib/store/territory-store'
 import { AuthenticatedShell } from '@/components/layout/authenticated-shell'
+import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -119,7 +120,7 @@ export default function AmigosPage() {
 
   return (
     <AuthenticatedShell>
-      <div className="space-y-8 max-w-2xl">
+      <div className="space-y-8 max-w-2xl pb-16 lg:pb-0">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Amigos e rivais</h1>
           <p className="text-muted-foreground text-sm mt-1">
@@ -265,6 +266,7 @@ export default function AmigosPage() {
           </>
         )}
       </div>
+      <MobileBottomNav />
     </AuthenticatedShell>
   )
 }
