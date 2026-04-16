@@ -6,6 +6,7 @@ import { subscribeAcceptedFriends } from '@/lib/firebase/friends'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { useGlobalLeaderboard } from '@/hooks/use-global-leaderboard'
 import { AuthenticatedShell } from '@/components/layout/authenticated-shell'
+import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RankingListSkeleton } from '@/components/ui/skeletons'
@@ -46,7 +47,7 @@ export default function CompeticaoPage() {
 
   return (
     <AuthenticatedShell>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-16 lg:pb-0">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Competição</h1>
           <p className="text-muted-foreground text-sm mt-1">
@@ -77,6 +78,7 @@ export default function CompeticaoPage() {
           </TabsContent>
         </Tabs>
       </div>
+      <MobileBottomNav />
     </AuthenticatedShell>
   )
 }
