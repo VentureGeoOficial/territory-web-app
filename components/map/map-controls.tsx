@@ -3,9 +3,8 @@
 import { memo, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { isFirebaseConfigured } from '@/lib/firebase/config'
-import { saveTerritoryAndUpdateUserStats } from '@/lib/firebase/territories'
 import { useTerritoryStore } from '@/lib/store/territory-store'
+import { getTerritoryRepository } from '@/lib/data/territory-repository'
 import {
   Pencil,
   X,
@@ -40,11 +39,25 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
   }, [clearDrawing])
 
   const handleFinishDrawing = useCallback(() => {
-    const territory = finishDrawing()
-    if (territory && isFirebaseConfigured()) {
-      void saveTerritoryAndUpdateUserStats(territory)
+    try {
+      const territory = finishDrawing()
+      if (!territory) {
+        toast.error(
+          'Não foi possível criar o território. Verifique a rota e se você está na área permitida.',
+        )
+        return
+      }
+
+      const repo = getTerritoryRepository()
+      void repo
+        .saveTerritoryAndUpdateUserStats(territory)
         .then(() => toast.success('Território salvo na nuvem.'))
         .catch(() => toast.error('Não foi possível salvar o território.'))
+    } catch (error) {
+      console.error(error)
+      toast.error(
+        'Não foi possível criar o território. Verifique a rota e se você está na área permitida.',
+      )
     }
   }, [finishDrawing])
 

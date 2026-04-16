@@ -70,8 +70,8 @@ export function TerritorySidebar() {
 
   if (isCollapsed) {
     return (
-      <div 
-        className="h-full w-14 flex flex-col items-center py-4 border-r"
+      <aside 
+        className="h-full w-14 flex flex-col items-center py-4 border-r shrink-0"
         style={{ background: '#19305A', borderColor: '#2d4a70' }}
       >
         <Button
@@ -88,13 +88,13 @@ export function TerritorySidebar() {
             {territories.length}
           </div>
         </div>
-      </div>
+      </aside>
     )
   }
 
   return (
-    <div 
-      className="h-full w-80 flex flex-col border-r"
+    <aside 
+      className="h-full w-80 flex flex-col border-r shrink-0"
       style={{ background: '#19305A', borderColor: '#2d4a70' }}
     >
       {/* Header */}
@@ -276,6 +276,6 @@ export function TerritorySidebar() {
           </span>
         </div>
       </div>
-    </div>
+    </aside>
   )
 }

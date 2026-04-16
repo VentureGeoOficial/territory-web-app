@@ -12,6 +12,7 @@ import {
 import { getFirestoreDb } from './client'
 import { isFirebaseConfigured } from './config'
 import type { DominanceLevel, Territory, TerritoryStatus } from '@/lib/territory/types'
+import { SUZANO_BOUNDING_BOX, isPositionInsideBox } from '@/lib/territory/regions'
 
 const TERRITORIES = 'territories'
 const USERS = 'users'
@@ -100,6 +101,12 @@ export async function saveTerritoryAndUpdateUserStats(
   territory: Territory,
 ): Promise<void> {
   if (!isFirebaseConfigured()) return
+
+  // Geofence Suzano também no backend para evitar gravações maliciosas
+  if (!isPositionInsideBox(territory.center, SUZANO_BOUNDING_BOX)) {
+    throw new Error('Território fora da área permitida.')
+  }
+
   const db = getFirestoreDb()
   const payload = territoryToFirestoreDoc(territory)
   const userRef = doc(db, USERS, territory.userId)
@@ -112,6 +119,7 @@ export async function saveTerritoryAndUpdateUserStats(
     const prevCount = uSnap.exists()
       ? Number((uSnap.data() as { territoriesCount?: number }).territoriesCount ?? 0)
       : 0
+    // XP mínimo 50 e proporcional à área – regra de produto centralizada aqui
     const xpGain = Math.max(50, Math.round(territory.areaM2 / 100))
     const prevXp = uSnap.exists()
       ? Number((uSnap.data() as { xp?: number }).xp ?? 0)

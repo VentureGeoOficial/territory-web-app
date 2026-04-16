@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect } from 'react'
-import { isFirebaseConfigured } from '@/lib/firebase/config'
-import { subscribeTerritories } from '@/lib/firebase/territories'
 import { useTerritoryStore } from '@/lib/store/territory-store'
 import type { Territory, User } from '@/lib/territory/types'
+import { getTerritoryRepository } from '@/lib/data/territory-repository'
 
 function deriveUsersFromTerritories(territories: Territory[]): User[] {
   const byUser = new Map<string, Territory[]>()
@@ -38,8 +37,8 @@ export function useFirestoreTerritorySync() {
   const setUsers = useTerritoryStore((s) => s.setUsers)
 
   useEffect(() => {
-    if (!isFirebaseConfigured()) return
-    const unsub = subscribeTerritories(
+    const repo = getTerritoryRepository()
+    const unsub = repo.subscribeTerritories(
       (list) => {
         setTerritories(list)
         setUsers(deriveUsersFromTerritories(list))
