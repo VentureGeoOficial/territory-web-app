@@ -28,7 +28,7 @@ const MapControlsOverlay = dynamic(
 
 export function MapWrapper() {
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full min-w-0">
       <TerritoryMap />
       <MapControlsOverlay />
     </div>
