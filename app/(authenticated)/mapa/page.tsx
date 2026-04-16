@@ -23,7 +23,10 @@ export default function MapaPage() {
     <div className="flex flex-col h-screen overflow-hidden">
       <Header />
       <div className="flex flex-1 overflow-hidden">
-        <TerritorySidebar />
+        {/* Sidebar fixa só em telas grandes; em mobile o acesso é via menu/header */}
+        <div className="hidden lg:block h-full">
+          <TerritorySidebar />
+        </div>
         <main className="flex-1 relative min-w-0">
           <MapWrapper />
         </main>
