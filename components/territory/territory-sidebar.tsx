@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { formatArea } from '@/lib/territory/geo'
 import { VentureGeoBrandLogo } from '@/components/brand/venture-geo-logo'
 import { cn } from '@/lib/utils'
+import { APP_VERSION } from '@/lib/app-info'
 import {
   MapPin,
   Swords,
@@ -268,7 +269,7 @@ export function TerritorySidebar() {
         style={{ borderColor: '#2d4a70' }}
       >
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>TerritoryRun v0.1</span>
+          <span>TerritoryRun v{APP_VERSION}</span>
           <span className="flex items-center gap-1">
             <span>by</span>
             <span className="text-[#CCFF00]">Venture</span>

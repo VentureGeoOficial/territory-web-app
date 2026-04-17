@@ -18,6 +18,8 @@ import {
   Trophy,
   Users,
   Zap,
+  Settings,
+  CircleHelp,
 } from 'lucide-react'
 
 export function AuthenticatedDashboard() {
@@ -208,6 +210,18 @@ export function AuthenticatedDashboard() {
                 <Link href="/trofeus">
                   <Trophy className="h-4 w-4 mr-2" />
                   Conquistas e badges
+                </Link>
+              </Button>
+              <Button asChild className="justify-start" variant="outline">
+                <Link href="/conta">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Minha conta
+                </Link>
+              </Button>
+              <Button asChild className="justify-start" variant="outline">
+                <Link href="/ajuda">
+                  <CircleHelp className="h-4 w-4 mr-2" />
+                  Ajuda e suporte
                 </Link>
               </Button>
             </CardContent>

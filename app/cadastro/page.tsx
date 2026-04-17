@@ -50,6 +50,17 @@ export default function CadastroPage() {
                 Entrar
               </Link>
             </p>
+            <p className="text-center text-xs text-muted-foreground">
+              Ao criar conta, você aceita os{' '}
+              <Link href="/termos" className="text-primary hover:underline">
+                Termos de Uso
+              </Link>{' '}
+              e a{' '}
+              <Link href="/privacidade" className="text-primary hover:underline">
+                Política de Privacidade
+              </Link>
+              .
+            </p>
           </CardContent>
         </Card>
 

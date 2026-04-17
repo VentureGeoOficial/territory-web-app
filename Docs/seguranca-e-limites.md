@@ -27,9 +27,16 @@ Este documento resume as proteções atuais do TerritoryRun Web e onde elas são
 ### 1.2 Firestore Rules (perfil)
 
 - `match /users/{userId}`:
-  - `allow read: if true;` — leitura pública (para ranking, amigos).
+  - `allow read: if request.auth.uid == userId;` — perfil completo somente para o dono.
   - `allow create, update: if request.auth.uid == userId;` — apenas o usuário pode escrever no próprio perfil.
   - `allow delete: if false;` — perfis não são deletáveis via cliente.
+
+- `match /publicProfiles/{userId}`:
+  - `allow read: if true;` — dados públicos mínimos (ranking/social).
+  - `allow create, update: if request.auth.uid == userId;`.
+
+- `match /usersPrivate/{userId}`:
+  - `allow read/create/update: if request.auth.uid == userId;` — dados sensíveis segregados.
 
 - `match /usernames/{slug}`:
   - `allow read: if true;`.
@@ -79,7 +86,7 @@ Resultado:
   - Em transação:
     - Lê `users/{uid}`.
     - Calcula novos `totalAreaM2`, `territoriesCount`, `xp`.
-    - Escreve `territories/{id}` e atualiza `users/{uid}` atomica e coerentemente.
+    - Escreve `territories/{id}` e atualiza `users/{uid}` + `publicProfiles/{uid}` atomica e coerentemente.
 
 Protege contra:
 - Inconsistências de agregados (área, contagem, XP) em caso de falhas parciais.

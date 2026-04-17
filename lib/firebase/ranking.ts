@@ -10,7 +10,7 @@ import { getFirestoreDb } from './client'
 import { isFirebaseConfigured } from './config'
 import type { RankingEntry } from '@/lib/territory/types'
 
-const USERS = 'users'
+const PUBLIC_PROFILES = 'publicProfiles'
 
 export function subscribeGlobalLeaderboard(
   onUpdate: (entries: RankingEntry[]) => void,
@@ -19,7 +19,7 @@ export function subscribeGlobalLeaderboard(
   if (!isFirebaseConfigured()) return null
   const db = getFirestoreDb()
   const q = query(
-    collection(db, USERS),
+    collection(db, PUBLIC_PROFILES),
     orderBy('totalAreaM2', 'desc'),
     limit(max),
   )

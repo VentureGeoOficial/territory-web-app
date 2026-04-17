@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { VentureGeoBrandLogo } from '@/components/brand/venture-geo-logo'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { formatArea } from '@/lib/territory/geo'
-import { LogOut, Map, Settings, Trophy, User, Users, Medal, Menu, X } from 'lucide-react'
+import { LogOut, Map, Settings, Trophy, User, Users, Medal, Menu, CircleHelp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -18,6 +18,8 @@ const navItems = [
   { href: '/competicao', label: 'Competição', icon: Medal },
   { href: '/amigos', label: 'Amigos', icon: Users },
   { href: '/trofeus', label: 'Troféus', icon: Trophy },
+  { href: '/conta', label: 'Conta', icon: Settings },
+  { href: '/ajuda', label: 'Ajuda', icon: CircleHelp },
 ]
 
 export function Header() {
@@ -220,8 +222,10 @@ export function Header() {
         >
           <LogOut className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="hidden lg:flex h-9 w-9">
+        <Button variant="ghost" size="icon" className="hidden lg:flex h-9 w-9" asChild>
+          <Link href="/conta">
           <Settings className="h-4 w-4" />
+          </Link>
         </Button>
         <Button variant="ghost" className="h-9 gap-2 px-2">
           <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
