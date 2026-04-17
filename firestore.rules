@@ -2,8 +2,21 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // Perfil público para ranking e exibição social
+    match /publicProfiles/{userId} {
       allow read: if true;
       allow create, update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // Dados privados sensíveis do usuário
+    match /usersPrivate/{userId} {
+      allow read, create, update: if request.auth != null && request.auth.uid == userId;
       allow delete: if false;
     }
 

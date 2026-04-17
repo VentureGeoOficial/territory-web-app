@@ -202,6 +202,14 @@ export function MarketingLanding() {
             <span className="text-muted-foreground text-sm">by Venture Geo</span>
           </div>
           <p className="text-sm text-muted-foreground">Conquiste seu caminho</p>
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <Link href="/termos" className="hover:text-primary">
+              Termos de Uso
+            </Link>
+            <Link href="/privacidade" className="hover:text-primary">
+              Privacidade
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

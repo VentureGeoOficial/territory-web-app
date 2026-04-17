@@ -70,6 +70,24 @@ export async function login(
   return loginWithMock(credentials)
 }
 
+export async function loginWithGoogle(): Promise<AuthSession> {
+  if (!isFirebaseConfigured()) {
+    throw new AuthError('Login social disponível apenas com Firebase configurado.')
+  }
+  const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth')
+  const { getFirebaseAuth } = await import('@/lib/firebase/client')
+  const { firebaseUserToSession } = await import('./firebase-session')
+
+  try {
+    const provider = new GoogleAuthProvider()
+    const auth = getFirebaseAuth()
+    const cred = await signInWithPopup(auth, provider)
+    return firebaseUserToSession(cred.user)
+  } catch {
+    throw new AuthError('Não foi possível entrar com Google. Tente novamente.')
+  }
+}
+
 export async function requestPasswordReset(
   data: ForgotPasswordFormValues,
 ): Promise<void> {
@@ -175,4 +193,58 @@ export async function signOutRemote(): Promise<void> {
   const { signOut } = await import('firebase/auth')
   const { getFirebaseAuth } = await import('@/lib/firebase/client')
   await signOut(getFirebaseAuth())
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  if (!isFirebaseConfigured()) {
+    throw new AuthError('Troca de senha requer Firebase configurado.')
+  }
+
+  const { EmailAuthProvider, reauthenticateWithCredential, updatePassword } =
+    await import('firebase/auth')
+  const { getFirebaseAuth } = await import('@/lib/firebase/client')
+  const auth = getFirebaseAuth()
+  const user = auth.currentUser
+  if (!user || !user.email) {
+    throw new AuthError('Sessão inválida. Entre novamente.')
+  }
+
+  try {
+    const credential = EmailAuthProvider.credential(user.email, currentPassword)
+    await reauthenticateWithCredential(user, credential)
+    await updatePassword(user, newPassword)
+  } catch {
+    throw new AuthError(
+      'Não foi possível alterar a senha. Verifique a senha atual e tente novamente.',
+    )
+  }
+}
+
+export async function deleteAccount(currentPassword: string): Promise<void> {
+  if (!isFirebaseConfigured()) {
+    throw new AuthError('Exclusão de conta requer Firebase configurado.')
+  }
+  const { EmailAuthProvider, reauthenticateWithCredential, deleteUser } =
+    await import('firebase/auth')
+  const { getFirebaseAuth, getFirestoreDb } = await import('@/lib/firebase/client')
+  const { deleteDoc, doc } = await import('firebase/firestore')
+
+  const auth = getFirebaseAuth()
+  const user = auth.currentUser
+  if (!user || !user.email) {
+    throw new AuthError('Sessão inválida. Entre novamente.')
+  }
+
+  try {
+    const credential = EmailAuthProvider.credential(user.email, currentPassword)
+    await reauthenticateWithCredential(user, credential)
+    const db = getFirestoreDb()
+    await deleteDoc(doc(db, 'usersPrivate', user.uid))
+    await deleteUser(user)
+  } catch {
+    throw new AuthError('Não foi possível excluir a conta. Tente novamente.')
+  }
 }

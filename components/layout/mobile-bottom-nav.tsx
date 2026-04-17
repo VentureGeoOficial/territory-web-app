@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Map, Medal, Trophy, Users } from 'lucide-react'
+import { Map, Medal, Trophy, Users, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { href: '/competicao', label: 'Competição', icon: Medal },
   { href: '/amigos', label: 'Amigos', icon: Users },
   { href: '/trofeus', label: 'Troféus', icon: Trophy },
+  { href: '/conta', label: 'Conta', icon: Settings },
 ]
 
 export function MobileBottomNav() {

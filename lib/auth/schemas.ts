@@ -29,6 +29,17 @@ export const forgotPasswordSchema = z.object({
 
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>
 
+export const notificationPreferencesSchema = z.object({
+  app: z.boolean().default(true),
+  email: z.boolean().default(false),
+  whatsapp: z.boolean().default(false),
+  frequency: z.enum(['immediate', 'daily', 'weekly']).default('daily'),
+})
+
+export type NotificationPreferencesValues = z.infer<
+  typeof notificationPreferencesSchema
+>
+
 const usernameRegex = /^[a-z0-9_]{3,30}$/
 
 export const signupSchema = z
@@ -82,3 +93,49 @@ export const signupSchema = z
   })
 
 export type SignupFormValues = z.infer<typeof signupSchema>
+
+export const accountProfileSchema = z.object({
+  nomeCompleto: z.string().trim().min(3, 'Nome deve ter pelo menos 3 caracteres'),
+  displayName: z.string().trim().min(2, 'Nome de exibição obrigatório'),
+  username: z
+    .string()
+    .trim()
+    .transform((s) => s.toLowerCase())
+    .pipe(
+      z
+        .string()
+        .regex(
+          usernameRegex,
+          'Use apenas letras minúsculas, números e _ (3 a 30 caracteres)',
+        ),
+    ),
+  dataNascimento: z.string().min(1, 'Informe a data de nascimento'),
+  sexo: z.enum(['male', 'female', 'other', 'prefer_not']),
+  peso: z.coerce.number().min(30).max(300),
+  altura: z.coerce.number().min(100).max(250),
+  avatarUrl: z
+    .string()
+    .url('Informe uma URL válida')
+    .optional()
+    .or(z.literal('')),
+  backgroundUrl: z
+    .string()
+    .url('Informe uma URL válida')
+    .optional()
+    .or(z.literal('')),
+})
+
+export type AccountProfileValues = z.infer<typeof accountProfileSchema>
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Informe a senha atual'),
+    newPassword: z.string().min(8, 'Nova senha com no mínimo 8 caracteres'),
+    confirmPassword: z.string().min(1, 'Confirme a nova senha'),
+  })
+  .refine((values) => values.newPassword === values.confirmPassword, {
+    message: 'As senhas não coincidem',
+    path: ['confirmPassword'],
+  })
+
+export type ChangePasswordValues = z.infer<typeof changePasswordSchema>
