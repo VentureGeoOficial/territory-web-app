@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { VentureGeoBrandLogo, VentureGeoMascot } from '@/components/brand/venture-geo-logo'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -200,12 +199,12 @@ export function MarketingLanding() {
                 className="p-6 bg-card border-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/40"
               >
                 <div className="mb-4 overflow-hidden rounded-xl">
-                  <Image
+                  <img
                     src={developer.image}
                     alt={`Foto de ${developer.name}`}
-                    width={480}
-                    height={560}
                     className="h-56 w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">
