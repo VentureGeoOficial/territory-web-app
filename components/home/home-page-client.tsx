@@ -5,9 +5,9 @@ import {
   selectIsAuthenticated,
   useAuthStore,
 } from '@/lib/store/auth-store'
-import { Spinner } from '@/components/ui/spinner'
 import { MarketingLanding } from '@/components/home/marketing-landing'
 import { AuthenticatedDashboard } from '@/components/home/authenticated-dashboard'
+import { SplashScreen } from '@/components/home/splash-screen'
 
 export function HomePageClient() {
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
@@ -26,11 +26,7 @@ export function HomePageClient() {
   }, [])
 
   if (!hydrated) {
-    return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-background">
-        <Spinner className="size-10 text-primary" />
-      </div>
-    )
+    return <SplashScreen />
   }
 
   if (isAuthenticated) {

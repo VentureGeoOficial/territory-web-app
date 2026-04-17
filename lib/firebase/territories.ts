@@ -16,6 +16,7 @@ import { SUZANO_BOUNDING_BOX, isPositionInsideBox } from '@/lib/territory/region
 
 const TERRITORIES = 'territories'
 const USERS = 'users'
+const PUBLIC_PROFILES = 'publicProfiles'
 
 export interface TerritoryFirestoreDoc {
   userId: string
@@ -110,6 +111,7 @@ export async function saveTerritoryAndUpdateUserStats(
   const db = getFirestoreDb()
   const payload = territoryToFirestoreDoc(territory)
   const userRef = doc(db, USERS, territory.userId)
+  const publicProfileRef = doc(db, PUBLIC_PROFILES, territory.userId)
 
   await runTransaction(db, async (trx) => {
     const uSnap = await trx.get(userRef)
@@ -132,14 +134,21 @@ export async function saveTerritoryAndUpdateUserStats(
       updatedAt: territory.updatedAt,
     })
 
+    const mergedStats = {
+      totalAreaM2: prevArea + territory.areaM2,
+      territoriesCount: prevCount + 1,
+      xp: prevXp + xpGain,
+      updatedAt: serverTimestamp(),
+    }
+
     trx.set(
       userRef,
-      {
-        totalAreaM2: prevArea + territory.areaM2,
-        territoriesCount: prevCount + 1,
-        xp: prevXp + xpGain,
-        updatedAt: serverTimestamp(),
-      },
+      mergedStats,
+      { merge: true },
+    )
+    trx.set(
+      publicProfileRef,
+      mergedStats,
       { merge: true },
     )
   })

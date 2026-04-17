@@ -96,6 +96,10 @@ export function ForgotPasswordForm({ className }: { className?: string }) {
             Voltar ao login
           </Link>
         </p>
+        <p className="text-center text-xs text-muted-foreground">
+          Por segurança, sempre mostramos a mesma mensagem de envio para evitar
+          enumeração de contas.
+        </p>
       </form>
     </Form>
   )

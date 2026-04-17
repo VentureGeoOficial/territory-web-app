@@ -29,6 +29,7 @@ npm run lint
 - [Visão web + Firebase](Docs/web-firebase.md)
 - [Modelo Firestore](Docs/modelo-dados-firestore.md)
 - [Cadastro de utilizador](Docs/cadastro-usuario.md)
+- [LGPD e transparência](Docs/lgpd.md)
 
 ## Rotas principais
 
@@ -37,10 +38,16 @@ npm run lint
 | `/` | Landing (visitante) ou dashboard (autenticado) |
 | `/login` | Entrada |
 | `/cadastro` | Criar conta (Firebase) |
+| `/esqueci-senha` | Recuperação de senha |
 | `/mapa` | Mapa e desenho de território |
 | `/competicao` | Ranking global e entre amigos |
 | `/amigos` | Pedidos e lista de amigos |
 | `/trofeus` | Conquistas |
+| `/conta` | Dados pessoais, personalização e notificações |
+| `/seguranca` | Política e alteração de senha |
+| `/ajuda` | FAQ, suporte e versão |
+| `/termos` | Termos de Uso |
+| `/privacidade` | Política de Privacidade |
 
 ## Built with v0
 

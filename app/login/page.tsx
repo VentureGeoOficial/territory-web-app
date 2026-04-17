@@ -58,6 +58,17 @@ export default function LoginPage() {
               /{' '}
               <span className="font-mono text-foreground/90">demo123</span>
             </p>
+            <p className="text-center text-xs text-muted-foreground">
+              Ao entrar, você concorda com os{' '}
+              <Link href="/termos" className="text-primary hover:underline">
+                Termos de Uso
+              </Link>{' '}
+              e a{' '}
+              <Link href="/privacidade" className="text-primary hover:underline">
+                Política de Privacidade
+              </Link>
+              .
+            </p>
           </CardContent>
         </Card>
 
