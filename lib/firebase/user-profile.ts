@@ -83,6 +83,7 @@ export async function createUserProfileAfterSignup(
     }
     trx.set(usernameRef, {
       uid,
+      email: email.trim().toLowerCase(),
       createdAt: serverTimestamp(),
     })
     trx.set(userRef, {
@@ -143,6 +144,16 @@ export async function createUserProfileAfterSignup(
       updatedAt: serverTimestamp(),
     })
   })
+}
+
+export async function getEmailByUsername(username: string): Promise<string | null> {
+  if (!isFirebaseConfigured()) return null
+  const slug = username.trim().toLowerCase()
+  if (!slug) return null
+  const snap = await getDoc(doc(getFirestoreDb(), USERNAMES, slug))
+  if (!snap.exists()) return null
+  const data = snap.data() as { email?: string }
+  return data.email?.trim().toLowerCase() ?? null
 }
 
 export async function ensureUserProfile(
