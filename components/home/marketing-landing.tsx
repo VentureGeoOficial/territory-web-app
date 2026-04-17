@@ -1,9 +1,28 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { VentureGeoBrandLogo, VentureGeoMascot } from '@/components/brand/venture-geo-logo'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Map, Trophy, Users, Zap, ArrowRight, MapPin, Download } from 'lucide-react'
 import { useInstallPrompt } from '@/lib/pwa/use-install-prompt'
+
+const developers = [
+  {
+    name: 'Henrique',
+    specialty: 'Especialista em Front-end e experiência do usuário.',
+    image: '/developers/henrique.jpeg',
+  },
+  {
+    name: 'Leonardo',
+    specialty: 'Especialista em Back-end e integração de serviços.',
+    image: '/developers/leonardo.jpeg',
+  },
+  {
+    name: 'Marcelo',
+    specialty: 'Especialista em IA aplicada e automações de produto.',
+    image: '/developers/marcelo.jpeg',
+  },
+]
 
 export function MarketingLanding() {
   const { canInstall, promptInstall } = useInstallPrompt()
@@ -159,6 +178,44 @@ export function MarketingLanding() {
                 Proteja suas conquistas correndo mais.
               </p>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Time de desenvolvimento
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Profissionais responsáveis por construir uma experiência moderna, segura e escalável.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {developers.map((developer) => (
+              <Card
+                key={developer.name}
+                className="p-6 bg-card border-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/40"
+              >
+                <div className="mb-4 overflow-hidden rounded-xl">
+                  <Image
+                    src={developer.image}
+                    alt={`Foto de ${developer.name}`}
+                    width={480}
+                    height={560}
+                    className="h-56 w-full object-cover"
+                  />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  {developer.name}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {developer.specialty}
+                </p>
+              </Card>
+            ))}
           </div>
         </div>
       </section>

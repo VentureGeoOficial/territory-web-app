@@ -9,6 +9,14 @@ import { signOutRemote } from '@/lib/auth/auth-service'
 import { Button } from '@/components/ui/button'
 import { VentureGeoBrandLogo } from '@/components/brand/venture-geo-logo'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { formatArea } from '@/lib/territory/geo'
 import { LogOut, Map, Settings, Trophy, User, Users, Medal, Menu, CircleHelp } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -212,29 +220,35 @@ export function Header() {
 
       {/* User menu - Desktop */}
       <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="hidden lg:flex h-9 w-9"
-          onClick={handleLogout}
-          aria-label="Sair"
-        >
-          <LogOut className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="hidden lg:flex h-9 w-9" asChild>
-          <Link href="/conta">
-          <Settings className="h-4 w-4" />
-          </Link>
-        </Button>
-        <Button variant="ghost" className="h-9 gap-2 px-2">
-          <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
-            <User className="h-4 w-4 text-primary" />
-          </div>
-          <span className="hidden sm:inline text-sm font-medium truncate max-w-[100px]">
-            {currentUser?.displayName || 'Demo'}
-          </span>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-9 gap-2 px-2" aria-label="Abrir menu do usuário">
+              <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
+                <User className="h-4 w-4 text-primary" />
+              </div>
+              <span className="hidden sm:inline text-sm font-medium truncate max-w-[100px]">
+                {currentUser?.displayName || 'Demo'}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>{currentUser?.displayName || 'Conta'}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/conta')}>
+              <Settings className="h-4 w-4" />
+              Minha conta
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/ajuda')}>
+              <CircleHelp className="h-4 w-4" />
+              Ajuda
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" />
+              Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )
