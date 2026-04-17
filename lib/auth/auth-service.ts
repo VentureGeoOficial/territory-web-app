@@ -17,18 +17,20 @@ const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
 /** Credenciais de demonstração — só quando Firebase não está configurado. */
 const DEMO_EMAIL = 'demo@territory.run'
 const DEMO_PASSWORD = 'demo123'
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 async function loginWithMock(credentials: LoginFormValues): Promise<AuthSession> {
   await delay(550)
+  const identifier = credentials.identifier.trim().toLowerCase()
   if (
-    credentials.email.toLowerCase() === DEMO_EMAIL &&
+    (identifier === DEMO_EMAIL || identifier === 'demo') &&
     credentials.password === DEMO_PASSWORD
   ) {
     const expiresAt = Date.now() + 60 * 60 * 1000
     return {
       user: {
         id: 'user-demo',
-        email: credentials.email,
+        email: DEMO_EMAIL,
         displayName: 'Demo TerritoryRun',
       },
       accessToken: `mock.${btoa(
@@ -48,11 +50,19 @@ export async function login(
     const { signInWithEmailAndPassword } = await import('firebase/auth')
     const { getFirebaseAuth } = await import('@/lib/firebase/client')
     const { firebaseUserToSession } = await import('./firebase-session')
+    const { getEmailByUsername } = await import('@/lib/firebase/user-profile')
     try {
       const auth = getFirebaseAuth()
+      const identifier = credentials.identifier.trim().toLowerCase()
+      const resolvedEmail = emailRegex.test(identifier)
+        ? identifier
+        : await getEmailByUsername(identifier)
+      if (!resolvedEmail) {
+        throw new AuthError('Usuário não encontrado.')
+      }
       const cred = await signInWithEmailAndPassword(
         auth,
-        credentials.email.trim(),
+        resolvedEmail,
         credentials.password,
       )
       return firebaseUserToSession(cred.user)
