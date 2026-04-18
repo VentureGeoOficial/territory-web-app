@@ -282,6 +282,52 @@ const UserLiveMarker = memo(function UserLiveMarker() {
   )
 })
 
+// Marcador da posição atual do usuário (sempre visível)
+const UserPositionMarker = memo(function UserPositionMarker() {
+  const isRunning = useRunStore((s) => s.isRunning)
+  const currentPosition = useRunStore((s) => s.currentUserPosition)
+  const getCurrentUser = useTerritoryStore((s) => s.getCurrentUser)
+  const uid = useAuthStore((s) => s.user?.id)
+  
+  // Usa a cor do perfil do usuário ou gera uma cor estável
+  const currentUser = getCurrentUser()
+  const color = currentUser?.color || (uid ? generateStableUserColor(uid) : BRAND.lime)
+
+  // Se está correndo, o UserLiveMarker já mostra a posição
+  if (isRunning) return null
+  
+  // Se não tem posição, não mostra nada
+  if (!currentPosition) return null
+
+  return (
+    <>
+      {/* Círculo externo pulsante */}
+      <CircleMarker
+        center={[currentPosition.lat, currentPosition.lng]}
+        radius={18}
+        pathOptions={{
+          color: color,
+          fillColor: color,
+          fillOpacity: 0.15,
+          weight: 0,
+          className: 'user-position-pulse',
+        }}
+      />
+      {/* Círculo principal */}
+      <CircleMarker
+        center={[currentPosition.lat, currentPosition.lng]}
+        radius={10}
+        pathOptions={{
+          color: '#fff',
+          fillColor: color,
+          fillOpacity: 1,
+          weight: 3,
+        }}
+      />
+    </>
+  )
+})
+
 export function TerritoryMap() {
   const mapId = useId()
   const mapRef = useRef<LeafletMap | null>(null)
@@ -355,6 +401,7 @@ export function TerritoryMap() {
         />
       ))}
 
+      <UserPositionMarker />
       <RunTrackLayer />
       <UserLiveMarker />
     </MapContainer>
