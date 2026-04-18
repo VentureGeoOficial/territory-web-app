@@ -2,6 +2,7 @@
 
 import { useFirestoreTerritorySync } from '@/hooks/use-firestore-territory-sync'
 import { useCurrentUserPublicProfile } from '@/hooks/use-public-profile-sync'
+import { useUserPositionTracking } from '@/hooks/use-user-position-tracking'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { Header } from '@/components/layout/header'
 import { TerritorySidebar } from '@/components/territory/territory-sidebar'
@@ -12,6 +13,7 @@ export default function MapaPage() {
   const uid = useAuthStore((s) => s.user?.id)
   useFirestoreTerritorySync()
   useCurrentUserPublicProfile(uid)
+  useUserPositionTracking()
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">

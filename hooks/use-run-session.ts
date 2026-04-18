@@ -31,6 +31,8 @@ export function useRunSession() {
     })()
   }, [setPermission])
 
+  const setCurrentUserPosition = useRunStore((s) => s.setCurrentUserPosition)
+
   const startRun = useCallback(() => {
     startRunStore()
     setMapMode('run')
@@ -42,6 +44,8 @@ export function useRunSession() {
       onPoint: (tp) => {
         appendTrackPoint(tp)
         setLivePosition(tp.latitude, tp.longitude)
+        // Também atualiza a posição atual do usuário
+        setCurrentUserPosition(tp.latitude, tp.longitude)
       },
       onError: (code) => {
         if (code === 1) setPermission('denied')
@@ -50,6 +54,7 @@ export function useRunSession() {
   }, [
     appendTrackPoint,
     setLivePosition,
+    setCurrentUserPosition,
     setMapMode,
     startRunStore,
     setPermission,
