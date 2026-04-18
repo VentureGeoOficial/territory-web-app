@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { VentureGeoBrandLogo, VentureGeoMascot } from '@/components/brand/venture-geo-logo'
 import { Button } from '@/components/ui/button'
