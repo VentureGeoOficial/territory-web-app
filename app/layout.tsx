@@ -19,18 +19,6 @@ export const metadata: Metadata = {
   title: 'TerritoryRun - Conquiste seu Caminho',
   description:
     'Transforme suas corridas e caminhadas em conquistas territoriais. Gamificacao de atividades fisicas com mapas interativos.',
-  generator: 'v0.app',
-  keywords: ['corrida', 'caminhada', 'gamificacao', 'territorio', 'fitness', 'mapa'],
-  authors: [{ name: 'Venture Geo' }],
-  manifest: '/manifest.webmanifest',
-  icons: {
-    icon: [
-      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
-    ],
-    apple: '/icon-192.png',
-  },
 }
 
 export const viewport: Viewport = {
