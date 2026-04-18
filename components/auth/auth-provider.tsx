@@ -23,7 +23,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 
   React.useEffect(() => {
-    if (!isFirebaseConfigured()) return
+    if (!isFirebaseConfigured()) {
+      setFirebaseAuthReady(true)
+      return
+    }
 
     let unsub: (() => void) | undefined
 
@@ -46,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           })
         } else {
           logout()
-          setCurrentUserId('user-demo')
+          setCurrentUserId('')
         }
       })
     })()

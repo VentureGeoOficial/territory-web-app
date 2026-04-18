@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback, useState, useId, useMemo, memo } from 'react'
+import { useEffect, useRef, useCallback, useId, useMemo, memo } from 'react'
 import {
   MapContainer,
   TileLayer,
@@ -11,15 +11,18 @@ import {
   useMap,
   useMapEvents,
 } from 'react-leaflet'
-import type { LatLngExpression, LeafletMouseEvent, Map as LeafletMap } from 'leaflet'
+import type { LatLngExpression, Map as LeafletMap } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useTerritoryStore } from '@/lib/store/territory-store'
+import { useRunStore } from '@/lib/store/run-store'
 import type { Territory } from '@/lib/territory/types'
 import { formatArea } from '@/lib/territory/geo'
 import { Button } from '@/components/ui/button'
 import { Crosshair, MapPin, Shield, Swords } from 'lucide-react'
+import { getSuzanoMaxBounds } from '@/lib/territory/regions'
+import { useAuthStore } from '@/lib/store/auth-store'
+import { generateStableUserColor } from '@/lib/territory/geo'
 
-// Brand colors from VentureGeo manual
 const BRAND = {
   lime: '#CCFF00',
   electric: '#00D2FF',
@@ -30,16 +33,11 @@ const BRAND = {
   success: '#22c55e',
 }
 
-// Map event handler component
 function MapEventHandler() {
-  const { mapMode, addDrawingPoint, setMapCenter, setMapZoom } = useTerritoryStore()
+  const setMapCenter = useTerritoryStore((s) => s.setMapCenter)
+  const setMapZoom = useTerritoryStore((s) => s.setMapZoom)
 
   const map = useMapEvents({
-    click(e: LeafletMouseEvent) {
-      if (mapMode === 'draw') {
-        addDrawingPoint([e.latlng.lng, e.latlng.lat])
-      }
-    },
     moveend() {
       const center = map.getCenter()
       setMapCenter([center.lng, center.lat])
@@ -52,7 +50,6 @@ function MapEventHandler() {
   return null
 }
 
-// Component to sync map view with store
 function MapViewSync() {
   const map = useMap()
   const mapCenter = useTerritoryStore((state) => state.mapCenter)
@@ -69,7 +66,6 @@ function MapViewSync() {
   return null
 }
 
-// Location button that needs to be inside MapContainer
 function LocationControl() {
   const map = useMap()
   const setMapCenter = useTerritoryStore((state) => state.setMapCenter)
@@ -84,13 +80,16 @@ function LocationControl() {
         },
         (error) => {
           console.error('Erro ao obter localizacao:', error)
-        }
+        },
       )
     }
   }
 
   return (
-    <div className="leaflet-bottom leaflet-right" style={{ marginBottom: '100px', marginRight: '10px' }}>
+    <div
+      className="leaflet-bottom leaflet-right"
+      style={{ marginBottom: '100px', marginRight: '10px' }}
+    >
       <div className="leaflet-control">
         <Button
           size="icon"
@@ -108,7 +107,6 @@ function LocationControl() {
   )
 }
 
-// Territory polygon component - Memoized for performance
 const TerritoryPolygon = memo(function TerritoryPolygon({
   territory,
   isOwn,
@@ -123,38 +121,41 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
   const getColor = () => {
     if (territory.status === 'disputed') return BRAND.dispute
     if (territory.status === 'protected') return BRAND.success
-    if (isOwn) return BRAND.lime
+    if (isOwn) return territory.userColor || BRAND.lime
     return territory.userColor || BRAND.electric
   }
 
   const coordinates = territory.polygon.geometry.coordinates[0]
   const positions: LatLngExpression[] = coordinates.map(
-    (coord) => [coord[1], coord[0]] as LatLngExpression
+    (coord) => [coord[1], coord[0]] as LatLngExpression,
   )
 
   const color = getColor()
   const fillOpacity = isSelected ? 0.5 : 0.35
   const weight = isSelected ? 3 : 2
 
-  const StatusIcon = territory.status === 'disputed' 
-    ? Swords 
-    : territory.status === 'protected' 
-      ? Shield 
-      : MapPin
-
-  const statusColor = territory.status === 'disputed'
-    ? BRAND.dispute
-    : territory.status === 'protected'
-      ? BRAND.success
-      : BRAND.lime
-
-  const statusLabel = territory.status === 'active'
-    ? 'Ativo'
-    : territory.status === 'disputed'
-      ? 'Em Disputa'
+  const StatusIcon =
+    territory.status === 'disputed'
+      ? Swords
       : territory.status === 'protected'
-        ? 'Protegido'
-        : territory.status
+        ? Shield
+        : MapPin
+
+  const statusColor =
+    territory.status === 'disputed'
+      ? BRAND.dispute
+      : territory.status === 'protected'
+        ? BRAND.success
+        : BRAND.lime
+
+  const statusLabel =
+    territory.status === 'active'
+      ? 'Ativo'
+      : territory.status === 'disputed'
+        ? 'Em Disputa'
+        : territory.status === 'protected'
+          ? 'Protegido'
+          : territory.status
 
   return (
     <Polygon
@@ -164,7 +165,10 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
         fillColor: color,
         fillOpacity,
         weight,
-        className: territory.status === 'disputed' ? 'territory-dispute' : 'territory-pulse',
+        className:
+          territory.status === 'disputed'
+            ? 'territory-dispute'
+            : 'territory-pulse',
       }}
       eventHandlers={{
         click: onClick,
@@ -172,18 +176,17 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
     >
       <Popup>
         <div className="min-w-52 -m-3 -mt-4">
-          {/* Header */}
-          <div 
+          <div
             className="px-4 py-3 flex items-center gap-3"
-            style={{ 
+            style={{
               borderBottom: `1px solid ${BRAND.border}`,
             }}
           >
             <div
               className="w-4 h-10 rounded-full shrink-0"
-              style={{ 
+              style={{
                 backgroundColor: territory.userColor || color,
-                boxShadow: `0 0 8px ${territory.userColor || color}40`
+                boxShadow: `0 0 8px ${territory.userColor || color}40`,
               }}
             />
             <div>
@@ -195,42 +198,36 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
               </div>
             </div>
           </div>
-          
-          {/* Stats */}
+
           <div className="px-4 py-3 space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Area</span>
-              <span 
+              <span
                 className="font-mono font-bold text-lg"
                 style={{ color: isOwn ? BRAND.lime : BRAND.electric }}
               >
                 {formatArea(territory.areaM2)}
               </span>
             </div>
-            
+
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Status</span>
-              <div 
+              <div
                 className="flex items-center gap-1.5 px-2 py-1 rounded-md"
-                style={{ 
+                style={{
                   background: `${statusColor}15`,
                 }}
               >
                 <StatusIcon className="h-3.5 w-3.5" style={{ color: statusColor }} />
-                <span 
-                  className="text-sm font-medium"
-                  style={{ color: statusColor }}
-                >
+                <span className="text-sm font-medium" style={{ color: statusColor }}>
                   {statusLabel}
                 </span>
               </div>
             </div>
-            
+
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Conquistas</span>
-              <span className="font-mono text-foreground">
-                {territory.conquestCount}x
-              </span>
+              <span className="font-mono text-foreground">{territory.conquestCount}x</span>
             </div>
           </div>
         </div>
@@ -239,80 +236,56 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
   )
 })
 
-// Drawing layer component - Memoized for performance
-const DrawingLayer = memo(function DrawingLayer() {
-  const { drawingPoints, isDrawing } = useTerritoryStore()
+const RunTrackLayer = memo(function RunTrackLayer() {
+  const isRunning = useRunStore((s) => s.isRunning)
+  const points = useRunStore((s) => s.points)
+  const uid = useAuthStore((s) => s.user?.id)
+  const lineColor = uid ? generateStableUserColor(uid) : BRAND.lime
 
-  if (!isDrawing || drawingPoints.length === 0) return null
+  if (!isRunning || points.length === 0) return null
 
-  const positions: LatLngExpression[] = drawingPoints.map(
-    (point) => [point[1], point[0]] as LatLngExpression
+  const positions: LatLngExpression[] = points.map(
+    (p) => [p.latitude, p.longitude] as LatLngExpression,
   )
 
   return (
-    <>
-      {/* Line connecting points */}
-      <Polyline
-        positions={positions}
-        pathOptions={{
-          color: BRAND.lime,
-          weight: 3,
-          dashArray: '10, 10',
-        }}
-      />
-      
-      {/* Points */}
-      {drawingPoints.map((point, index) => (
-        <CircleMarker
-          key={index}
-          center={[point[1], point[0]]}
-          radius={index === 0 ? 10 : 6}
-          pathOptions={{
-            color: BRAND.lime,
-            fillColor: index === 0 ? BRAND.lime : BRAND.navyDark,
-            fillOpacity: 1,
-            weight: 2,
-          }}
-        />
-      ))}
+    <Polyline
+      positions={positions}
+      pathOptions={{
+        color: lineColor,
+        weight: 4,
+        opacity: 0.95,
+      }}
+    />
+  )
+})
 
-      {/* Close line to start if 3+ points */}
-      {drawingPoints.length >= 3 && (
-        <Polyline
-          positions={[
-            [drawingPoints[drawingPoints.length - 1][1], drawingPoints[drawingPoints.length - 1][0]],
-            [drawingPoints[0][1], drawingPoints[0][0]],
-          ]}
-          pathOptions={{
-            color: BRAND.lime,
-            weight: 2,
-            dashArray: '5, 10',
-            opacity: 0.5,
-          }}
-        />
-      )}
+const UserLiveMarker = memo(function UserLiveMarker() {
+  const isRunning = useRunStore((s) => s.isRunning)
+  const live = useRunStore((s) => s.livePosition)
+  const uid = useAuthStore((s) => s.user?.id)
+  const color = uid ? generateStableUserColor(uid) : BRAND.lime
 
-      {/* Preview fill when 3+ points */}
-      {drawingPoints.length >= 3 && (
-        <Polygon
-          positions={positions}
-          pathOptions={{
-            color: BRAND.lime,
-            fillColor: BRAND.lime,
-            fillOpacity: 0.15,
-            weight: 0,
-          }}
-        />
-      )}
-    </>
+  if (!isRunning || !live) return null
+
+  return (
+    <CircleMarker
+      center={[live.lat, live.lng]}
+      radius={9}
+      pathOptions={{
+        color: '#fff',
+        fillColor: color,
+        fillOpacity: 1,
+        weight: 3,
+      }}
+    />
   )
 })
 
 export function TerritoryMap() {
   const mapId = useId()
   const mapRef = useRef<LeafletMap | null>(null)
-  const [isMapReady, setIsMapReady] = useState(false)
-  
+
   const territories = useTerritoryStore((s) => s.territories)
   const currentUserId = useTerritoryStore((s) => s.currentUserId)
   const selectedTerritoryId = useTerritoryStore((s) => s.selectedTerritoryId)
@@ -320,23 +293,23 @@ export function TerritoryMap() {
   const mapCenter = useTerritoryStore((s) => s.mapCenter)
   const mapZoom = useTerritoryStore((s) => s.mapZoom)
 
-  // Memoize the click handler to prevent unnecessary re-renders
   const handleTerritoryClick = useCallback(
     (id: string) => {
       selectTerritory(selectedTerritoryId === id ? null : id)
     },
-    [selectTerritory, selectedTerritoryId]
+    [selectTerritory, selectedTerritoryId],
   )
 
-  // Memoize territory callbacks to prevent re-creating functions on each render
   const territoryClickHandlers = useMemo(() => {
-    return territories.reduce((acc, territory) => {
-      acc[territory.id] = () => handleTerritoryClick(territory.id)
-      return acc
-    }, {} as Record<string, () => void>)
+    return territories.reduce(
+      (acc, territory) => {
+        acc[territory.id] = () => handleTerritoryClick(territory.id)
+        return acc
+      },
+      {} as Record<string, () => void>,
+    )
   }, [territories, handleTerritoryClick])
 
-  // Cleanup map on unmount to prevent reuse issues
   useEffect(() => {
     return () => {
       if (mapRef.current) {
@@ -355,32 +328,35 @@ export function TerritoryMap() {
       className="h-full w-full"
       zoomControl={true}
       attributionControl={false}
-      whenReady={() => setIsMapReady(true)}
+      maxBounds={getSuzanoMaxBounds()}
+      maxBoundsViscosity={0.92}
+      minZoom={12}
+      maxZoom={18}
+      whenReady={() => {
+        /* map ready */
+      }}
     >
-      {/* Dark theme tiles - CartoDB Dark Matter */}
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
       />
 
-      {/* Map event handlers */}
       <MapEventHandler />
       <MapViewSync />
       <LocationControl />
 
-      {/* Render territories - using memoized click handlers */}
       {territories.map((territory) => (
         <TerritoryPolygon
           key={territory.id}
           territory={territory}
           isOwn={territory.userId === currentUserId}
           isSelected={selectedTerritoryId === territory.id}
-          onClick={territoryClickHandlers[territory.id]}
+          onClick={territoryClickHandlers[territory.id]!}
         />
       ))}
 
-      {/* Drawing layer */}
-      <DrawingLayer />
+      <RunTrackLayer />
+      <UserLiveMarker />
     </MapContainer>
   )
 }

@@ -105,6 +105,14 @@ export function LoginForm({ className }: { className?: string }) {
         onSubmit={form.handleSubmit(onSubmit)}
         className={cn('grid gap-5', className)}
       >
+        {!isFirebaseConfigured() && (
+          <Alert variant="destructive">
+            <AlertDescription>
+              Configure NEXT_PUBLIC_FIREBASE_* no ficheiro .env.local para entrar na aplicação.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {form.formState.errors.root && (
           <Alert variant="destructive">
             <AlertDescription>
@@ -182,7 +190,7 @@ export function LoginForm({ className }: { className?: string }) {
         <Button
           type="submit"
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-          disabled={submitting || isLimited}
+          disabled={submitting || isLimited || !isFirebaseConfigured()}
         >
           {submitting ? (
             <>

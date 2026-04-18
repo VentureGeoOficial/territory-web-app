@@ -47,9 +47,9 @@ export function validateRoute(
     )
   }
 
-  // Verificar loop fechado
+  // Verificar loop fechado (apenas quando maxLoopGapMeters > 0)
   let loopGap = 0
-  if (points.length >= 2) {
+  if (config.maxLoopGapMeters > 0 && points.length >= 2) {
     loopGap = haversineDistance(points[0], points[points.length - 1])
     if (loopGap > config.maxLoopGapMeters) {
       errors.push(

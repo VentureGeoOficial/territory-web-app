@@ -56,6 +56,25 @@ service cloud.firestore {
         && isValidTerritoryPayload();
     }
 
+    match /runs/{runId} {
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.territoryId is string
+        && request.resource.data.startedAt is number
+        && request.resource.data.endedAt is number
+        && request.resource.data.distanceMeters is number
+        && request.resource.data.durationSeconds is number
+        && request.resource.data.areaM2 is number
+        && request.resource.data.areaM2 > 0
+        && request.resource.data.areaM2 <= 10000000
+        && request.resource.data.xpGained is number
+        && request.resource.data.routeJson is string
+        && request.resource.data.routeJson.size() <= 400000;
+      allow update, delete: if false;
+    }
+
     match /friendRequests/{requestId} {
       allow read: if request.auth != null
         && (resource.data.fromUserId == request.auth.uid

@@ -2,7 +2,6 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { isFirebaseConfigured } from '@/lib/firebase/config'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { useTerritoryStore } from '@/lib/store/territory-store'
 import { formatArea } from '@/lib/territory/geo'
@@ -26,14 +25,8 @@ export function AuthenticatedDashboard() {
   const user = useAuthStore((s) => s.user)
   const currentUserId = useTerritoryStore((s) => s.currentUserId)
   const territories = useTerritoryStore((s) => s.territories)
-  const initMockData = useTerritoryStore((s) => s.initMockData)
   const getTotalAreaForUser = useTerritoryStore((s) => s.getTotalAreaForUser)
 
-  React.useEffect(() => {
-    if (isFirebaseConfigured()) return
-    if (territories.length === 0) initMockData()
-  }, [territories.length, initMockData])
-  
   // Memoize filtered territories to avoid infinite loop
   const myTerritories = React.useMemo(
     () => territories.filter((t) => t.userId === currentUserId),
@@ -191,13 +184,13 @@ export function AuthenticatedDashboard() {
               <Button asChild className="justify-start" variant="outline">
                 <Link href="/mapa">
                   <Map className="h-4 w-4 mr-2" />
-                  Desenhar território
+                  Iniciar corrida no mapa
                 </Link>
               </Button>
               <Button asChild className="justify-start" variant="outline">
                 <Link href="/competicao">
                   <Medal className="h-4 w-4 mr-2" />
-                  Ranking global e amigos
+                  Ranking entre amigos
                 </Link>
               </Button>
               <Button asChild className="justify-start" variant="outline">

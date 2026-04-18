@@ -17,13 +17,6 @@ export default function CompeticaoPage() {
   const uid = useAuthStore((s) => s.user?.id)
   const global = useGlobalLeaderboard(50)
   const [friendIds, setFriendIds] = React.useState<string[]>([])
-  const [isLoading, setIsLoading] = React.useState(true)
-
-  React.useEffect(() => {
-    // Simula carregamento inicial para mostrar skeleton
-    const timer = setTimeout(() => setIsLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [])
 
   React.useEffect(() => {
     if (!uid || !isFirebaseConfigured()) {
@@ -43,38 +36,52 @@ export default function CompeticaoPage() {
       .map((e, i) => ({ ...e, rank: i + 1 }))
   }, [global, friendIds, uid])
 
-  const friendsTabData = isFirebaseConfigured() ? friendsOnly : global
-
   return (
     <AuthenticatedShell>
       <div className="space-y-6 pb-16 lg:pb-0">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Competição</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Ranking por área total dominada (m²). Atualização em tempo real com Firebase.
+            Compare a área dominada com os seus amigos em Suzano.
           </p>
         </div>
 
-        <Tabs defaultValue="global" className="w-full">
+        <Tabs defaultValue="friends" className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="global">Global</TabsTrigger>
             <TabsTrigger value="friends">Amigos</TabsTrigger>
+            <TabsTrigger value="global">Global</TabsTrigger>
           </TabsList>
-          <TabsContent value="global">
-            <LeaderboardCard entries={global} currentUserId={uid ?? ''} isLoading={isLoading} />
-          </TabsContent>
           <TabsContent value="friends">
             {!isFirebaseConfigured() && (
-              <p className="text-xs text-muted-foreground mb-2">
-                Modo demo: todos os perfis do mapa entram no círculo de comparação.
+              <p className="text-xs text-amber-500 mb-2">
+                Configure o Firebase para ver o ranking entre amigos.
               </p>
             )}
-            {isFirebaseConfigured() && friendIds.length === 0 && !isLoading && (
+            {isFirebaseConfigured() && friendIds.length === 0 && (
               <p className="text-xs text-muted-foreground mb-2">
-                Adicione amigos em Amigos para ver o ranking do seu círculo.
+                Adicione amigos na página Amigos para ver o ranking do seu círculo.
               </p>
             )}
-            <LeaderboardCard entries={friendsTabData} currentUserId={uid ?? ''} isLoading={isLoading} />
+            <LeaderboardCard
+              entries={friendsOnly}
+              currentUserId={uid ?? ''}
+              isLoading={false}
+            />
+          </TabsContent>
+          <TabsContent value="global">
+            <Card>
+              <CardHeader>
+                <CardTitle>Em breve</CardTitle>
+                <CardDescription>
+                  O ranking global será disponibilizado numa atualização futura.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Por agora, compete apenas com o seu círculo de amigos na aba Amigos.
+                </p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
