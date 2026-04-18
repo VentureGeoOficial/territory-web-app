@@ -14,7 +14,6 @@ import {
 } from '@/lib/firebase/friends'
 import { getUserProfile } from '@/lib/firebase/user-profile'
 import { useAuthStore } from '@/lib/store/auth-store'
-import { useTerritoryStore } from '@/lib/store/territory-store'
 import { AuthenticatedShell } from '@/components/layout/authenticated-shell'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { Button } from '@/components/ui/button'
@@ -23,13 +22,9 @@ import { Input } from '@/components/ui/input'
 import { FriendsListSkeleton } from '@/components/ui/skeletons'
 import { formatArea } from '@/lib/territory/geo'
 import { useRateLimit } from '@/hooks/use-rate-limit'
-import { User } from 'lucide-react'
 
 export default function AmigosPage() {
   const uid = useAuthStore((s) => s.user?.id)
-  const currentUserId = useTerritoryStore((s) => s.currentUserId)
-  const users = useTerritoryStore((s) => s.users)
-  const getTotalAreaForUser = useTerritoryStore((s) => s.getTotalAreaForUser)
 
   const [email, setEmail] = React.useState('')
   const [incoming, setIncoming] = React.useState<FriendRequestDoc[]>([])
@@ -116,8 +111,6 @@ export default function AmigosPage() {
     }
   }
 
-  const mockRivals = users.filter((u) => u.id !== currentUserId)
-
   return (
     <AuthenticatedShell>
       <div className="space-y-8 max-w-2xl pb-16 lg:pb-0">
@@ -131,30 +124,12 @@ export default function AmigosPage() {
         {!isFirebaseConfigured() && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Modo demo (sem Firebase)</CardTitle>
+              <CardTitle className="text-base">Firebase necessário</CardTitle>
               <CardDescription>
-                Perfis abaixo vêm do mapa de demonstração. Configure Firebase para pedidos
-                e amigos reais.
+                Defina NEXT_PUBLIC_FIREBASE_* no .env.local para usar pedidos de amizade e perfis
+                reais.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {mockRivals.map((u) => (
-                  <li
-                    key={u.id}
-                    className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
-                  >
-                    <span className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      {u.displayName}
-                    </span>
-                    <span className="font-mono text-muted-foreground">
-                      {formatArea(getTotalAreaForUser(u.id))}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
           </Card>
         )}
 

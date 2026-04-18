@@ -78,16 +78,20 @@ export interface User {
  * Configuracoes de criacao de territorio
  */
 export interface TerritoryConfig {
-  /** Buffer em km ao redor da rota (default: 0.03 = 30m) */
+  /** Buffer em km ao redor da rota (20 m = 0.02) */
   bufferKm: number
   /** Numero minimo de pontos GPS */
   minPoints: number
-  /** Distancia maxima entre inicio e fim para fechar loop (metros) */
+  /** Distancia maxima entre inicio e fim para fechar loop (metros) — rotas fechadas legadas */
   maxLoopGapMeters: number
   /** Duracao minima em segundos */
   minDurationSeconds: number
   /** Tempo de protecao em ms (default: 2h = 7200000) */
   protectionTimeMs: number
+  /** Distancia minima do percurso em metros (corrida) */
+  minRunDistanceMeters: number
+  /** Fracao minima dos pontos dentro da regiao (0–1) */
+  minFractionInRegion: number
 }
 
 /**
@@ -154,7 +158,7 @@ export interface RankingEntry {
 /**
  * Modo do mapa
  */
-export type MapMode = 'view' | 'draw' | 'simulate'
+export type MapMode = 'view' | 'run'
 
 /**
  * Estado da UI do mapa
@@ -164,29 +168,23 @@ export interface MapState {
   zoom: number
   mode: MapMode
   selectedTerritoryId?: string
-  drawingPoints: Position[]
-  isDrawing: boolean
 }
 
 /**
- * Dados mock para demo
+ * Config para corrida → território (buffer 20 m, validação de rota aberta)
  */
-export interface MockData {
-  users: User[]
-  territories: Territory[]
-  currentUserId: string
+export const RUN_TERRITORY_CONFIG: TerritoryConfig = {
+  bufferKm: 0.02,
+  minPoints: 8,
+  maxLoopGapMeters: 0,
+  minDurationSeconds: 90,
+  protectionTimeMs: 2 * 60 * 60 * 1000,
+  minRunDistanceMeters: 100,
+  minFractionInRegion: 0.75,
 }
 
-/**
- * Configuracoes padrao
- */
-export const DEFAULT_TERRITORY_CONFIG: TerritoryConfig = {
-  bufferKm: 0.03, // 30 metros
-  minPoints: 25,
-  maxLoopGapMeters: 30,
-  minDurationSeconds: 240, // 4 minutos
-  protectionTimeMs: 2 * 60 * 60 * 1000, // 2 horas
-}
+/** @deprecated Usar RUN_TERRITORY_CONFIG */
+export const DEFAULT_TERRITORY_CONFIG: TerritoryConfig = RUN_TERRITORY_CONFIG
 
 /**
  * Cores dos territorios por nivel de dominio

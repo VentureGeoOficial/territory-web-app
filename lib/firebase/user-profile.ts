@@ -21,6 +21,8 @@ export interface UserProfileDoc {
   color: string
   totalAreaM2: number
   territoriesCount: number
+  totalDistanceM?: number
+  totalDurationSeconds?: number
   xp: number
   /** Nome completo (cadastro) */
   nomeCompleto?: string

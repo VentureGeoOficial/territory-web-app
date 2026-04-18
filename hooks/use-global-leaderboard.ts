@@ -25,6 +25,10 @@ export function useGlobalLeaderboard(limit = 50) {
 
   useEffect(() => {
     const repo = getLeaderboardRepository()
+    if (!repo) {
+      setEntries([])
+      return
+    }
     const unsub = repo.subscribeGlobalLeaderboard(setEntries, limit)
     return () => unsub?.()
   }, [limit])

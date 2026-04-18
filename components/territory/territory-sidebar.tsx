@@ -46,7 +46,8 @@ export function TerritorySidebar() {
 
   // Stats
   const myTerritories = territories.filter((t) => t.userId === currentUserId)
-  const myTotalArea = getTotalAreaForUser(currentUserId)
+  const myTotalArea =
+    currentUser?.totalAreaM2 ?? getTotalAreaForUser(currentUserId)
   const disputedCount = territories.filter((t) => t.status === 'disputed').length
 
   // Rank calculation
@@ -135,7 +136,7 @@ export function TerritorySidebar() {
             </div>
             <div>
               <div className="font-semibold text-foreground">
-                {currentUser?.displayName || 'Usuario Demo'}
+                {currentUser?.displayName || 'Corredor'}
               </div>
               <div 
                 className="text-xs font-medium flex items-center gap-1"
@@ -244,7 +245,7 @@ export function TerritorySidebar() {
             </p>
             {filter === 'mine' && (
               <p className="text-xs text-muted-foreground">
-                Clique em &quot;Desenhar Territorio&quot; para comecar sua conquista
+                Use &quot;Iniciar corrida&quot; no mapa para conquistar território ao correr em Suzano.
               </p>
             )}
           </div>

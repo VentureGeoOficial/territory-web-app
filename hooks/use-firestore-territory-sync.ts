@@ -31,17 +31,43 @@ function deriveUsersFromTerritories(territories: Territory[]): User[] {
   return users
 }
 
-/** Sincroniza territórios e lista derivada de utilizadores a partir do Firestore. */
+function mergeDerivedWithExisting(derived: User[], existing: User[]): User[] {
+  const merged = derived.map((d) => {
+    const p = existing.find((u) => u.id === d.id)
+    if (!p) return d
+    return {
+      ...d,
+      displayName: p.displayName || d.displayName,
+      color: p.color || d.color,
+      totalAreaM2: p.totalAreaM2,
+      territoriesCount: p.territoriesCount,
+      totalDistanceM: p.totalDistanceM,
+      totalDurationSeconds: p.totalDurationSeconds,
+    }
+  })
+  const ids = new Set(merged.map((u) => u.id))
+  const extra = existing.filter((u) => !ids.has(u.id))
+  return [...merged, ...extra]
+}
+
+/** Sincroniza territórios e utilizadores derivados (preserva stats vindos do perfil público). */
 export function useFirestoreTerritorySync() {
   const setTerritories = useTerritoryStore((s) => s.setTerritories)
   const setUsers = useTerritoryStore((s) => s.setUsers)
 
   useEffect(() => {
     const repo = getTerritoryRepository()
+    if (!repo) {
+      setTerritories([])
+      setUsers([])
+      return
+    }
     const unsub = repo.subscribeTerritories(
       (list) => {
         setTerritories(list)
-        setUsers(deriveUsersFromTerritories(list))
+        const derived = deriveUsersFromTerritories(list)
+        const existing = useTerritoryStore.getState().users
+        setUsers(mergeDerivedWithExisting(derived, existing))
       },
       (err) => console.error('[Firestore territories]', err),
     )
