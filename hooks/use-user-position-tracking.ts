@@ -32,7 +32,7 @@ export function useUserPositionTracking() {
         setIsTrackingPosition(true)
       },
       (error) => {
-        console.error('[v0] Erro ao rastrear posição:', error)
+        // Erro silencioso - usuário negou permissão ou outro erro
         if (error.code === 1) {
           setPermission('denied')
         }
