@@ -58,7 +58,7 @@ export function SignupForm({ className }: { className?: string }) {
 
   React.useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/')
+      router.replace('/mapa')
     }
   }, [isAuthenticated, router])
 
@@ -94,7 +94,7 @@ export function SignupForm({ className }: { className?: string }) {
       const session = await registerWithFirebase(data)
       setSession(session)
       toast.success('Conta criada com sucesso!')
-      router.replace('/')
+      router.replace('/mapa')
     } catch (err) {
       const message =
         err instanceof AuthError

@@ -46,7 +46,7 @@ export function LoginForm({ className }: { className?: string }) {
 
   React.useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/')
+      router.replace('/mapa')
     }
   }, [isAuthenticated, router])
 
@@ -68,7 +68,7 @@ export function LoginForm({ className }: { className?: string }) {
     try {
       const session = await login(data)
       setSession(session)
-      router.replace('/')
+      router.replace('/mapa')
     } catch (err) {
       const message =
         err instanceof AuthError
@@ -87,7 +87,7 @@ export function LoginForm({ className }: { className?: string }) {
     try {
       const session = await loginWithGoogle()
       setSession(session)
-      router.replace('/')
+      router.replace('/mapa')
     } catch (err) {
       const message =
         err instanceof AuthError
