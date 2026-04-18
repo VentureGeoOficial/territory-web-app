@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Montserrat, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
-import { Providers } from '@/components/providers'
 import './globals.css'
 
 const montserrat = Montserrat({ 
@@ -20,18 +19,6 @@ export const metadata: Metadata = {
   title: 'TerritoryRun - Conquiste seu Caminho',
   description:
     'Transforme suas corridas e caminhadas em conquistas territoriais. Gamificacao de atividades fisicas com mapas interativos.',
-  generator: 'v0.app',
-  keywords: ['corrida', 'caminhada', 'gamificacao', 'territorio', 'fitness', 'mapa'],
-  authors: [{ name: 'Venture Geo' }],
-  manifest: '/manifest.webmanifest',
-  icons: {
-    icon: [
-      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
-    ],
-    apple: '/icon-192.png',
-  },
 }
 
 export const viewport: Viewport = {
@@ -48,9 +35,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className="dark">
-      <body className={`${montserrat.variable} ${geistMono.variable} font-sans antialiased`}>
-        <Providers>{children}</Providers>
+    <html lang="pt-BR" className="dark bg-background">
+      <body className={`${montserrat.variable} ${geistMono.variable} font-sans antialiased bg-background`}>
+        {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
