@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Montserrat, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
-import { Providers } from '@/components/providers'
 import './globals.css'
 
 const montserrat = Montserrat({ 
@@ -48,9 +47,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className="dark">
-      <body className={`${montserrat.variable} ${geistMono.variable} font-sans antialiased`}>
-        <Providers>{children}</Providers>
+    <html lang="pt-BR" className="dark bg-background">
+      <body className={`${montserrat.variable} ${geistMono.variable} font-sans antialiased bg-background`}>
+        {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

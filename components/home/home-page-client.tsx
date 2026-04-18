@@ -10,8 +10,11 @@ import { AuthenticatedDashboard } from '@/components/home/authenticated-dashboar
 import { SplashScreen } from '@/components/home/splash-screen'
 
 export function HomePageClient() {
+  console.log("[v0] HomePageClient rendering")
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
   const [hydrated, setHydrated] = React.useState(false)
+  
+  console.log("[v0] isAuthenticated:", isAuthenticated, "hydrated:", hydrated)
 
   React.useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() =>

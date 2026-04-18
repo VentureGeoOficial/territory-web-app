@@ -7,7 +7,10 @@ import { AuthProvider } from '@/components/auth/auth-provider'
 import { registerServiceWorker } from '@/lib/pwa/register-sw'
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  console.log("[v0] Providers mounting")
+  
   React.useEffect(() => {
+    console.log("[v0] Providers useEffect running")
     registerServiceWorker()
   }, [])
 
