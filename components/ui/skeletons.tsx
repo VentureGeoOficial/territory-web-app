@@ -142,3 +142,30 @@ export function StatsGridSkeleton({ count = 4 }: { count?: number }) {
     </div>
   )
 }
+
+/**
+ * Overlay durante a transação de conquista inimiga (API).
+ */
+export function CaptureTransactionSkeleton() {
+  return (
+    <Card className="w-[min(92vw,380px)] border-primary/30 bg-card/95 backdrop-blur-md shadow-xl">
+      <CardHeader className="space-y-2 pb-2">
+        <Skeleton className="h-5 w-48" />
+        <Skeleton className="h-3 w-full max-w-xs" />
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex justify-between gap-4">
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        </div>
+        <Skeleton className="h-10 w-full rounded-lg" />
+      </CardContent>
+    </Card>
+  )
+}

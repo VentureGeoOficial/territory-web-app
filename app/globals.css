@@ -226,3 +226,19 @@
 .territory-pulse {
   transition: all 0.3s ease;
 }
+
+/* Território em disputa: listras SVG + traço animado */
+.leaflet-overlay-pane svg path.territory-dispute {
+  fill: url(#venture-dispute-stripes) !important;
+  fill-opacity: 0.92 !important;
+  stroke: #f87171 !important;
+  stroke-width: 2px !important;
+  stroke-dasharray: 5 8 !important;
+  animation: territory-dispute-dash 1.8s linear infinite;
+}
+
+@keyframes territory-dispute-dash {
+  to {
+    stroke-dashoffset: -26;
+  }
+}
