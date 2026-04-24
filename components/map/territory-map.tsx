@@ -1,6 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useCallback, useId, useMemo, memo } from 'react'
+import {
+  useEffect,
+  useRef,
+  useCallback,
+  useId,
+  useMemo,
+  memo,
+} from 'react'
 import {
   MapContainer,
   TileLayer,
@@ -62,6 +69,55 @@ function MapViewSync() {
       initializedRef.current = true
     }
   }, [map, mapCenter, mapZoom])
+
+  return null
+}
+
+/** Injeta `<pattern>` SVG para listras em territórios em disputa (Leaflet overlay). */
+function SvgDisputePatternDefs() {
+  const map = useMap()
+
+  useEffect(() => {
+    const inject = () => {
+      const pane = map.getPane('overlayPane')
+      const svg = pane?.querySelector('svg')
+      if (!svg || svg.querySelector('#venture-dispute-stripes')) return
+
+      const ns = 'http://www.w3.org/2000/svg'
+      const defs = document.createElementNS(ns, 'defs')
+
+      const pattern = document.createElementNS(ns, 'pattern')
+      pattern.setAttribute('id', 'venture-dispute-stripes')
+      pattern.setAttribute('width', '12')
+      pattern.setAttribute('height', '12')
+      pattern.setAttribute('patternUnits', 'userSpaceOnUse')
+      pattern.setAttribute('patternTransform', 'rotate(38)')
+
+      const a = document.createElementNS(ns, 'rect')
+      a.setAttribute('width', '6')
+      a.setAttribute('height', '12')
+      a.setAttribute('fill', '#ef4444')
+
+      const b = document.createElementNS(ns, 'rect')
+      b.setAttribute('x', '6')
+      b.setAttribute('width', '6')
+      b.setAttribute('height', '12')
+      b.setAttribute('fill', '#0f172a')
+
+      pattern.appendChild(a)
+      pattern.appendChild(b)
+      defs.appendChild(pattern)
+      svg.insertBefore(defs, svg.firstChild)
+    }
+
+    inject()
+    const timer = window.setTimeout(inject, 150)
+    map.on('layeradd moveend zoomend', inject)
+    return () => {
+      window.clearTimeout(timer)
+      map.off('layeradd moveend zoomend', inject)
+    }
+  }, [map])
 
   return null
 }
@@ -387,6 +443,7 @@ export function TerritoryMap() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
       />
 
+      <SvgDisputePatternDefs />
       <MapEventHandler />
       <MapViewSync />
       <LocationControl />

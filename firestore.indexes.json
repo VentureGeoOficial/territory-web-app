@@ -1,4 +1,4 @@
-tre {
+{
   "indexes": [
     {
       "collectionGroup": "friendRequests",
@@ -44,6 +44,20 @@ tre {
       "fields": [
         {
           "fieldPath": "email",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "territories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
           "order": "ASCENDING"
         }
       ]

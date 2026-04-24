@@ -6,10 +6,18 @@ import { toast } from 'sonner'
 import { useTerritoryStore } from '@/lib/store/territory-store'
 import { useRunStore } from '@/lib/store/run-store'
 import { useAuthStore } from '@/lib/store/auth-store'
+import { getFirebaseAuth } from '@/lib/firebase/client'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
 import { createTerritoryFromRunTrack } from '@/lib/territory/run-territory'
+import {
+  calculateCaptureImpact,
+  hasEnemyCaptureOverlap,
+} from '@/lib/territory/geoLogic'
+import type { CaptureImpactOk } from '@/lib/territory/geoLogic'
 import { generateId, trackPointsToPositions } from '@/lib/territory/geo'
 import { saveCompletedRun } from '@/lib/firebase/run-completion'
+import { CaptureXpDialog } from '@/components/map/capture-xp-dialog'
+import { CaptureTransactionSkeleton } from '@/components/ui/skeletons'
 import { useRunSession } from '@/hooks/use-run-session'
 import { getCurrentPositionOnce } from '@/lib/services/location-service'
 import { getUserProfile } from '@/lib/firebase/user-profile'
@@ -45,6 +53,15 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
 
   const [finishing, setFinishing] = useState(false)
   const [liveSeconds, setLiveSeconds] = useState(0)
+  const [captureDraft, setCaptureDraft] = useState<{
+    impact: CaptureImpactOk
+    newTerritoryAreaM2: number
+    startedAt: number
+    endedAt: number
+    distanceMeters: number
+    durationSeconds: number
+  } | null>(null)
+  const [captureLoading, setCaptureLoading] = useState(false)
 
   useEffect(() => {
     if (!isRunning || !startedAt) {
@@ -92,6 +109,57 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     startRun()
   }, [permission, setPermission, startRun])
 
+  const handleConfirmCapture = useCallback(async () => {
+    if (!captureDraft) return
+    const pts = useRunStore.getState().points
+    if (pts.length < 2) {
+      toast.error('Dados da corrida em falta.')
+      return
+    }
+    setCaptureLoading(true)
+    try {
+      const routeJson = JSON.stringify({
+        type: 'LineString',
+        coordinates: trackPointsToPositions(pts),
+      })
+      const auth = getFirebaseAuth()
+      const token = await auth.currentUser?.getIdToken()
+      if (!token) {
+        throw new Error('Inicie sessão novamente.')
+      }
+      const res = await fetch('/api/territories/capture', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          points: pts,
+          startedAt: captureDraft.startedAt,
+          endedAt: captureDraft.endedAt,
+          distanceMeters: captureDraft.distanceMeters,
+          durationSeconds: captureDraft.durationSeconds,
+          routeJson,
+        }),
+      })
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string
+      }
+      if (!res.ok) {
+        throw new Error(data.error ?? 'Não foi possível concluir a conquista.')
+      }
+      setCaptureDraft(null)
+      resetRunState()
+      setMapMode('view')
+      toast.success('Conquista inimiga concluída!')
+    } catch (e) {
+      console.error(e)
+      toast.error(e instanceof Error ? e.message : 'Erro ao conquistar.')
+    } finally {
+      setCaptureLoading(false)
+    }
+  }, [captureDraft, resetRunState, setMapMode])
+
   const handleFinish = useCallback(async () => {
     if (points.length < 2 || !startedAt) {
       toast.error('Percorra mais para gerar um território.')
@@ -129,6 +197,36 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         authDisplayName: user?.displayName,
         existingTerritories: territories,
       })
+
+      const impact = calculateCaptureImpact(
+        newTerritory.polygon,
+        territories,
+        currentUserId,
+      )
+
+      const enemyOverlap = hasEnemyCaptureOverlap(
+        newTerritory.polygon,
+        territories,
+        currentUserId,
+      )
+
+      if (enemyOverlap) {
+        if (!impact.ok) {
+          toast.error(impact.message)
+          resetRunState()
+          setMapMode('view')
+          return
+        }
+        setCaptureDraft({
+          impact,
+          newTerritoryAreaM2: newTerritory.areaM2,
+          startedAt,
+          endedAt,
+          distanceMeters,
+          durationSeconds,
+        })
+        return
+      }
 
       const runId = generateId()
       const routeJson = JSON.stringify({
@@ -181,6 +279,28 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
 
   return (
     <>
+      <CaptureXpDialog
+        open={captureDraft !== null}
+        onOpenChange={(open) => {
+          if (!open && !captureLoading) {
+            setCaptureDraft(null)
+            resetRunState()
+            setMapMode('view')
+          }
+        }}
+        impact={captureDraft?.impact ?? null}
+        distanceMeters={captureDraft?.distanceMeters ?? 0}
+        newTerritoryAreaM2={captureDraft?.newTerritoryAreaM2 ?? 0}
+        onConfirm={handleConfirmCapture}
+        loading={captureLoading}
+      />
+
+      {captureLoading && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-background/70 backdrop-blur-sm">
+          <CaptureTransactionSkeleton />
+        </div>
+      )}
+
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] max-w-[95vw]">
         {!isFirebaseConfigured() && (
           <p className="text-center text-xs text-amber-400 mb-2 px-2">

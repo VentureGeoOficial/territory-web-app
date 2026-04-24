@@ -1,5 +1,3 @@
-import type { Feature, Polygon } from 'geojson'
-import type { Position } from 'geojson'
 import {
   collection,
   doc,
@@ -11,70 +9,20 @@ import {
 } from 'firebase/firestore'
 import { getFirestoreDb } from './client'
 import { isFirebaseConfigured } from './config'
-import type { DominanceLevel, Territory, TerritoryStatus } from '@/lib/territory/types'
+import type { Territory } from '@/lib/territory/types'
 import { SUZANO_BOUNDING_BOX, isPositionInsideBox } from '@/lib/territory/regions'
+import {
+  type TerritoryFirestoreDoc,
+  firestoreDocToTerritory,
+  territoryToFirestoreDoc,
+} from '@/lib/firebase/territory-doc'
+
+export type { TerritoryFirestoreDoc }
+export { firestoreDocToTerritory, territoryToFirestoreDoc }
 
 const TERRITORIES = 'territories'
 const USERS = 'users'
 const PUBLIC_PROFILES = 'publicProfiles'
-
-export interface TerritoryFirestoreDoc {
-  userId: string
-  userName: string
-  userColor: string
-  polygonJson: string
-  areaM2: number
-  createdAt: number
-  updatedAt: number
-  protectedUntil?: number
-  status: TerritoryStatus
-  dominanceLevel: DominanceLevel
-  conquestCount: number
-  centerLng: number
-  centerLat: number
-}
-
-export function territoryToFirestoreDoc(t: Territory): TerritoryFirestoreDoc {
-  const [lng, lat] = t.center
-  return {
-    userId: t.userId,
-    userName: t.userName ?? 'Corredor',
-    userColor: t.userColor ?? '#CCFF00',
-    polygonJson: JSON.stringify(t.polygon),
-    areaM2: t.areaM2,
-    createdAt: t.createdAt,
-    updatedAt: t.updatedAt,
-    protectedUntil: t.protectedUntil,
-    status: t.status,
-    dominanceLevel: t.dominanceLevel,
-    conquestCount: t.conquestCount,
-    centerLng: lng,
-    centerLat: lat,
-  }
-}
-
-export function firestoreDocToTerritory(
-  id: string,
-  data: TerritoryFirestoreDoc,
-): Territory {
-  const polygon = JSON.parse(data.polygonJson) as Feature<Polygon>
-  const center: Position = [data.centerLng, data.centerLat]
-  return {
-    id,
-    userId: data.userId,
-    userName: data.userName,
-    userColor: data.userColor,
-    polygon,
-    areaM2: data.areaM2,
-    createdAt: data.createdAt,
-    updatedAt: data.updatedAt,
-    protectedUntil: data.protectedUntil,
-    status: data.status,
-    dominanceLevel: data.dominanceLevel,
-    conquestCount: data.conquestCount,
-    center,
-  }
-}
 
 /** Escuta todos os territórios (MVP: coleção única; escalar com limite/região depois). */
 export function subscribeTerritories(
