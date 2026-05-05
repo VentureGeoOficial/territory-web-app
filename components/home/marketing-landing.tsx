@@ -29,24 +29,6 @@ import {
 } from 'lucide-react'
 import { useInstallPrompt } from '@/lib/pwa/use-install-prompt'
 
-const developers = [
-  {
-    name: 'Henrique',
-    specialty: 'Especialista em Front-end e experiencia do usuario.',
-    image: '/developers/henrique.jpeg',
-  },
-  {
-    name: 'Leonardo',
-    specialty: 'Especialista em Back-end e integracao de servicos.',
-    image: '/developers/leonardo.jpeg',
-  },
-  {
-    name: 'Marcelo',
-    specialty: 'Especialista em IA aplicada e automacoes de produto.',
-    image: '/developers/marcelo.jpeg',
-  },
-]
-
 const benefits = [
   {
     icon: Target,
@@ -437,51 +419,8 @@ export function MarketingLanding() {
         </div>
       </section>
 
-      {/* Time Section */}
-      <section className="py-20 md:py-28 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-accent text-sm font-medium mb-6">
-              <Users className="h-4 w-4" />
-              <span>Nosso Time</span>
-            </div>
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 text-balance">
-              Time de <span className="text-accent">desenvolvimento</span>
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-              Profissionais responsaveis por construir uma experiencia moderna, segura e escalavel.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            {developers.map((developer) => (
-              <Card
-                key={developer.name}
-                className="p-6 bg-card/80 backdrop-blur-sm border-border/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/40 group"
-              >
-                <div className="mb-5 overflow-hidden rounded-xl">
-                  <img
-                    src={developer.image}
-                    alt={`Foto de ${developer.name}`}
-                    className="h-56 w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  {developer.name}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {developer.specialty}
-                </p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Quem Somos Section */}
-      <section id="quem-somos" className="py-20 md:py-28 px-4 relative bg-white">
+      <section id="quem-somos" className="py-20 md:py-28 px-4 relative">
         <div className="max-w-7xl mx-auto">
           {/* Bloco A: Essencia da Venture Geo */}
           <div className="mb-20 md:mb-28">
@@ -493,18 +432,18 @@ export function MarketingLanding() {
                   <span>Sobre Nos</span>
                 </div>
                 
-                <h2 className="text-4xl md:text-5xl font-bold text-[#19305A] mb-6 text-balance">
-                  Sobre a <span className="text-[#00D2FF]">Venture Geo</span>
+                <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 text-balance">
+                  Sobre a <span className="text-primary">Venture Geo</span>
                 </h2>
                 
-                <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                  A Venture Geo surge para resolver o baixo engajamento em aplicativos de saude tradicionais. Ao introduzir o conceito de &apos;conquista de bairros&apos; no Territory Run, criamos uma camada social e competitiva que retém o usuário não apenas pelo exercício, mas pela estratégia e domínio territorial.
+                <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+                  A Venture Geo surge para resolver o baixo engajamento em aplicativos de saude tradicionais. Ao introduzir o conceito de &apos;conquista de bairros&apos; no Territory Run, criamos uma camada social e competitiva que retem o usuario nao apenas pelo exercicio, mas pela estrategia e dominio territorial.
                 </p>
                 
-                <div className="p-6 bg-[#19305A]/5 border-l-4 border-[#00D2FF] rounded-lg">
-                  <p className="font-semibold text-[#19305A] mb-3">O Significado do Nome</p>
-                  <p className="text-gray-700">
-                    <span className="font-semibold text-[#00D2FF]">Venture</span> (aventura) e <span className="font-semibold text-[#00D2FF]">Geo</span> (localizacao) representam a juncao perfeita para unir competicao saudavel com metas territoriais. <span className="italic">&quot;Nascemos para dominar territorios fisicos e domar dados geoespaciais complexos.&quot;</span>
+                <div className="p-6 bg-primary/5 border-l-4 border-primary rounded-lg">
+                  <p className="font-semibold text-foreground mb-3">O Significado do Nome</p>
+                  <p className="text-muted-foreground">
+                    <span className="font-semibold text-primary">Venture</span> (aventura) e <span className="font-semibold text-primary">Geo</span> (localizacao) representam a juncao perfeita para unir competicao saudavel com metas territoriais. <span className="italic">&quot;Nascemos para dominar territorios fisicos e domar dados geoespaciais complexos.&quot;</span>
                   </p>
                 </div>
               </div>
@@ -512,7 +451,7 @@ export function MarketingLanding() {
               {/* Mascot */}
               <div className="hidden md:flex justify-center">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#00D2FF]/20 to-[#CCFF00]/10 rounded-full blur-[100px]" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/10 rounded-full blur-[100px]" />
                   <VentureGeoMascot height={320} className="relative z-10" />
                 </div>
               </div>
@@ -522,8 +461,8 @@ export function MarketingLanding() {
           {/* Bloco B: Missao, Visao e Valores */}
           <div className="mb-20 md:mb-28">
             <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-bold text-[#19305A] mb-4 text-balance">
-                <span className="text-[#00D2FF]">Missao</span>, <span className="text-[#00D2FF]">Visao</span> e <span className="text-[#00D2FF]">Valores</span>
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 text-balance">
+                <span className="text-primary">Missao</span>, <span className="text-primary">Visao</span> e <span className="text-primary">Valores</span>
               </h2>
             </div>
             
@@ -533,15 +472,15 @@ export function MarketingLanding() {
                 return (
                   <Card 
                     key={item.title}
-                    className="p-8 bg-gradient-to-br from-[#19305A]/5 to-[#00D2FF]/5 border-border/40 hover:border-[#00D2FF]/40 transition-all duration-300 hover:shadow-lg hover:shadow-[#00D2FF]/10 hover:-translate-y-1 group"
+                    className="p-8 bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 group"
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00D2FF]/20 to-[#CCFF00]/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <Icon className="h-8 w-8 text-[#00D2FF]" />
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <Icon className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-2xl font-bold text-[#19305A] mb-4">
+                    <h3 className="text-2xl font-bold text-foreground mb-4">
                       {item.title}
                     </h3>
-                    <p className="text-gray-700 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       {item.description}
                     </p>
                   </Card>
@@ -553,14 +492,14 @@ export function MarketingLanding() {
           {/* Bloco C: Nossa Squad */}
           <div className="mb-20 md:mb-28">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00D2FF]/10 border border-[#00D2FF]/20 text-[#00D2FF] text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
                 <Users className="h-4 w-4" />
                 <span>Nossa Squad</span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold text-[#19305A] mb-4 text-balance">
-                Quem faz <span className="text-[#00D2FF]">acontecer</span>
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4 text-balance">
+                Quem faz <span className="text-primary">acontecer</span>
               </h2>
-              <p className="text-gray-700 text-lg max-w-2xl mx-auto">
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                 Uma squad de profissionais dedicados a transformar ideias em experiencias incriveis.
               </p>
             </div>
@@ -569,7 +508,7 @@ export function MarketingLanding() {
               {squad.map((member) => (
                 <Card 
                   key={member.name}
-                  className="p-6 bg-white border-border/60 hover:border-[#00D2FF]/40 transition-all duration-300 hover:shadow-lg hover:shadow-[#00D2FF]/10 hover:-translate-y-1 group overflow-hidden"
+                  className="p-6 bg-card/80 backdrop-blur-sm border-border/60 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 group overflow-hidden"
                 >
                   <div className="mb-5 overflow-hidden rounded-xl">
                     <img
@@ -580,13 +519,13 @@ export function MarketingLanding() {
                       decoding="async"
                     />
                   </div>
-                  <h3 className="text-xl font-bold text-[#19305A] mb-1">
+                  <h3 className="text-xl font-bold text-foreground mb-1">
                     {member.name}
                   </h3>
-                  <p className="text-sm text-[#00D2FF] font-semibold mb-3">
+                  <p className="text-sm text-primary font-semibold mb-3">
                     {member.role}
                   </p>
-                  <p className="text-sm text-gray-700 leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     {member.description}
                   </p>
                 </Card>
@@ -596,35 +535,35 @@ export function MarketingLanding() {
 
           {/* Bloco D: Oportunidades de Patrocinio */}
           <div className="relative">
-            <Card className="p-8 md:p-12 bg-gradient-to-br from-[#19305A] via-[#19305A]/95 to-[#00D2FF]/10 border-[#00D2FF]/30 text-white relative overflow-hidden group">
+            <Card className="p-8 md:p-12 bg-gradient-to-br from-primary via-primary/95 to-primary/80 border-primary/30 text-primary-foreground relative overflow-hidden group">
               {/* Decorative elements */}
-              <div className="absolute top-0 right-0 w-96 h-96 bg-[#00D2FF]/5 rounded-full blur-[150px]" />
-              <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#CCFF00]/5 rounded-full blur-[120px]" />
+              <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-[150px]" />
+              <div className="absolute bottom-0 left-0 w-72 h-72 bg-accent/5 rounded-full blur-[120px]" />
               
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-6 w-fit">
-                  <div className="w-12 h-12 rounded-lg bg-[#00D2FF]/20 flex items-center justify-center">
-                    <Megaphone className="h-6 w-6 text-[#00D2FF]" />
+                  <div className="w-12 h-12 rounded-lg bg-primary-foreground/20 flex items-center justify-center">
+                    <Megaphone className="h-6 w-6 text-primary-foreground" />
                   </div>
-                  <span className="font-semibold text-[#CCFF00]">Patrocinios e Anuncios</span>
+                  <span className="font-semibold text-accent">Patrocinios e Anuncios</span>
                 </div>
                 
                 <h2 className="text-3xl md:text-4xl font-bold mb-6 text-balance">
-                  Conecte sua <span className="text-[#CCFF00]">Marca</span> ao Movimento
+                  Conecte sua <span className="text-accent">Marca</span> ao Movimento
                 </h2>
                 
-                <p className="text-lg mb-8 leading-relaxed text-gray-100 max-w-2xl">
-                  A Venture Geo não cobra planos de assinatura dos usuários. O Territory Run é 100% gratuito para o público final, e nosso modelo de negócios é focado exclusivamente em anúncios e patrocínios integrados à experiência gamificada.
+                <p className="text-lg mb-8 leading-relaxed text-primary-foreground/90 max-w-2xl">
+                  A Venture Geo nao cobra planos de assinatura dos usuarios. O Territory Run e 100% gratuito para o publico final, e nosso modelo de negocios e focado exclusivamente em anuncios e patrocinios integrados a experiencia gamificada.
                 </p>
                 
-                <p className="text-base mb-8 leading-relaxed text-gray-200 max-w-2xl">
-                  É da área de esporte ou tem interesse em impactar uma comunidade ativa e engajada? O Territory Run é o espaço ideal para a sua marca negociar inserções publicitárias estratégicas.
+                <p className="text-base mb-8 leading-relaxed text-primary-foreground/80 max-w-2xl">
+                  E da area de esporte ou tem interesse em impactar uma comunidade ativa e engajada? O Territory Run e o espaco ideal para a sua marca negociar insercoes publicitarias estrategicas.
                 </p>
                 
                 <Link href="mailto:patrocinio@venturegeo.com.br">
                   <Button
                     size="lg"
-                    className="bg-[#CCFF00] text-[#19305A] hover:bg-[#CCFF00]/90 font-bold text-lg px-8 h-14 shadow-lg shadow-[#CCFF00]/30 group-hover:scale-105 transition-transform"
+                    className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-lg px-8 h-14 shadow-lg shadow-accent/30 group-hover:scale-105 transition-transform"
                   >
                     Negocie seu Patrocinio
                   </Button>
