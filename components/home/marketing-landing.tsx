@@ -428,8 +428,8 @@ export function MarketingLanding() {
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/25 to-accent/15 rounded-full blur-[100px]" />
                 <img
-                  src="/mascote-speed.png"
-                  alt="Speed, a Raposa Exploradora da Venture Geo"
+                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/20260505_194510_0000-1UrbyUSIJhvFSFFbJnwKiZjVPfU2M2.png"
+                  alt="Speed, a Raposa Exploradora da Venture Geo - Nova Versao"
                   className="relative z-10 h-auto max-w-full drop-shadow-2xl"
                   loading="lazy"
                   decoding="async"
@@ -615,34 +615,65 @@ export function MarketingLanding() {
               <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-[150px]" />
               <div className="absolute bottom-0 left-0 w-72 h-72 bg-accent/5 rounded-full blur-[120px]" />
               
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-6 w-fit">
-                  <div className="w-12 h-12 rounded-lg bg-primary-foreground/20 flex items-center justify-center">
-                    <Megaphone className="h-6 w-6 text-primary-foreground" />
+              <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+                {/* Conteudo Text */}
+                <div>
+                  <div className="flex items-center gap-3 mb-6 w-fit">
+                    <div className="w-12 h-12 rounded-lg bg-primary-foreground/20 flex items-center justify-center">
+                      <Megaphone className="h-6 w-6 text-primary-foreground" />
+                    </div>
+                    <span className="font-semibold text-accent">Patrocinios e Anuncios</span>
                   </div>
-                  <span className="font-semibold text-accent">Patrocinios e Anuncios</span>
+                  
+                  <h2 className="text-3xl md:text-4xl font-bold mb-6 text-balance">
+                    Conecte sua <span className="text-accent">Marca</span> ao Movimento
+                  </h2>
+                  
+                  <p className="text-lg mb-8 leading-relaxed text-primary-foreground/90">
+                    O Territory Run e 100% gratuito para os usuarios, focando a nossa monetizacao na exposicao inteligente de marcas parceiras. Quer atingir um publico altamente engajado, ativo e focado no esporte?
+                  </p>
+                  
+                  <div className="bg-accent/20 backdrop-blur-sm rounded-lg p-6 mb-8 border border-accent/30">
+                    <p className="text-sm font-semibold text-accent mb-2">PACOTES A PARTIR DE:</p>
+                    <p className="text-3xl font-bold text-accent mb-2">R$ 49,99<span className="text-lg text-primary-foreground/80">/mês</span></p>
+                    <p className="text-sm text-primary-foreground/90">
+                      Temos espacos estrategicos para anuncios e patrocinios integrados a experiencia gamificada.
+                    </p>
+                  </div>
+                  
+                  <Link href="mailto:patrocinio@venturegeo.com.br">
+                    <Button
+                      size="lg"
+                      className="w-full md:w-auto bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-lg px-8 h-14 shadow-lg shadow-accent/30 group-hover:scale-105 transition-transform"
+                    >
+                      Anunciar a partir de R$ 49,99
+                    </Button>
+                  </Link>
                 </div>
-                
-                <h2 className="text-3xl md:text-4xl font-bold mb-6 text-balance">
-                  Conecte sua <span className="text-accent">Marca</span> ao Movimento
-                </h2>
-                
-                <p className="text-lg mb-8 leading-relaxed text-primary-foreground/90 max-w-2xl">
-                  A Venture Geo nao cobra planos de assinatura dos usuarios. O Territory Run e 100% gratuito para o publico final, e nosso modelo de negocios e focado exclusivamente em anuncios e patrocinios integrados a experiencia gamificada.
-                </p>
-                
-                <p className="text-base mb-8 leading-relaxed text-primary-foreground/80 max-w-2xl">
-                  E da area de esporte ou tem interesse em impactar uma comunidade ativa e engajada? O Territory Run e o espaco ideal para a sua marca negociar insercoes publicitarias estrategicas.
-                </p>
-                
-                <Link href="mailto:patrocinio@venturegeo.com.br">
-                  <Button
-                    size="lg"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-lg px-8 h-14 shadow-lg shadow-accent/30 group-hover:scale-105 transition-transform"
-                  >
-                    Negocie seu Patrocinio
-                  </Button>
-                </Link>
+
+                {/* Imagem Speed */}
+                <div className="hidden md:flex justify-center">
+                  <div className="relative">
+                    <img
+                      src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/20260505_194510_0000-1UrbyUSIJhvFSFFbJnwKiZjVPfU2M2.png"
+                      alt="Speed, a Raposa Exploradora da Venture Geo"
+                      className="h-auto max-w-sm drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Image */}
+              <div className="md:hidden flex justify-center mt-8">
+                <img
+                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/20260505_194510_0000-1UrbyUSIJhvFSFFbJnwKiZjVPfU2M2.png"
+                  alt="Speed, a Raposa Exploradora da Venture Geo"
+                  className="h-auto max-w-xs drop-shadow-2xl"
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
             </Card>
           </div>
