@@ -21,7 +21,11 @@ import {
   Instagram,
   Linkedin,
   Mail,
-  Facebook
+  Facebook,
+  Lightbulb,
+  Eye,
+  Heart,
+  Megaphone
 } from 'lucide-react'
 import { useInstallPrompt } from '@/lib/pwa/use-install-prompt'
 
@@ -86,6 +90,45 @@ const features = [
     icon: Globe,
     title: 'Ranking Global',
     description: 'Compare sua performance com jogadores do mundo todo em tempo real.',
+  },
+]
+
+const missionValues = [
+  {
+    icon: Lightbulb,
+    title: 'Missao',
+    description: 'Transformar a movimentacao humana em uma experiencia de conquista territorial, utilizando tecnologia de geolocalizacao de alta precisao para promover saude e engajamento urbano.',
+  },
+  {
+    icon: Eye,
+    title: 'Visao',
+    description: 'Tornar-se a principal infraestrutura de entretenimento baseado em localizacao (Real-Life Gaming) da America Latina ate 2030, redefinindo a forma como os cidadaos interagem com o espaco publico.',
+  },
+  {
+    icon: Heart,
+    title: 'Valores',
+    description: 'Unimos excelencia tecnica e foco no usuario para garantir geoprivacidade absoluta e relacoes baseadas na transparencia.',
+  },
+]
+
+const squad = [
+  {
+    name: 'Leonardo Souza Bastos',
+    role: 'Head of Data & Backend',
+    description: 'Arquiteto do Banco de Dados e logica de servidor. Garante que a posse do territorio seja processada sem falhas e com seguranca extrema.',
+    image: '/developers/leonardo.jpeg',
+  },
+  {
+    name: 'Henrique Casagrande',
+    role: 'Full Stack Developer',
+    description: 'Responsavel pela implementacao de ponta a ponta, focado na integracao do App com as APIs de geolocalizacao e suporte ao Back-end.',
+    image: '/developers/henrique.jpeg',
+  },
+  {
+    name: 'Marcelo Candido',
+    role: 'Tech Lead, Documentation & Full Stack',
+    description: 'Responsavel pela gestao documental tecnica, garantia de requisitos e suporte no desenvolvimento hibrido, assegurando a coesao do projeto.',
+    image: '/developers/marcelo.jpeg',
   },
 ]
 
@@ -433,6 +476,161 @@ export function MarketingLanding() {
                 </p>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Quem Somos Section */}
+      <section id="quem-somos" className="py-20 md:py-28 px-4 relative bg-white">
+        <div className="max-w-7xl mx-auto">
+          {/* Bloco A: Essencia da Venture Geo */}
+          <div className="mb-20 md:mb-28">
+            <div className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
+              {/* Content */}
+              <div>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
+                  <Lightbulb className="h-4 w-4" />
+                  <span>Sobre Nos</span>
+                </div>
+                
+                <h2 className="text-4xl md:text-5xl font-bold text-[#19305A] mb-6 text-balance">
+                  Sobre a <span className="text-[#00D2FF]">Venture Geo</span>
+                </h2>
+                
+                <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                  A Venture Geo surge para resolver o baixo engajamento em aplicativos de saude tradicionais. Ao introduzir o conceito de &apos;conquista de bairros&apos; no Territory Run, criamos uma camada social e competitiva que retém o usuário não apenas pelo exercício, mas pela estratégia e domínio territorial.
+                </p>
+                
+                <div className="p-6 bg-[#19305A]/5 border-l-4 border-[#00D2FF] rounded-lg">
+                  <p className="font-semibold text-[#19305A] mb-3">O Significado do Nome</p>
+                  <p className="text-gray-700">
+                    <span className="font-semibold text-[#00D2FF]">Venture</span> (aventura) e <span className="font-semibold text-[#00D2FF]">Geo</span> (localizacao) representam a juncao perfeita para unir competicao saudavel com metas territoriais. <span className="italic">&quot;Nascemos para dominar territorios fisicos e domar dados geoespaciais complexos.&quot;</span>
+                  </p>
+                </div>
+              </div>
+              
+              {/* Mascot */}
+              <div className="hidden md:flex justify-center">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#00D2FF]/20 to-[#CCFF00]/10 rounded-full blur-[100px]" />
+                  <VentureGeoMascot height={320} className="relative z-10" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bloco B: Missao, Visao e Valores */}
+          <div className="mb-20 md:mb-28">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold text-[#19305A] mb-4 text-balance">
+                <span className="text-[#00D2FF]">Missao</span>, <span className="text-[#00D2FF]">Visao</span> e <span className="text-[#00D2FF]">Valores</span>
+              </h2>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              {missionValues.map((item) => {
+                const Icon = item.icon
+                return (
+                  <Card 
+                    key={item.title}
+                    className="p-8 bg-gradient-to-br from-[#19305A]/5 to-[#00D2FF]/5 border-border/40 hover:border-[#00D2FF]/40 transition-all duration-300 hover:shadow-lg hover:shadow-[#00D2FF]/10 hover:-translate-y-1 group"
+                  >
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00D2FF]/20 to-[#CCFF00]/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                      <Icon className="h-8 w-8 text-[#00D2FF]" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-[#19305A] mb-4">
+                      {item.title}
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed">
+                      {item.description}
+                    </p>
+                  </Card>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Bloco C: Nossa Squad */}
+          <div className="mb-20 md:mb-28">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00D2FF]/10 border border-[#00D2FF]/20 text-[#00D2FF] text-sm font-medium mb-6">
+                <Users className="h-4 w-4" />
+                <span>Nossa Squad</span>
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-[#19305A] mb-4 text-balance">
+                Quem faz <span className="text-[#00D2FF]">acontecer</span>
+              </h2>
+              <p className="text-gray-700 text-lg max-w-2xl mx-auto">
+                Uma squad de profissionais dedicados a transformar ideias em experiencias incriveis.
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              {squad.map((member) => (
+                <Card 
+                  key={member.name}
+                  className="p-6 bg-white border-border/60 hover:border-[#00D2FF]/40 transition-all duration-300 hover:shadow-lg hover:shadow-[#00D2FF]/10 hover:-translate-y-1 group overflow-hidden"
+                >
+                  <div className="mb-5 overflow-hidden rounded-xl">
+                    <img
+                      src={member.image}
+                      alt={`Foto de ${member.name}`}
+                      className="h-56 w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                  <h3 className="text-xl font-bold text-[#19305A] mb-1">
+                    {member.name}
+                  </h3>
+                  <p className="text-sm text-[#00D2FF] font-semibold mb-3">
+                    {member.role}
+                  </p>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {member.description}
+                  </p>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Bloco D: Oportunidades de Patrocinio */}
+          <div className="relative">
+            <Card className="p-8 md:p-12 bg-gradient-to-br from-[#19305A] via-[#19305A]/95 to-[#00D2FF]/10 border-[#00D2FF]/30 text-white relative overflow-hidden group">
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 w-96 h-96 bg-[#00D2FF]/5 rounded-full blur-[150px]" />
+              <div className="absolute bottom-0 left-0 w-72 h-72 bg-[#CCFF00]/5 rounded-full blur-[120px]" />
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-6 w-fit">
+                  <div className="w-12 h-12 rounded-lg bg-[#00D2FF]/20 flex items-center justify-center">
+                    <Megaphone className="h-6 w-6 text-[#00D2FF]" />
+                  </div>
+                  <span className="font-semibold text-[#CCFF00]">Patrocinios e Anuncios</span>
+                </div>
+                
+                <h2 className="text-3xl md:text-4xl font-bold mb-6 text-balance">
+                  Conecte sua <span className="text-[#CCFF00]">Marca</span> ao Movimento
+                </h2>
+                
+                <p className="text-lg mb-8 leading-relaxed text-gray-100 max-w-2xl">
+                  A Venture Geo não cobra planos de assinatura dos usuários. O Territory Run é 100% gratuito para o público final, e nosso modelo de negócios é focado exclusivamente em anúncios e patrocínios integrados à experiência gamificada.
+                </p>
+                
+                <p className="text-base mb-8 leading-relaxed text-gray-200 max-w-2xl">
+                  É da área de esporte ou tem interesse em impactar uma comunidade ativa e engajada? O Territory Run é o espaço ideal para a sua marca negociar inserções publicitárias estratégicas.
+                </p>
+                
+                <Link href="mailto:patrocinio@venturegeo.com.br">
+                  <Button
+                    size="lg"
+                    className="bg-[#CCFF00] text-[#19305A] hover:bg-[#CCFF00]/90 font-bold text-lg px-8 h-14 shadow-lg shadow-[#CCFF00]/30 group-hover:scale-105 transition-transform"
+                  >
+                    Negocie seu Patrocinio
+                  </Button>
+                </Link>
+              </div>
+            </Card>
           </div>
         </div>
       </section>
