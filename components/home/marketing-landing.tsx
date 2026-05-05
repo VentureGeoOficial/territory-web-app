@@ -419,6 +419,81 @@ export function MarketingLanding() {
         </div>
       </section>
 
+      {/* Conheca o Speed Section */}
+      <section id="mascote-speed" className="py-20 md:py-28 px-4 relative bg-gradient-to-b from-background via-secondary/20 to-background">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {/* Imagem do Speed */}
+            <div className="flex justify-center order-2 md:order-1">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/25 to-accent/15 rounded-full blur-[100px]" />
+                <img
+                  src="/mascote-speed.png"
+                  alt="Speed, a Raposa Exploradora da Venture Geo"
+                  className="relative z-10 h-auto max-w-full drop-shadow-2xl"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            </div>
+
+            {/* Conteudo Text */}
+            <div className="order-1 md:order-2">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-6">
+                <Zap className="h-4 w-4" />
+                <span>Conheca o Speed</span>
+              </div>
+
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6 text-balance leading-tight">
+                Conheca o <span className="text-primary">Speed</span>: Seu Novo Parceiro de Treino
+              </h2>
+
+              <div className="space-y-6 mb-10">
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Apresentamos o Speed, a Raposa Exploradora da Venture Geo! Escolhemos esse nome em referencia direta a velocidade e a performance que movem os nossos usuarios. O Speed personifica a inteligencia e a agilidade necessarias para quem domina as trilhas e o asfalto, unindo o instinto natural de exploracao a precisao do Territory Run.
+                </p>
+
+                <div className="space-y-4">
+                  <div className="flex gap-4 items-start">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 mt-1">
+                      <Smartphone className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-2">Sempre Conectado</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Equipado com trajes de aventura e seu smartphone em maos, o Speed reforca nossa utilidade pratica no dia a dia do esportista.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 items-start">
+                    <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 mt-1">
+                      <MapPin className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-2">Seu Parceiro de Corrida</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Mais do que uma simples imagem, ele atua como um companheiro de treino que entende o estilo de vida outdoor e esta presente em cada quilometro que voce conquista.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Link href="/cadastro">
+                <Button
+                  size="lg"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 h-14 shadow-lg shadow-primary/25"
+                >
+                  Comece com o Speed
+                  <ArrowRight className="h-5 w-5 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Quem Somos Section */}
       <section id="quem-somos" className="py-20 md:py-28 px-4 relative">
         <div className="max-w-7xl mx-auto">
