@@ -20,7 +20,8 @@ import {
   Globe,
   Instagram,
   Linkedin,
-  Mail
+  Mail,
+  Facebook
 } from 'lucide-react'
 import { useInstallPrompt } from '@/lib/pwa/use-install-prompt'
 
@@ -494,7 +495,7 @@ export function MarketingLanding() {
               {/* Social Links */}
               <div className="flex items-center gap-3">
                 <a 
-                  href="https://instagram.com/venturegeo" 
+                  href="https://www.instagram.com/venturegeooficial/" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-lg bg-secondary/80 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
@@ -503,13 +504,13 @@ export function MarketingLanding() {
                   <Instagram className="h-5 w-5" />
                 </a>
                 <a 
-                  href="https://linkedin.com/company/venturegeo" 
+                  href="https://www.facebook.com/profile.php?id=61572058310239" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-lg bg-secondary/80 flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                  aria-label="LinkedIn"
+                  aria-label="Facebook"
                 >
-                  <Linkedin className="h-5 w-5" />
+                  <Facebook className="h-5 w-5" />
                 </a>
                 <a 
                   href="mailto:contato@venturegeo.com.br" 
