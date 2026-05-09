@@ -182,6 +182,12 @@ export async function registerWithFirebase(
     if (code === 'auth/invalid-email') {
       throw new AuthError('E-mail inválido.')
     }
+    if (code === 'permission-denied') {
+      console.warn('[registerWithFirebase] Firestore permission-denied ao criar perfil')
+      throw new AuthError(
+        'O servidor recusou gravar o perfil (Firestore). Confirme as Security Rules e redeploy. Se persistir, verifique o consola do navegador.',
+      )
+    }
     const msg = e instanceof Error ? e.message : String(e)
     if (msg === 'USERNAME_TAKEN' || msg.includes('USERNAME_TAKEN')) {
       throw new AuthError(
