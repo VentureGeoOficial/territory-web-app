@@ -31,6 +31,14 @@ export function getFirebaseAdminCredential(): FirebaseAdminCredential {
     )
   }
 
+  // Verificar se é uma URL ao invés do JSON
+  if (raw.startsWith('http://') || raw.startsWith('https://')) {
+    throw new Error(
+      'FIREBASE_SERVICE_ACCOUNT_JSON contém uma URL, mas deveria conter o conteúdo JSON da service account. ' +
+      'Baixe o arquivo JSON da service account do Firebase Console e cole o conteúdo completo na variável de ambiente.',
+    )
+  }
+
   let parsedJson: unknown
   try {
     parsedJson = JSON.parse(raw)
@@ -38,7 +46,7 @@ export function getFirebaseAdminCredential(): FirebaseAdminCredential {
     throw new Error(
       `FIREBASE_SERVICE_ACCOUNT_JSON inválido (JSON malformado): ${
         e instanceof Error ? e.message : String(e)
-      }`,
+      }. Certifique-se de que o conteúdo é um JSON válido da service account do Firebase.`,
     )
   }
 
