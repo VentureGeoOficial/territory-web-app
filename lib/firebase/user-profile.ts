@@ -85,7 +85,7 @@ export async function createUserProfileAfterSignup(
     }
     trx.set(usernameRef, {
       uid,
-      createdAt: serverTimestamp(),
+      createdAt: Date.now(),
     })
     trx.set(userRef, {
       displayName: data.nomeCompleto,
