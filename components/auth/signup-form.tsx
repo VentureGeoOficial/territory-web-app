@@ -112,8 +112,8 @@ export function SignupForm({ className }: { className?: string }) {
       <Alert variant="destructive" className="border-destructive/50">
         <AlertTitle>Firebase não configurado</AlertTitle>
         <AlertDescription>
-          Defina as variáveis <code className="text-xs">NEXT_PUBLIC_FIREBASE_*</code> no
-          ficheiro <code className="text-xs">.env.local</code> para criar uma conta.
+          Defina as variáveis <code className="text-xs">NEXT_PUBLIC_FIREBASE_*</code> nas
+          variáveis de ambiente (painel Vercel ou equivalente) para criar uma conta.
         </AlertDescription>
       </Alert>
     )

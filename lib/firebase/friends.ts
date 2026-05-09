@@ -2,8 +2,6 @@ import {
   addDoc,
   collection,
   doc,
-  getDocs,
-  limit,
   onSnapshot,
   query,
   updateDoc,
@@ -13,7 +11,11 @@ import {
 import { getFirestoreDb } from './client'
 import { isFirebaseConfigured } from './config'
 
-export type FriendRequestStatus = 'pending' | 'accepted' | 'rejected'
+export type FriendRequestStatus =
+  | 'pending'
+  | 'accepted'
+  | 'rejected'
+  | 'cancelled'
 
 export interface FriendRequestDoc {
   id: string
@@ -25,17 +27,29 @@ export interface FriendRequestDoc {
 
 const REQUESTS = 'friendRequests'
 
-export async function findUserIdByEmail(email: string): Promise<string | null> {
+export async function lookupFriendUid(params: {
+  email?: string
+  username?: string
+  idToken: string,
+}): Promise<string | null> {
   if (!isFirebaseConfigured()) return null
-  const db = getFirestoreDb()
-  const q = query(
-    collection(db, 'users'),
-    where('email', '==', email.trim().toLowerCase()),
-    limit(1),
-  )
-  const snap = await getDocs(q)
-  if (snap.empty) return null
-  return snap.docs[0]!.id
+  const res = await fetch('/api/friends/lookup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${params.idToken}`,
+    },
+    body: JSON.stringify({
+      email: params.email,
+      username: params.username,
+    }),
+  })
+  const data = (await res.json().catch(() => ({}))) as { uid?: string | null; error?: string }
+  if (!res.ok) {
+    console.warn('[lookupFriendUid] API error', { status: res.status })
+    return null
+  }
+  return typeof data.uid === 'string' ? data.uid : null
 }
 
 export async function sendFriendRequest(
@@ -108,6 +122,13 @@ export async function rejectFriendRequest(requestId: string): Promise<void> {
   if (!isFirebaseConfigured()) return
   await updateDoc(doc(getFirestoreDb(), REQUESTS, requestId), {
     status: 'rejected',
+  })
+}
+
+export async function cancelFriendRequest(requestId: string): Promise<void> {
+  if (!isFirebaseConfigured()) return
+  await updateDoc(doc(getFirestoreDb(), REQUESTS, requestId), {
+    status: 'cancelled',
   })
 }
 

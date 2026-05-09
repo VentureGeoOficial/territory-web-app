@@ -85,7 +85,6 @@ export async function createUserProfileAfterSignup(
     }
     trx.set(usernameRef, {
       uid,
-      email: email.trim().toLowerCase(),
       createdAt: serverTimestamp(),
     })
     trx.set(userRef, {
@@ -148,16 +147,6 @@ export async function createUserProfileAfterSignup(
   })
 }
 
-export async function getEmailByUsername(username: string): Promise<string | null> {
-  if (!isFirebaseConfigured()) return null
-  const slug = username.trim().toLowerCase()
-  if (!slug) return null
-  const snap = await getDoc(doc(getFirestoreDb(), USERNAMES, slug))
-  if (!snap.exists()) return null
-  const data = snap.data() as { email?: string }
-  return data.email?.trim().toLowerCase() ?? null
-}
-
 export async function ensureUserProfile(
   uid: string,
   info: { email: string; displayName: string },
@@ -211,6 +200,20 @@ export async function getUserProfile(uid: string): Promise<UserProfileDoc | null
   const snap = await getDoc(doc(getFirestoreDb(), USERS, uid))
   if (!snap.exists()) return null
   return snap.data() as UserProfileDoc
+}
+
+/** Leitura pública de ranking/social (`publicProfiles`) — não usar `users/{uid}` de terceiros (rules). */
+export async function getPublicProfileSummary(
+  uid: string,
+): Promise<{ displayName: string; totalAreaM2: number } | null> {
+  if (!isFirebaseConfigured()) return null
+  const snap = await getDoc(doc(getFirestoreDb(), PUBLIC_PROFILES, uid))
+  if (!snap.exists()) return null
+  const data = snap.data() as { displayName?: string; totalAreaM2?: number }
+  return {
+    displayName: String(data.displayName ?? 'Corredor'),
+    totalAreaM2: Number(data.totalAreaM2 ?? 0),
+  }
 }
 
 type UserProfileUpdatableFields = Pick<

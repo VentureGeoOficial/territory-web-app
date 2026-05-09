@@ -108,7 +108,7 @@ export function LoginForm({ className }: { className?: string }) {
         {!isFirebaseConfigured() && (
           <Alert variant="destructive">
             <AlertDescription>
-              Configure NEXT_PUBLIC_FIREBASE_* no ficheiro .env.local para entrar na aplicação.
+              Configure NEXT_PUBLIC_FIREBASE_* nas variáveis de ambiente (painel Vercel) para entrar na aplicação.
             </AlertDescription>
           </Alert>
         )}

@@ -1,38 +1,31 @@
 import 'server-only'
 
-import { cert, getApps, initializeApp } from 'firebase-admin/app'
+import { cert, getApps, initializeApp, type App } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore } from 'firebase-admin/firestore'
 
-function initAdminApp() {
+import { getFirebaseAdminCredential } from '@/lib/config/firebase-admin-env'
+
+let cachedApp: App | undefined
+
+function initAdminApp(): App {
+  if (cachedApp) return cachedApp
+
   const existing = getApps()[0]
-  if (existing) return existing
-
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
-  if (!raw?.trim()) {
-    throw new Error(
-      'FIREBASE_SERVICE_ACCOUNT_JSON não definido. Configure o JSON da conta de serviço no Vercel.',
-    )
+  if (existing) {
+    cachedApp = existing
+    return cachedApp
   }
 
-  try {
-    const parsed = JSON.parse(raw) as {
-      project_id?: string
-      client_email?: string
-      private_key?: string
-    }
-    return initializeApp({
-      credential: cert({
-        projectId: parsed.project_id,
-        clientEmail: parsed.client_email,
-        privateKey: parsed.private_key?.replace(/\\n/g, '\n'),
-      }),
-    })
-  } catch (e) {
-    throw new Error(
-      `FIREBASE_SERVICE_ACCOUNT_JSON inválido: ${e instanceof Error ? e.message : String(e)}`,
-    )
-  }
+  const credential = getFirebaseAdminCredential()
+  cachedApp = initializeApp({
+    credential: cert({
+      projectId: credential.projectId,
+      clientEmail: credential.clientEmail,
+      privateKey: credential.privateKey,
+    }),
+  })
+  return cachedApp
 }
 
 export function getAdminFirestore() {

@@ -1,5 +1,6 @@
 /**
- * Autenticação com Firebase (email/senha). Requer NEXT_PUBLIC_FIREBASE_* no ambiente.
+ * Autenticação com Firebase (email/senha). Requer as variáveis NEXT_PUBLIC_FIREBASE_*
+ * configuradas no ambiente (painel Vercel ou equivalente).
  */
 
 import type { AuthSession } from './types'
@@ -13,24 +14,41 @@ import { isFirebaseConfigured } from '@/lib/firebase/config'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+async function resolveEmailFromUsernameForLogin(
+  username: string,
+): Promise<string | null> {
+  try {
+    const res = await fetch('/api/auth/resolve-identifier', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    })
+    if (!res.ok) return null
+    const data = (await res.json()) as { email?: string | null }
+    const em = data.email
+    return typeof em === 'string' && em.length > 0 ? em.trim().toLowerCase() : null
+  } catch {
+    return null
+  }
+}
+
 export async function login(
   credentials: LoginFormValues,
 ): Promise<AuthSession> {
   if (!isFirebaseConfigured()) {
     throw new AuthError(
-      'Firebase não está configurado. Defina NEXT_PUBLIC_FIREBASE_* no .env.local.',
+      'Firebase não está configurado. Defina as variáveis NEXT_PUBLIC_FIREBASE_* no ambiente.',
     )
   }
   const { signInWithEmailAndPassword } = await import('firebase/auth')
   const { getFirebaseAuth } = await import('@/lib/firebase/client')
   const { firebaseUserToSession } = await import('./firebase-session')
-  const { getEmailByUsername } = await import('@/lib/firebase/user-profile')
   try {
     const auth = getFirebaseAuth()
     const identifier = credentials.identifier.trim().toLowerCase()
     const resolvedEmail = emailRegex.test(identifier)
       ? identifier
-      : await getEmailByUsername(identifier)
+      : await resolveEmailFromUsernameForLogin(identifier)
     if (!resolvedEmail) {
       throw new AuthError('Usuário não encontrado.')
     }
@@ -82,7 +100,7 @@ export async function requestPasswordReset(
 ): Promise<void> {
   if (!isFirebaseConfigured()) {
     throw new AuthError(
-      'Redefinição de senha requer Firebase configurado (.env.local).',
+      'Redefinição de senha requer Firebase configurado nas variáveis de ambiente.',
     )
   }
   const { sendPasswordResetEmail } = await import('firebase/auth')
@@ -103,7 +121,7 @@ export async function registerWithFirebase(
 ): Promise<AuthSession> {
   if (!isFirebaseConfigured()) {
     throw new AuthError(
-      'Configure o Firebase (.env.local) para criar uma conta.',
+      'Configure as variáveis Firebase no ambiente para criar uma conta.',
     )
   }
 
