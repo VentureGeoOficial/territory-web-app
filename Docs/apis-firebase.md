@@ -19,23 +19,24 @@ Este documento descreve como o TerritoryRun Web utiliza Firebase Authentication 
     - `usernames` — índice único de username.
     - `territories` — territórios capturados no mapa.
     - `friendRequests` — pedidos de amizade.
-- **Modo demo**:
-  - Quando as variáveis `NEXT_PUBLIC_FIREBASE_*` não estão configuradas, o app:
-    - Usa login mock.
-    - Não lê/escreve em Firestore; usa Zustand + dados mock.
+- **Sem Firebase**:
+  - Quando as variáveis `NEXT_PUBLIC_FIREBASE_*` não estão configuradas, o
+    login fica desativado e apenas as rotas públicas (landing, termos,
+    privacidade) funcionam. Os repositórios mock em `lib/data/` continuam no
+    código mas não são acessíveis sem sessão autenticada.
 
 ## 2. Autenticação (`lib/auth/*` + Firebase Auth)
 
 ### 2.1 Serviços de Auth (`lib/auth/auth-service.ts`)
 
 - `login(email, password)`:
-  - Se `isFirebaseConfigured() === true`:
-    - Chama `signInWithEmailAndPassword` do Firebase Auth.
-    - Converte o usuário Firebase em `AuthSession` via `firebase-session.ts`.
-    - Atualiza `auth-store` com `setSession`.
-  - Caso contrário (modo demo):
-    - Valida credenciais contra um usuário fixo (`demo@territory.run` / `demo123`).
-    - Gera uma sessão mock e grava em `auth-store`.
+  - Exige Firebase configurado; sem isso lança `AuthError` e a UI desativa o
+    formulário.
+  - Resolve username -> email via `getEmailByUsername` quando o utilizador
+    insere um username.
+  - Chama `signInWithEmailAndPassword`.
+  - Converte o usuário Firebase em `AuthSession` via `firebase-session.ts`.
+  - Atualiza `auth-store` com `setSession`.
 
 - `registerWithFirebase(payload)`:
   - Exige Firebase configurado.
@@ -48,12 +49,12 @@ Este documento descreve como o TerritoryRun Web utiliza Firebase Authentication 
     - Em caso de falha na transação, remove o usuário recém-criado com `deleteUser` para evitar orfãos.
 
 - `requestPasswordReset(email)`:
-  - Em produção, chama `sendPasswordResetEmail`.
-  - Em demo, simula delay/erro apenas para UX.
+  - Exige Firebase. Chama `sendPasswordResetEmail`.
 
 - `signOutRemote()`:
-  - Em produção, chama `signOut` no Firebase Auth.
-  - Sempre limpa `auth-store` via `logout`.
+  - Chama `signOut` no Firebase Auth (no-op se Firebase não estiver
+    configurado, embora nesse caso não exista sessão).
+  - O estado local é limpo em `auth-store` via `logout`.
 
 ### 2.2 Conversão de sessão (`lib/auth/firebase-session.ts`)
 
@@ -231,18 +232,21 @@ Como mencionado em `Docs/arquitetura-web.md`, os adapters são a forma como a UI
 
 Isso permite que os hooks (`use-firestore-territory-sync`, `use-global-leaderboard`) e componentes não precisem se preocupar se estão em modo demo ou produção.
 
-## 8. Modo demo vs produção (resumo)
+## 8. Estado normal vs Firebase ausente (resumo)
 
-- **Produção (Firebase ON)**:
-  - Auth real.
-  - Perfis e usernames persistidos.
-  - Territórios e stats transacionais no Firestore.
+- **Firebase configurado (estado normal)**:
+  - Auth real (email/senha; opcional Google).
+  - Perfis e usernames persistidos em Firestore.
+  - Territórios e stats transacionais (cliente via SDK + servidor via Admin
+    em `/api/territories/capture`).
   - Ranking e amigos usam coleções reais.
 
-- **Demo (Firebase OFF)**:
-  - Auth mock com usuário demo.
-  - Dados de mapa/territórios/ranking/integrantes são mockados via `territory-store`.
-  - Writes para Firestore estão efetivamente desativadas nas funções de API.
+- **Firebase ausente**:
+  - Login fica desativado; rotas autenticadas redirecionam para `/login`.
+  - Repositórios mock em `lib/data/territory-repository.ts` permanecem no
+    código mas só seriam atingíveis caso uma sessão existisse — o que não
+    acontece sem login real.
+  - Writes para Firestore não ocorrem.
 
 ## 9. Referências rápidas
 

@@ -5,14 +5,16 @@ import { toast } from 'sonner'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
 import {
   acceptFriendRequest,
-  findUserIdByEmail,
+  cancelFriendRequest,
+  lookupFriendUid,
   rejectFriendRequest,
   sendFriendRequest,
   subscribeAcceptedFriends,
   subscribeFriendRequests,
   type FriendRequestDoc,
 } from '@/lib/firebase/friends'
-import { getUserProfile } from '@/lib/firebase/user-profile'
+import { getPublicProfileSummary } from '@/lib/firebase/user-profile'
+import { getFirebaseAuth } from '@/lib/firebase/client'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { AuthenticatedShell } from '@/components/layout/authenticated-shell'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
@@ -68,7 +70,7 @@ export default function AmigosPage() {
     void (async () => {
       const rows: { id: string; displayName: string; totalAreaM2: number }[] = []
       for (const id of friendIds) {
-        const p = await getUserProfile(id)
+        const p = await getPublicProfileSummary(id)
         if (p)
           rows.push({
             id,
@@ -98,7 +100,16 @@ export default function AmigosPage() {
     recordExecution()
     
     try {
-      const target = await findUserIdByEmail(email.trim())
+      const auth = getFirebaseAuth()
+      const idToken = await auth.currentUser?.getIdToken()
+      if (!idToken) {
+        toast.error('Sessão inválida. Entre novamente.')
+        return
+      }
+      const target = await lookupFriendUid({
+        email: email.trim().toLowerCase(),
+        idToken,
+      })
       if (!target) {
         toast.error('Nenhum utilizador encontrado com esse e-mail.')
         return
@@ -126,8 +137,8 @@ export default function AmigosPage() {
             <CardHeader>
               <CardTitle className="text-base">Firebase necessário</CardTitle>
               <CardDescription>
-                Defina NEXT_PUBLIC_FIREBASE_* no .env.local para usar pedidos de amizade e perfis
-                reais.
+                Defina NEXT_PUBLIC_FIREBASE_* nas variáveis de ambiente (painel Vercel) para
+                usar pedidos de amizade e perfis reais.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -202,9 +213,26 @@ export default function AmigosPage() {
                   <CardTitle className="text-base">Pedidos enviados</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="text-sm text-muted-foreground space-y-1">
+                  <ul className="text-sm text-muted-foreground space-y-2">
                     {outgoing.map((r) => (
-                      <li key={r.id}>Pendente → {r.toUserId.slice(0, 8)}…</li>
+                      <li
+                        key={r.id}
+                        className="flex items-center justify-between gap-2 border border-border rounded-lg px-3 py-2"
+                      >
+                        <span>Pendente → {r.toUserId.slice(0, 8)}…</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          type="button"
+                          onClick={() => {
+                            void cancelFriendRequest(r.id).then(() =>
+                              toast.success('Pedido cancelado.'),
+                            )
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                      </li>
                     ))}
                   </ul>
                 </CardContent>

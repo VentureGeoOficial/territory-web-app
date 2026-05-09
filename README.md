@@ -5,15 +5,16 @@ Aplicação web [Next.js](https://nextjs.org) (v0 / Vercel) — mapa territorial
 ## Requisitos
 
 - Node.js LTS
-- Opcional: projeto [Firebase](https://console.firebase.google.com) (Authentication + Firestore) para dados em nuvem
+- Projeto [Firebase](https://console.firebase.google.com) (Authentication + Firestore) — obrigatório para fluxos autenticados (login, mapa, ranking, amigos).
 
 ## Configuração
 
 1. `npm install`
-2. Copie [`.env.example`](./.env.example) para `.env.local` e preencha as chaves `NEXT_PUBLIC_FIREBASE_*` se for usar Firebase.
-3. No Firebase Console: ative **Email/senha**; faça deploy de [`firestore.rules`](./firestore.rules) e [`firestore.indexes.json`](./firestore.indexes.json) (CLI ou consola).
+2. **Produção (Vercel):** configure as variáveis no painel da Vercel — ver [DEPLOY_VERCEL_FIREBASE.md](./DEPLOY_VERCEL_FIREBASE.md).
+3. **Desenvolvimento local:** copie [`.env.example`](./.env.example) para `.env.local` e preencha. Este ficheiro é ignorado pelo Git e usado apenas pelo `next dev` local.
+4. No Firebase Console: ative **Email/senha** (e opcionalmente Google); faça deploy de [`firestore.rules`](./firestore.rules) e [`firestore.indexes.json`](./firestore.indexes.json).
 
-Sem variáveis Firebase, o app corre em **modo demo**: login `demo@territory.run` / `demo123` e dados mock no mapa.
+Sem as variáveis Firebase configuradas, apenas as rotas públicas (landing, termos, privacidade) funcionam — o login fica desativado.
 
 ## Comandos
 
@@ -26,6 +27,10 @@ npm run lint
 
 ## Documentação
 
+- [Deploy Vercel + Firebase](DEPLOY_VERCEL_FIREBASE.md)
+- [Arquitetura Firebase](Docs/Firebase/arquitetura.md)
+- [Variáveis de ambiente](Docs/Firebase/variaveis-ambiente.md)
+- [Análise de segurança da config Firebase](Docs/Seguranca/firebase-config/SEC_firebase-env.md)
 - [Visão web + Firebase](Docs/web-firebase.md)
 - [Modelo Firestore](Docs/modelo-dados-firestore.md)
 - [Cadastro de utilizador](Docs/cadastro-usuario.md)

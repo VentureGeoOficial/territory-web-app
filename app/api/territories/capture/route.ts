@@ -1,22 +1,21 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-import { getAdminAuth, getAdminFirestore } from '@/lib/firebase/admin-app'
+import { ApiAuthError, verifyAuthOrFail } from '@/lib/firebase/admin-auth'
+import { queryTerritoriesForGameplay } from '@/lib/firebase/admin-territories-query'
+import { firestoreUserDocToDomainUser } from '@/lib/firebase/admin-user-map'
+import { getAdminFirestore } from '@/lib/firebase/admin-app'
 import {
   CaptureTransactionError,
   executeCaptureTransaction,
 } from '@/lib/firebase/transactions'
-import {
-  firestoreDocToTerritory,
-  type TerritoryFirestoreDoc,
-} from '@/lib/firebase/territory-doc'
 import { computeXpFromRun } from '@/lib/territory/scoring'
 import {
   calculateCaptureImpact,
   CAPTURE_PROTECTION_MS,
 } from '@/lib/territory/geoLogic'
 import { createTerritoryFromRunTrack } from '@/lib/territory/run-territory'
-import type { Territory, TrackPoint, User } from '@/lib/territory/types'
+import type { Territory, TrackPoint } from '@/lib/territory/types'
 import { isPositionInsideBox, SUZANO_BOUNDING_BOX } from '@/lib/territory/regions'
 
 const MAX_AREA_M2 = 10_000_000
@@ -39,38 +38,9 @@ const bodySchema = z.object({
   routeJson: z.string().max(400_000),
 })
 
-function userDocToDomainUser(uid: string, data: Record<string, unknown>): User {
-  return {
-    id: uid,
-    displayName: String(data.displayName ?? 'Corredor'),
-    email: data.email !== undefined ? String(data.email) : undefined,
-    color: String(data.color ?? '#CCFF00'),
-    totalAreaM2: Number(data.totalAreaM2 ?? 0),
-    territoriesCount: Number(data.territoriesCount ?? 0),
-    totalDistanceM: Number(data.totalDistanceM ?? 0),
-    totalDurationSeconds: Number(data.totalDurationSeconds ?? 0),
-    createdAt: Date.now(),
-    lastActiveAt: Date.now(),
-  }
-}
-
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('authorization')
-    const token = authHeader?.startsWith('Bearer ')
-      ? authHeader.slice(7).trim()
-      : null
-    if (!token) {
-      return NextResponse.json({ error: 'Token em falta.' }, { status: 401 })
-    }
-
-    let uid: string
-    try {
-      const decoded = await getAdminAuth().verifyIdToken(token)
-      uid = decoded.uid
-    } catch {
-      return NextResponse.json({ error: 'Token inválido.' }, { status: 401 })
-    }
+    const { uid } = await verifyAuthOrFail(req)
 
     let json: unknown
     try {
@@ -91,20 +61,16 @@ export async function POST(req: Request) {
     const points = body.points as TrackPoint[]
     const db = getAdminFirestore()
 
-    const [userSnap, territoriesSnap] = await Promise.all([
+    const [userSnap, existingTerritories] = await Promise.all([
       db.collection('users').doc(uid).get(),
-      db.collection('territories').get(),
+      queryTerritoriesForGameplay(),
     ])
 
     if (!userSnap.exists) {
       return NextResponse.json({ error: 'Perfil não encontrado.' }, { status: 400 })
     }
 
-    const existingTerritories: Territory[] = territoriesSnap.docs.map((d) =>
-      firestoreDocToTerritory(d.id, d.data() as TerritoryFirestoreDoc),
-    )
-
-    const currentUser = userDocToDomainUser(uid, userSnap.data() ?? {})
+    const currentUser = firestoreUserDocToDomainUser(uid, userSnap.data() ?? {})
 
     let newTerritory: Territory
     try {
@@ -192,6 +158,9 @@ export async function POST(req: Request) {
       totalOverlappingAreaM2: impact.totalOverlappingAreaM2,
     })
   } catch (e) {
+    if (e instanceof ApiAuthError) {
+      return NextResponse.json({ error: e.message }, { status: e.status })
+    }
     if (e instanceof CaptureTransactionError) {
       const status =
         e.code === 'INSUFFICIENT_XP'
@@ -210,7 +179,7 @@ export async function POST(req: Request) {
       )
     }
     const message = e instanceof Error ? e.message : 'Erro interno.'
-    console.error(e)
+    console.error('[api/territories/capture]', e)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

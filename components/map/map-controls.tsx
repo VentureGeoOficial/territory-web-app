@@ -14,8 +14,8 @@ import {
   hasEnemyCaptureOverlap,
 } from '@/lib/territory/geoLogic'
 import type { CaptureImpactOk } from '@/lib/territory/geoLogic'
-import { generateId, trackPointsToPositions } from '@/lib/territory/geo'
-import { saveCompletedRun } from '@/lib/firebase/run-completion'
+import { trackPointsToPositions } from '@/lib/territory/geo'
+import { submitCompletedRunViaApi } from '@/lib/firebase/run-completion'
 import { CaptureXpDialog } from '@/components/map/capture-xp-dialog'
 import { CaptureTransactionSkeleton } from '@/components/ui/skeletons'
 import { useRunSession } from '@/hooks/use-run-session'
@@ -228,21 +228,25 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         return
       }
 
-      const runId = generateId()
       const routeJson = JSON.stringify({
         type: 'LineString',
         coordinates: trackPointsToPositions(points),
       })
 
-      await saveCompletedRun({
-        territory: newTerritory,
-        runId,
-        userId: currentUserId,
+      const authClient = getFirebaseAuth()
+      const idToken = await authClient.currentUser?.getIdToken()
+      if (!idToken) {
+        throw new Error('Inicie sessão novamente.')
+      }
+
+      await submitCompletedRunViaApi({
+        points,
         startedAt,
         endedAt,
         distanceMeters,
         durationSeconds,
         routeJson,
+        idToken,
       })
 
       resetRunState()
@@ -304,7 +308,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] max-w-[95vw]">
         {!isFirebaseConfigured() && (
           <p className="text-center text-xs text-amber-400 mb-2 px-2">
-            Defina NEXT_PUBLIC_FIREBASE_* no .env.local para usar o mapa com dados reais.
+            Defina NEXT_PUBLIC_FIREBASE_* nas variáveis de ambiente (painel Vercel) para usar o mapa com dados reais.
           </p>
         )}
 

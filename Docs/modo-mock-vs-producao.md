@@ -1,99 +1,80 @@
-# Modo Demo (Mock) vs Produção (Firebase)
+# Firebase obrigatório vs repositório mock interno
 
-Este documento explica as diferenças entre rodar o TerritoryRun Web em modo demo (sem Firebase) e em modo produção (com Firebase configurado).
+> **Histórico:** versões anteriores deste documento descreviam um "modo demo"
+> com login mock (`demo@territory.run` / `demo123`). Esse comportamento foi
+> removido — o login hoje **exige** Firebase. O título e o conteúdo abaixo
+> refletem o estado atual do código.
 
-## 1. Como o modo é escolhido
+## 1. Como o estado é detetado
 
-- Arquivo: `lib/firebase/config.ts`.
-- Função: `isFirebaseConfigured()`:
-  - Retorna `true` se todas as variáveis `NEXT_PUBLIC_FIREBASE_*` estiverem presentes (`API_KEY`, `AUTH_DOMAIN`, `PROJECT_ID`, `APP_ID` etc.).
-  - Caso contrário, o app assume **modo demo**.
+- Arquivo: [`lib/config/firebase-env.ts`](../lib/config/firebase-env.ts)
+  (re-exportado por [`lib/firebase/config.ts`](../lib/firebase/config.ts) por
+  compatibilidade).
+- Função: `isFirebaseConfigured()` — retorna `true` quando as variáveis
+  `NEXT_PUBLIC_FIREBASE_*` obrigatórias estão presentes (`API_KEY`,
+  `AUTH_DOMAIN`, `PROJECT_ID`, `APP_ID`).
 
-Essa flag é usada em vários pontos:
-- `auth-service` (para escolher entre login/cadastro reais ou mock).
-- `use-firestore-territory-sync` e `use-global-leaderboard` (via repositórios em `lib/data/territory-repository.ts`).
-- Páginas e formulários que exibem avisos quando Firebase não está disponível.
+Pontos de uso:
 
-## 2. Modo demo (mock)
+- [`lib/auth/auth-service.ts`](../lib/auth/auth-service.ts) — bloqueia login,
+  registo, reset de senha, troca/exclusão de conta sem Firebase.
+- [`components/auth/login-form.tsx`](../components/auth/login-form.tsx) e
+  [`components/auth/signup-form.tsx`](../components/auth/signup-form.tsx) —
+  desativam os formulários e exibem aviso.
+- [`lib/data/territory-repository.ts`](../lib/data/territory-repository.ts)
+  — alterna entre implementação Firebase e repositório mock interno
+  (Zustand) para territórios e ranking.
 
-### 2.1 Objetivo
+## 2. Sem Firebase configurado
 
-- Permitir que qualquer dev ou stakeholder rode o app localmente sem precisar criar um projeto Firebase.
-- Servir como ambiente de demonstração seguro (sem gravação de dados reais).
+- **Auth:** desativado. As páginas `/login`, `/cadastro`, `/esqueci-senha`
+  mostram alerta "Configure NEXT_PUBLIC_FIREBASE_* nas variáveis de ambiente".
+- **Rotas autenticadas (`/mapa`, `/competicao`, `/amigos`, `/trofeus`,
+  `/conta`, `/seguranca`):** inacessíveis — `AuthGuard` redireciona para
+  `/login`.
+- **Rotas públicas (`/`, `/termos`, `/privacidade`, `/ajuda`):** funcionam
+  normalmente.
+- **Repositórios mock:** o código de `lib/data/territory-repository.ts`
+  ainda contém implementações mock (Zustand + `initMockData()`). Elas estão
+  preservadas para testes locais e para serem reaproveitadas se um modo
+  demo público vier a ser reintroduzido, mas hoje não são acessíveis sem
+  sessão autenticada.
 
-### 2.2 Comportamento
+## 3. Com Firebase configurado (estado normal de produção)
 
-- **Auth**:
-  - `login` aceita somente credenciais fixas:
-    - Email: `demo@territory.run`
-    - Senha: `demo123`
-  - `registerWithFirebase` mostra aviso e não cria conta (cadastro real desabilitado).
-  - `requestPasswordReset` apenas simula sucesso/erro.
+### 3.1 Auth
 
-- **Dados de mapa e ranking**:
-  - `territory-store.initMockData()` é chamado quando `/mapa` carrega com lista de territórios vazia:
-    - Cria usuários e territórios de exemplo (área de São Paulo).
-  - `TerritoryRepository` (mock):
-    - `subscribeTerritories` lê e assina apenas `territory-store`.
-    - `saveTerritoryAndUpdateUserStats` é no-op (não persiste em nuvem).
-  - `LeaderboardRepository` (mock):
-    - Constrói `RankingEntry[]` a partir de `users` locais na store.
+- Login/cadastro/reset usam Firebase Authentication.
+- `createUserProfileAfterSignup` cria de forma transacional `users/{uid}` e
+  `usernames/{slug}`.
+- `ensureUserProfile` garante que qualquer login tenha perfil coerente em
+  `users`.
 
-- **Amigos e troféus**:
-  - Lógica depende majoritariamente dos dados locais.
-  - Algumas features que precisariam de Firestore podem ficar limitadas ou apenas simuladas.
+### 3.2 Dados de mapa e ranking
 
-### 2.3 Limitações
+- `use-firestore-territory-sync` usa `TerritoryRepository` Firebase: assina
+  `territories` via `onSnapshot` e reflete na `territory-store`.
+- Captura de território passa pelo endpoint
+  [`POST /api/territories/capture`](../app/api/territories/capture/route.ts)
+  que valida o Id Token e executa transação no Admin SDK.
+- `use-global-leaderboard` assina ranking ordenado por `totalAreaM2`.
 
-- Não há persistência entre sessões além do que é salvo no `localStorage` (auth).
-- Não há envio de e-mails reais (reset de senha).
-- Não há dados compartilhados entre usuários diferentes (cada navegador tem seu próprio estado).
+### 3.3 Amigos e troféus
 
-## 3. Modo produção (Firebase)
+- `friendRequests` em Firestore para pedidos/amizades.
+- Troféus consomem dados agregados reais (área, número de amigos, etc.).
 
-### 3.1 Objetivo
+### 3.4 Segurança
 
-- Rodar o produto real com:
-  - Auth segura via Firebase Authentication.
-  - Perfis e territórios persistidos em Firestore.
-  - Regras de segurança fortalecidas (`firestore.rules`).
-  - Ranking e amigos funcionando globalmente.
-
-### 3.2 Comportamento
-
-- **Auth**:
-  - Login/cadastro/reset usam Firebase Authentication.
-  - `createUserProfileAfterSignup` garante que `users/{uid}` e `usernames/{slug}` sejam criados de forma transacional.
-  - `ensureUserProfile` garante que qualquer login tenha um perfil coerente em `users`.
-
-- **Dados de mapa e ranking**:
-  - `use-firestore-territory-sync`:
-    - Usa `TerritoryRepository` com implementação Firebase.
-    - Escuta `territories` via `onSnapshot` e reflete na `territory-store`.
-  - `saveTerritoryAndUpdateUserStats`:
-    - Escreve `territories` e atualiza `users` em transação.
-  - `use-global-leaderboard`:
-    - Usa `LeaderboardRepository` com implementação Firebase.
-    - Assina ranking ordenado por `totalAreaM2`.
-
-- **Amigos e troféus**:
-  - `friendRequests` em Firestore armazenam pedidos/amizades.
-  - Troféus podem usar dados agregados reais (área, número de amigos, etc.).
-
-### 3.3 Segurança
-
-- Regras em `firestore.rules`:
-  - Limitam quem pode ler/alterar perfis, territórios e requests de amizade.
-  - Validam payloads (área, status, tamanho de `polygonJson`).
-- Transações (`runTransaction`) são usadas para operações críticas (territórios + stats de usuário).
+- Regras em [`firestore.rules`](../firestore.rules) controlam leitura/escrita
+  por usuário.
+- Transações (`runTransaction`) para operações críticas que afetam vários
+  documentos (territórios + stats).
 
 ## 4. Resumo rápido
 
-- **Quando desenvolver UI e domínio**:
-  - Sempre considere que o código deve funcionar tanto em demo quanto em produção.
-  - Use os repositórios (`getTerritoryRepository`, `getLeaderboardRepository`) em vez de falar direto com Firebase nos componentes/hooks.
-
-- **Quando testar**:
-  - Use modo demo para iterar mais rápido e compartilhar com stakeholders sem risco.
-  - Use modo produção (com projeto Firebase de dev) para validar fluxos reais de auth, persistência e segurança.
-
+- **Desenvolvimento:** preencha [`.env.local`](../.env.example) com um
+  projeto Firebase (de dev) e tudo funciona como produção.
+- **Vercel:** ver [`DEPLOY_VERCEL_FIREBASE.md`](../DEPLOY_VERCEL_FIREBASE.md).
+- **Sem Firebase:** apenas as páginas públicas funcionam. Não existe mais
+  login mock para área autenticada.
