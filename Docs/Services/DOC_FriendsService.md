@@ -9,12 +9,12 @@
 |--------|-----------|
 | `FRIEND_USERNAME_SLUG_PATTERN` | Regex `^[a-z0-9_]{3,20}$` — alinhada à API e ao campo na UI `/amigos`. |
 | `validateNoExistingFriendship(...)` | Validação **no cliente** antes do lookup: `self`, `already_friend`, `pending_outgoing`, `pending_incoming`. |
-| `lookupFriendUid({ email \| username, idToken })` | `POST /api/friends/lookup` — Admin: Firestore (`users.email` ou `usernames/{slug}`); e-mail com fallback Auth (`getUserByEmail`). Devolve `LookupFriendUidResult`. |
-| `sendFriendRequest(from, to)` | Antes de `addDoc`, verifica duplicados (`pending`/`accepted`) entre o par via queries indexadas; lança `DUPLICATE_REQUEST` se existir. Depois `addDoc` em `friendRequests` `pending`. |
-| `subscribeFriendRequests(userId, onUpdate)` | Duas queries snapshot: incoming/outgoing `pending`; merge |
+| `lookupFriendUid({ email \| username, idToken })` | `POST /api/friends/lookup` — Admin: e-mail em `users` + fallback Auth; username em `usernames/{slug}` e, se em falta, **`users` onde `username == slug`**. Devolve `LookupFriendUidResult`. |
+| `sendFriendRequest(from, to)` | Antes de `addDoc`, verifica duplicados com queries separadas `status == pending` e `status == accepted` por direção (sem `in`). Lança `DUPLICATE_REQUEST` se existir aresta bloqueante. Depois `addDoc` `pending`. |
+| `subscribeFriendRequests(userId, onUpdate)` | Duas queries snapshot: incoming/outgoing `pending`; merge; **onSnapshot com handler de erro** (`console.warn`). |
 | `acceptFriendRequest` / `rejectFriendRequest` | `updateDoc` status |
 | `cancelFriendRequest` | Remetente define `cancelled` |
-| `subscribeAcceptedFriends(userId, onUpdate)` | Duas queries `accepted`; deriva lista de IDs amigos |
+| `subscribeAcceptedFriends(userId, onUpdate)` | Duas queries `accepted`; deriva lista de IDs amigos; **onSnapshot com handler de erro** (`console.warn`). |
 
 Requer índices compostos — ver [DOC_FirestoreIndexes.md](../Banco/DOC_FirestoreIndexes.md).
 
@@ -29,6 +29,7 @@ Sem PII: apenas prefixos de 8 caracteres de UIDs e `requestId`.
 | INFO | Recusar pedido | `[friends]` JSON `event: request_rejected`, `requestIdPrefix` |
 | INFO | Cancelar pedido | `[friends]` JSON `event: request_cancelled`, `requestIdPrefix` |
 | WARN | Erro HTTP lookup | `[lookupFriendUid] API error` — ver [DOC_route_friends_lookup.md](../Firebase/DOC_route_friends_lookup.md) |
+| WARN | Falha listener pedidos / amigos aceites | `[subscribeFriendRequests]` / `[subscribeAcceptedFriends]` com scope e `message` |
 
 ## Hooks relacionados
 

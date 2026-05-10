@@ -43,10 +43,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const session = await firebaseUserToSession(user)
           setSession(session)
           setCurrentUserId(user.uid)
-          await ensureUserProfile(user.uid, {
-            email: session.user.email,
-            displayName: session.user.displayName,
-          })
+          try {
+            await ensureUserProfile(user.uid, {
+              email: session.user.email,
+              displayName: session.user.displayName,
+            })
+          } catch (e) {
+            console.warn(
+              '[AuthProvider] ensureUserProfile falhou — sessão mantida',
+              {
+                component: 'AuthProvider',
+                uidPrefix: user.uid.slice(0, 8),
+                reason: e instanceof Error ? e.message : String(e),
+              },
+            )
+          }
         } else {
           logout()
           setCurrentUserId('')

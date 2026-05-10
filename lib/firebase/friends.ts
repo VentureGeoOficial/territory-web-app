@@ -61,35 +61,34 @@ export function validateNoExistingFriendship(params: {
   return { ok: true }
 }
 
+/** Duas queries por direção com `status ==` (evita `in` + índices extra em produção). */
+async function hasBlockingDirectedEdge(
+  db: Firestore,
+  fromUserId: string,
+  toUserId: string,
+): Promise<boolean> {
+  for (const status of ['pending', 'accepted'] as const) {
+    const q = query(
+      collection(db, REQUESTS),
+      where('fromUserId', '==', fromUserId),
+      where('status', '==', status),
+    )
+    const snap = await getDocs(q)
+    for (const d of snap.docs) {
+      const data = d.data() as { toUserId?: string }
+      if (data.toUserId === toUserId) return true
+    }
+  }
+  return false
+}
+
 async function findBlockingFriendEdge(
   db: Firestore,
   fromUserId: string,
   toUserId: string,
 ): Promise<boolean> {
-  const statusFilter = ['pending', 'accepted'] as const
-
-  const qOut = query(
-    collection(db, REQUESTS),
-    where('fromUserId', '==', fromUserId),
-    where('status', 'in', [...statusFilter]),
-  )
-  const snapOut = await getDocs(qOut)
-  for (const d of snapOut.docs) {
-    const data = d.data() as { toUserId?: string }
-    if (data.toUserId === toUserId) return true
-  }
-
-  const qRev = query(
-    collection(db, REQUESTS),
-    where('fromUserId', '==', toUserId),
-    where('status', 'in', [...statusFilter]),
-  )
-  const snapRev = await getDocs(qRev)
-  for (const d of snapRev.docs) {
-    const data = d.data() as { toUserId?: string }
-    if (data.toUserId === fromUserId) return true
-  }
-
+  if (await hasBlockingDirectedEdge(db, fromUserId, toUserId)) return true
+  if (await hasBlockingDirectedEdge(db, toUserId, fromUserId)) return true
   return false
 }
 
@@ -202,20 +201,32 @@ export function subscribeFriendRequests(
 
   const push = () => onUpdate(incoming, outgoing)
 
-  const u1 = onSnapshot(incQ, (snap) => {
-    incoming = snap.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as Omit<FriendRequestDoc, 'id'>),
-    }))
-    push()
-  })
-  const u2 = onSnapshot(outQ, (snap) => {
-    outgoing = snap.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as Omit<FriendRequestDoc, 'id'>),
-    }))
-    push()
-  })
+  const onListenErr = (scope: string) => (e: Error) => {
+    console.warn('[subscribeFriendRequests]', scope, { message: e.message })
+  }
+
+  const u1 = onSnapshot(
+    incQ,
+    (snap) => {
+      incoming = snap.docs.map((d) => ({
+        id: d.id,
+        ...(d.data() as Omit<FriendRequestDoc, 'id'>),
+      }))
+      push()
+    },
+    onListenErr('incoming'),
+  )
+  const u2 = onSnapshot(
+    outQ,
+    (snap) => {
+      outgoing = snap.docs.map((d) => ({
+        id: d.id,
+        ...(d.data() as Omit<FriendRequestDoc, 'id'>),
+      }))
+      push()
+    },
+    onListenErr('outgoing'),
+  )
 
   return () => {
     u1()
@@ -293,20 +304,32 @@ export function subscribeAcceptedFriends(
     onUpdate(Array.from(ids))
   }
 
-  const u1 = onSnapshot(q1, (snap) => {
-    a = snap.docs.map((d) => {
-      const data = d.data() as { toUserId: string }
-      return data.toUserId
-    })
-    merge()
-  })
-  const u2 = onSnapshot(q2, (snap) => {
-    b = snap.docs.map((d) => {
-      const data = d.data() as { fromUserId: string }
-      return data.fromUserId
-    })
-    merge()
-  })
+  const onListenErr = (scope: string) => (e: Error) => {
+    console.warn('[subscribeAcceptedFriends]', scope, { message: e.message })
+  }
+
+  const u1 = onSnapshot(
+    q1,
+    (snap) => {
+      a = snap.docs.map((d) => {
+        const data = d.data() as { toUserId: string }
+        return data.toUserId
+      })
+      merge()
+    },
+    onListenErr('from_user_accepted'),
+  )
+  const u2 = onSnapshot(
+    q2,
+    (snap) => {
+      b = snap.docs.map((d) => {
+        const data = d.data() as { fromUserId: string }
+        return data.fromUserId
+      })
+      merge()
+    },
+    onListenErr('to_user_accepted'),
+  )
 
   return () => {
     u1()
