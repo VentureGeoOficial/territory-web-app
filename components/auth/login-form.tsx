@@ -126,12 +126,12 @@ export function LoginForm({ className }: { className?: string }) {
           name="identifier"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>E-mail ou nome de usuário</FormLabel>
+              <FormLabel>Informe seu e-mail</FormLabel>
               <FormControl>
                 <Input
                   type="text"
                   autoComplete="username"
-                  placeholder="voce@exemplo.com ou seu_username"
+                  placeholder="voce@exemplo.com"
                   disabled={submitting}
                   {...field}
                 />
