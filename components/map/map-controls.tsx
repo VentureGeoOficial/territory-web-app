@@ -15,12 +15,15 @@ import {
 } from '@/lib/territory/geoLogic'
 import type { CaptureImpactOk } from '@/lib/territory/geoLogic'
 import { trackPointsToPositions } from '@/lib/territory/geo'
-import { submitCompletedRunViaApi } from '@/lib/firebase/run-completion'
+import {
+  submitCompletedRunViaApi,
+  submitTerritoryCaptureViaApi,
+} from '@/lib/firebase/run-completion'
 import { CaptureXpDialog } from '@/components/map/capture-xp-dialog'
 import { CaptureTransactionSkeleton } from '@/components/ui/skeletons'
 import { useRunSession } from '@/hooks/use-run-session'
 import { getCurrentPositionOnce } from '@/lib/services/location-service'
-import { getUserProfile } from '@/lib/firebase/user-profile'
+import { getUserProfile } from '@/lib/services/account-settings-service'
 import { Play, Square, X, MapPin, Loader2 } from 'lucide-react'
 import { formatDistance, formatDuration } from '@/lib/territory/geo'
 
@@ -42,6 +45,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
   const distanceMeters = useRunStore((s) => s.distanceMeters)
   const startedAt = useRunStore((s) => s.startedAt)
   const resetRunState = useRunStore((s) => s.resetRunState)
+  const isPausedDueToSpeed = useRunStore((s) => s.isPausedDueToSpeed)
 
   const {
     permission,
@@ -68,9 +72,21 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       setLiveSeconds(0)
       return
     }
-    const t = setInterval(() => {
-      setLiveSeconds(Math.floor((Date.now() - startedAt) / 1000))
-    }, 1000)
+    const tick = () => {
+      const rs = useRunStore.getState()
+      const openPause =
+        rs.isPausedDueToSpeed && rs.speedPauseSegmentStartedAt != null
+          ? Date.now() - rs.speedPauseSegmentStartedAt
+          : 0
+      const totalPause = rs.accumulatedSpeedPauseMs + openPause
+      const sec = Math.max(
+        0,
+        Math.floor((Date.now() - startedAt - totalPause) / 1000),
+      )
+      setLiveSeconds(sec)
+    }
+    tick()
+    const t = setInterval(tick, 1000)
     return () => clearInterval(t)
   }, [isRunning, startedAt])
 
@@ -123,31 +139,19 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         coordinates: trackPointsToPositions(pts),
       })
       const auth = getFirebaseAuth()
-      const token = await auth.currentUser?.getIdToken()
-      if (!token) {
+      const idToken = await auth.currentUser?.getIdToken()
+      if (!idToken) {
         throw new Error('Inicie sessão novamente.')
       }
-      const res = await fetch('/api/territories/capture', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          points: pts,
-          startedAt: captureDraft.startedAt,
-          endedAt: captureDraft.endedAt,
-          distanceMeters: captureDraft.distanceMeters,
-          durationSeconds: captureDraft.durationSeconds,
-          routeJson,
-        }),
+      await submitTerritoryCaptureViaApi({
+        points: pts,
+        startedAt: captureDraft.startedAt,
+        endedAt: captureDraft.endedAt,
+        distanceMeters: captureDraft.distanceMeters,
+        durationSeconds: captureDraft.durationSeconds,
+        routeJson,
+        idToken,
       })
-      const data = (await res.json().catch(() => ({}))) as {
-        error?: string
-      }
-      if (!res.ok) {
-        throw new Error(data.error ?? 'Não foi possível concluir a conquista.')
-      }
       setCaptureDraft(null)
       resetRunState()
       setMapMode('view')
@@ -168,7 +172,16 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     setFinishing(true)
     stopWatching()
     const endedAt = Date.now()
-    const durationSeconds = (endedAt - startedAt) / 1000
+    const rs = useRunStore.getState()
+    const openPauseMs =
+      rs.isPausedDueToSpeed && rs.speedPauseSegmentStartedAt != null
+        ? endedAt - rs.speedPauseSegmentStartedAt
+        : 0
+    const totalPauseMs = rs.accumulatedSpeedPauseMs + openPauseMs
+    const durationSeconds = Math.max(
+      0,
+      (endedAt - startedAt - totalPauseMs) / 1000,
+    )
 
     try {
       let currentUser = getCurrentUser()
@@ -414,7 +427,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       </div>
 
       {isRunning && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000]">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] flex flex-col items-center gap-2">
           <div
             className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium shadow-lg"
             style={{
@@ -425,6 +438,17 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
             <MapPin className="h-4 w-4" />
             A registar o seu percurso em Suzano
           </div>
+          {isPausedDueToSpeed && (
+            <div
+              className="px-4 py-2 rounded-full text-xs font-medium shadow-md max-w-[90vw] text-center"
+              style={{
+                background: 'rgba(255, 77, 77, 0.95)',
+                color: '#fff',
+              }}
+            >
+              Velocidade elevada — progresso em pausa (limite 24 km/h)
+            </div>
+          )}
         </div>
       )}
     </>

@@ -8,7 +8,17 @@
 
 - [`lib/firebase/config.ts`](../../lib/firebase/config.ts) reexporta `isFirebaseConfigured`, `getFirebasePublicConfig`, `assertFirebasePublicConfig`, tipo `FirebasePublicConfig`.
 
-## Funções
+## Facade nomeada (`firebaseConfig.ts`)
+
+- [`lib/firebase/firebaseConfig.ts`](../../lib/firebase/firebaseConfig.ts) — reexporta `getFirebaseApp`, `getFirebaseAuth`, `getFirestoreDb`; não duplica env.
+
+## Cliente singleton + Firestore
+
+- [`lib/firebase/client.ts`](../../lib/firebase/client.ts) — inicialização única; `initializeFirestore` + `persistentLocalCache` ({ `tabManager`: `persistentMultipleTabManager()` }); em falha, `getFirestore` com log `WARN` único (`getFirestoreDb`).
+
+Ver [DOC_firebase-client.md](DOC_firebase-client.md).
+
+## Funções (`config`)
 
 | Função | Uso |
 |--------|-----|

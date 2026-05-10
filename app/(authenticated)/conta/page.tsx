@@ -23,8 +23,8 @@ import {
   getUserProfile,
   recordLegalAcceptance,
   updateUserProfile,
-} from '@/lib/firebase/user-profile'
-import { saveNotificationPreferences } from '@/lib/firebase/notification-preferences'
+  saveNotificationPreferences,
+} from '@/lib/services/account-settings-service'
 import Link from 'next/link'
 
 export default function ContaPage() {

@@ -35,7 +35,7 @@ Escrita de stats após corridas/capturas é feita pelo **Admin SDK** nas rotas A
 | Operação | Quem | Validação |
 |----------|------|-----------|
 | read | Público | — |
-| create | Autenticado | **Só** `uid` + `createdAt` (sem email — mitiga enumeração de PII) |
+| create | Autenticado | **Só** `uid` + `createdAt` (`timestamp` ou `int`; slug `^[a-z0-9_]{3,30}$` alinhado ao cadastro) |
 | update/delete | — | Negado |
 
 ### `territories/{id}`
