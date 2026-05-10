@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     }
 
     const slug = usernameRaw.replace(/^@/, '')
-    if (!/^[a-z0-9_]{3,30}$/.test(slug)) {
+    if (!/^[a-z0-9_]{3,20}$/.test(slug)) {
       return NextResponse.json({ error: 'Username inválido.' }, { status: 400 })
     }
 
