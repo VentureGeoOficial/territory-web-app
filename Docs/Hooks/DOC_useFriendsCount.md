@@ -8,6 +8,5 @@
 
 ## Comportamento
 
-- `uid` de `useAuthStore`.
-- Se sem uid ou Firebase off → `0`.
-- Caso contrário `subscribeAcceptedFriends(uid, (ids) => setCount(ids.length))`.
+- Delega em [`useFriendIds`](DOC_useFriendIds.md): devolve `useFriendIds().length`.
+- Uma única subscrição a amigos aceites por instância do hook `useFriendIds` montada na árvore.

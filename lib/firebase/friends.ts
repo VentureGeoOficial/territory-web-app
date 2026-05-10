@@ -2,10 +2,12 @@ import {
   addDoc,
   collection,
   doc,
+  getDocs,
   onSnapshot,
   query,
   updateDoc,
   where,
+  type Firestore,
   type Unsubscribe,
 } from 'firebase/firestore'
 import { getFirestoreDb } from './client'
@@ -26,6 +28,70 @@ export interface FriendRequestDoc {
 }
 
 const REQUESTS = 'friendRequests'
+
+/** Alinhado com validação em `app/api/friends/lookup/route.ts` (slug username). */
+export const FRIEND_USERNAME_SLUG_PATTERN = /^[a-z0-9_]{3,20}$/
+
+export type ValidateFriendshipResult =
+  | { ok: true }
+  | {
+      ok: false
+      reason: 'self' | 'already_friend' | 'pending_outgoing' | 'pending_incoming'
+    }
+
+/**
+ * Validação só no cliente antes do lookup — não substitui verificação em `sendFriendRequest`.
+ */
+export function validateNoExistingFriendship(params: {
+  uid: string
+  targetUid: string
+  friendIds: string[]
+  incoming: FriendRequestDoc[]
+  outgoing: FriendRequestDoc[]
+}): ValidateFriendshipResult {
+  const { uid, targetUid, friendIds, incoming, outgoing } = params
+  if (targetUid === uid) return { ok: false, reason: 'self' }
+  if (friendIds.includes(targetUid)) return { ok: false, reason: 'already_friend' }
+  if (outgoing.some((r) => r.toUserId === targetUid)) {
+    return { ok: false, reason: 'pending_outgoing' }
+  }
+  if (incoming.some((r) => r.fromUserId === targetUid)) {
+    return { ok: false, reason: 'pending_incoming' }
+  }
+  return { ok: true }
+}
+
+async function findBlockingFriendEdge(
+  db: Firestore,
+  fromUserId: string,
+  toUserId: string,
+): Promise<boolean> {
+  const statusFilter = ['pending', 'accepted'] as const
+
+  const qOut = query(
+    collection(db, REQUESTS),
+    where('fromUserId', '==', fromUserId),
+    where('status', 'in', [...statusFilter]),
+  )
+  const snapOut = await getDocs(qOut)
+  for (const d of snapOut.docs) {
+    const data = d.data() as { toUserId?: string }
+    if (data.toUserId === toUserId) return true
+  }
+
+  const qRev = query(
+    collection(db, REQUESTS),
+    where('fromUserId', '==', toUserId),
+    where('status', 'in', [...statusFilter]),
+  )
+  const snapRev = await getDocs(qRev)
+  for (const d of snapRev.docs) {
+    const data = d.data() as { toUserId?: string }
+    if (data.toUserId === fromUserId) return true
+  }
+
+  return false
+}
 
 export type LookupFriendUidResult =
   | { kind: 'found'; uid: string }
@@ -93,12 +159,24 @@ export async function sendFriendRequest(
   if (!isFirebaseConfigured()) return
   if (fromUserId === toUserId) throw new Error('Não pode adicionar a si mesmo.')
   const db = getFirestoreDb()
+  const duplicate = await findBlockingFriendEdge(db, fromUserId, toUserId)
+  if (duplicate) {
+    throw new Error('DUPLICATE_REQUEST')
+  }
   await addDoc(collection(db, REQUESTS), {
     fromUserId,
     toUserId,
     status: 'pending',
     createdAt: Date.now(),
   })
+  console.info(
+    '[friends]',
+    JSON.stringify({
+      event: 'request_sent',
+      fromPrefix: fromUserId.slice(0, 8),
+      toPrefix: toUserId.slice(0, 8),
+    }),
+  )
 }
 
 export function subscribeFriendRequests(
@@ -150,6 +228,13 @@ export async function acceptFriendRequest(requestId: string): Promise<void> {
   await updateDoc(doc(getFirestoreDb(), REQUESTS, requestId), {
     status: 'accepted',
   })
+  console.info(
+    '[friends]',
+    JSON.stringify({
+      event: 'request_accepted',
+      requestIdPrefix: requestId.slice(0, 8),
+    }),
+  )
 }
 
 export async function rejectFriendRequest(requestId: string): Promise<void> {
@@ -157,6 +242,13 @@ export async function rejectFriendRequest(requestId: string): Promise<void> {
   await updateDoc(doc(getFirestoreDb(), REQUESTS, requestId), {
     status: 'rejected',
   })
+  console.info(
+    '[friends]',
+    JSON.stringify({
+      event: 'request_rejected',
+      requestIdPrefix: requestId.slice(0, 8),
+    }),
+  )
 }
 
 export async function cancelFriendRequest(requestId: string): Promise<void> {
@@ -164,6 +256,13 @@ export async function cancelFriendRequest(requestId: string): Promise<void> {
   await updateDoc(doc(getFirestoreDb(), REQUESTS, requestId), {
     status: 'cancelled',
   })
+  console.info(
+    '[friends]',
+    JSON.stringify({
+      event: 'request_cancelled',
+      requestIdPrefix: requestId.slice(0, 8),
+    }),
+  )
 }
 
 /** Amigos: pedidos aceites envolvendo o utilizador (duas queries indexadas). */

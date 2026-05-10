@@ -26,10 +26,10 @@ const MapControlsOverlay = dynamic(
   }
 )
 
-export function MapWrapper() {
+export function MapWrapper({ friendIds = [] }: { friendIds?: string[] }) {
   return (
     <div className="relative h-full w-full min-w-0">
-      <TerritoryMap />
+      <TerritoryMap friendIds={friendIds} />
       <MapControlsOverlay />
     </div>
   )

@@ -29,6 +29,7 @@ import { formatDistance, formatDuration } from '@/lib/territory/geo'
 
 const BRAND = {
   lime: '#CCFF00',
+  electric: '#00D2FF',
   navy: '#19305A',
   border: '#2d4a70',
 }
@@ -317,6 +318,33 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
           <CaptureTransactionSkeleton />
         </div>
       )}
+
+      <div className="pointer-events-none absolute bottom-[5.75rem] left-3 z-[999] max-w-[min(14rem,calc(100vw-1.5rem))] hidden md:block">
+        <div
+          className="pointer-events-auto rounded-lg border px-3 py-2 text-[11px] bg-background/90 backdrop-blur-sm text-muted-foreground space-y-1.5 shadow-md"
+          style={{ borderColor: BRAND.border }}
+        >
+          <div className="font-semibold text-foreground text-xs">Legenda</div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-3 h-3 rounded-sm shrink-0 border border-white/20"
+              style={{ background: BRAND.lime }}
+            />
+            Os seus territórios
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="w-3 h-3 rounded-sm shrink-0 border border-dashed border-white/35"
+              style={{ background: `${BRAND.electric}55` }}
+            />
+            Amigo (contorno tracejado no mapa)
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-sm shrink-0 bg-muted border border-border" />
+            Outros jogadores
+          </div>
+        </div>
+      </div>
 
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] max-w-[95vw]">
         {!isFirebaseConfigured() && (

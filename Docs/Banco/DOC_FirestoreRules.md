@@ -10,13 +10,9 @@
 | `publicProfiles/{userId}` | **Público** | create/update dono |
 | `usersPrivate/{userId}` | Dono | create/update dono; delete negado |
 | `usernames/{slug}` | Público | create se auth e `uid` correto e doc não existe; update/delete negados |
-| `territories/{id}` | **Público** (`true`) | create/update com validação `isValidTerritoryPayload()` e dono em updates/deletes |
+| `territories/{id}` | **Público** (`true`) | **Cliente:** create/update/delete negados — escrita apenas via Admin SDK (rotas API / Cloud Functions) |
 | `runs/{runId}` | Dono (`resource.data.userId`) | create com campos validados; update/delete negados |
 | `friendRequests/{id}` | Remetente ou destinatário | create pending como remetente; update por envolvidos |
-
-## Função `isValidTerritoryPayload` (territories)
-
-Garante: `userId == request.auth.uid`, área 0 < areaM2 ≤ 10_000_000, `status` enum, `polygonJson` string ≤ 200000 chars.
 
 ## Implicações de segurança
 

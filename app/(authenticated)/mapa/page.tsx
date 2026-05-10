@@ -8,9 +8,11 @@ import { Header } from '@/components/layout/header'
 import { TerritorySidebar } from '@/components/territory/territory-sidebar'
 import { MapWrapper } from '@/components/map/map-wrapper'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
+import { useFriendIds } from '@/hooks/use-friend-ids'
 
 export default function MapaPage() {
   const uid = useAuthStore((s) => s.user?.id)
+  const friendIds = useFriendIds()
   useFirestoreTerritorySync()
   useCurrentUserPublicProfile(uid)
   useUserPositionTracking()
@@ -23,7 +25,7 @@ export default function MapaPage() {
           <TerritorySidebar />
         </div>
         <main className="flex-1 relative min-w-0">
-          <MapWrapper />
+          <MapWrapper friendIds={friendIds} />
         </main>
       </div>
       <MobileBottomNav />

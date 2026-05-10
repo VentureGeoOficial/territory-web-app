@@ -11,6 +11,8 @@ Hooks na pasta [`hooks/`](../../hooks/) e hook PWA em [`lib/pwa/use-install-prom
 | [DOC_useLeaderboardPreview.md](DOC_useLeaderboardPreview.md) | [`hooks/use-leaderboard-preview.ts`](../../hooks/use-leaderboard-preview.ts) |
 | [DOC_usePublicProfileSync.md](DOC_usePublicProfileSync.md) | [`hooks/use-public-profile-sync.ts`](../../hooks/use-public-profile-sync.ts) (export: `useCurrentUserPublicProfile`) |
 | [DOC_useFriendsCount.md](DOC_useFriendsCount.md) | [`hooks/use-friends-count.ts`](../../hooks/use-friends-count.ts) |
+| [DOC_useFriendIds.md](DOC_useFriendIds.md) | [`hooks/use-friend-ids.ts`](../../hooks/use-friend-ids.ts) |
+| [DOC_useFriendProfiles.md](DOC_useFriendProfiles.md) | [`hooks/use-friend-profiles.ts`](../../hooks/use-friend-profiles.ts) |
 | [DOC_useRateLimit.md](DOC_useRateLimit.md) | [`hooks/use-rate-limit.ts`](../../hooks/use-rate-limit.ts) (inclui `useDebounce`, `useThrottle`) |
 | [DOC_useToast.md](DOC_useToast.md) | [`hooks/use-toast.ts`](../../hooks/use-toast.ts) |
 | [DOC_useMobile.md](DOC_useMobile.md) | [`hooks/use-mobile.ts`](../../hooks/use-mobile.ts) |
