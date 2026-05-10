@@ -18,7 +18,8 @@ export async function POST(req: Request) {
     const body = json as { username?: string }
     const raw = typeof body.username === 'string' ? body.username.trim().toLowerCase() : ''
     const slug = raw.replace(/^@/, '')
-    if (!slug || !/^[a-z0-9_]{3,20}$/.test(slug)) {
+    // Alinhado a signupSchema (`lib/auth/schemas.ts`): slug até 30 caracteres.
+    if (!slug || !/^[a-z0-9_]{3,30}$/.test(slug)) {
       return NextResponse.json({ error: 'Username inválido.' }, { status: 400 })
     }
 
