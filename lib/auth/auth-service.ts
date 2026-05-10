@@ -12,7 +12,11 @@ import type {
 } from './schemas'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+/** Domínios multi-segmento (ex.: .co.uk, .com.br) não devem ser tratados como username. */
+function identifierLooksLikeEmail(identifier: string): boolean {
+  const atCount = (identifier.match(/@/g) ?? []).length
+  return atCount === 1 && identifier.split('@')[0]!.trim().length > 0
+}
 
 async function resolveEmailFromUsernameForLogin(
   username: string,
@@ -46,9 +50,16 @@ export async function login(
   try {
     const auth = getFirebaseAuth()
     const identifier = credentials.identifier.trim().toLowerCase()
-    const resolvedEmail = emailRegex.test(identifier)
-      ? identifier
-      : await resolveEmailFromUsernameForLogin(identifier)
+    const atCount = (identifier.match(/@/g) ?? []).length
+    if (atCount > 1) {
+      throw new AuthError('Identificador inválido.')
+    }
+    let resolvedEmail: string | null = null
+    if (identifierLooksLikeEmail(identifier)) {
+      resolvedEmail = identifier
+    } else {
+      resolvedEmail = await resolveEmailFromUsernameForLogin(identifier)
+    }
     if (!resolvedEmail) {
       throw new AuthError('Usuário não encontrado.')
     }
@@ -72,6 +83,9 @@ export async function login(
     }
     if (code === 'auth/too-many-requests') {
       throw new AuthError('Muitas tentativas. Tente mais tarde.')
+    }
+    if (code === 'auth/invalid-email') {
+      throw new AuthError('E-mail inválido.')
     }
     throw new AuthError('Não foi possível entrar. Tente novamente.')
   }
