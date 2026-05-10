@@ -12,30 +12,6 @@ import type {
 } from './schemas'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
 
-/** Domínios multi-segmento (ex.: .co.uk, .com.br) não devem ser tratados como username. */
-function identifierLooksLikeEmail(identifier: string): boolean {
-  const atCount = (identifier.match(/@/g) ?? []).length
-  return atCount === 1 && identifier.split('@')[0]!.trim().length > 0
-}
-
-async function resolveEmailFromUsernameForLogin(
-  username: string,
-): Promise<string | null> {
-  try {
-    const res = await fetch('/api/auth/resolve-identifier', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username }),
-    })
-    if (!res.ok) return null
-    const data = (await res.json()) as { email?: string | null }
-    const em = data.email
-    return typeof em === 'string' && em.length > 0 ? em.trim().toLowerCase() : null
-  } catch {
-    return null
-  }
-}
-
 export async function login(
   credentials: LoginFormValues,
 ): Promise<AuthSession> {
@@ -49,26 +25,14 @@ export async function login(
   const { firebaseUserToSession } = await import('./firebase-session')
   try {
     const auth = getFirebaseAuth()
-    const identifier = credentials.identifier.trim().toLowerCase()
-    const atCount = (identifier.match(/@/g) ?? []).length
-    if (atCount > 1) {
-      throw new AuthError('Identificador inválido.')
-    }
-    let resolvedEmail: string | null = null
-    if (identifierLooksLikeEmail(identifier)) {
-      resolvedEmail = identifier
-    } else {
-      resolvedEmail = await resolveEmailFromUsernameForLogin(identifier)
-    }
-    if (!resolvedEmail) {
-      throw new AuthError('Usuário não encontrado.')
-    }
+    // Login apenas com e-mail (resolve-identifier não é usado — username é só para amigos).
+    const email = credentials.email.trim().toLowerCase()
     // 1ª tentativa com senha literal (compatível com senhas que incluem espaços intencionais).
     let cred
     try {
       cred = await signInWithEmailAndPassword(
         auth,
-        resolvedEmail,
+        email,
         credentials.password,
       )
     } catch (firstErr: unknown) {
@@ -87,7 +51,7 @@ export async function login(
       ) {
         cred = await signInWithEmailAndPassword(
           auth,
-          resolvedEmail,
+          email,
           trimmedPwd,
         )
         const ts = new Date().toISOString()

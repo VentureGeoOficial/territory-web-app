@@ -6,7 +6,7 @@
 
 | Área | Avaliação |
 |------|-----------|
-| A01 Broken Access Control | Endpoint público pré-login — necessário para login por username após remoção de email em `usernames/*` |
+| A01 Broken Access Control | Endpoint público pré-login — **não** usado pelo fluxo de login actual (e-mail+senha na UI); mantido para integrações futuras ou ferramentas admin |
 | A07 Identification / Abuse | Permite descobrir email se username conhecido — mesmo perfil de risco que doc público antigo com email |
 | A09 Logging | Email **não** vai para logs |
 

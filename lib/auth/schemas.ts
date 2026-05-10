@@ -11,10 +11,11 @@ function ageFromIsoDate(iso: string): number {
 }
 
 export const loginSchema = z.object({
-  identifier: z
+  email: z
     .string()
     .trim()
-    .min(3, 'Informe seu e-mail'),
+    .min(1, 'Informe seu e-mail')
+    .email('E-mail inválido'),
   password: z.string().min(1, 'Informe a senha'),
 })
 

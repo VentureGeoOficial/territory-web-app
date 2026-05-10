@@ -4,12 +4,16 @@ import { useEffect, useRef, useCallback } from 'react'
 import { useRunStore } from '@/lib/store/run-store'
 import { probeGeolocationPermission } from '@/lib/services/location-service'
 
+/** Intervalo mínimo entre actualizações da posição “idle” (reduz re-renders / CPU). */
+const IDLE_POSITION_MIN_MS = 2500
+
 /**
- * Hook para rastrear a posição do usuário continuamente,
- * independente de estar correndo ou não.
+ * Hook para rastrear a posição do usuário continuamente quando não está em corrida;
+ * durante corrida usa apenas `watchRunTrack` em useRunSession (evita dois watchPosition).
  */
 export function useUserPositionTracking() {
   const watchIdRef = useRef<number | null>(null)
+  const lastIdleEmitRef = useRef(0)
   const permission = useRunStore((s) => s.permission)
   const setPermission = useRunStore((s) => s.setPermission)
   const setCurrentUserPosition = useRunStore((s) => s.setCurrentUserPosition)
@@ -22,11 +26,17 @@ export function useUserPositionTracking() {
       return
     }
 
+    // Durante corrida o percurso é o watchRunTrack — não duplicar GPS idle.
+    if (useRunStore.getState().isRunning) return
+
     // Se já está rastreando, não inicia novamente
     if (watchIdRef.current !== null) return
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
+        const now = Date.now()
+        if (now - lastIdleEmitRef.current < IDLE_POSITION_MIN_MS) return
+        lastIdleEmitRef.current = now
         const { latitude, longitude } = position.coords
         setCurrentUserPosition(latitude, longitude)
         setIsTrackingPosition(true)
@@ -85,6 +95,15 @@ export function useUserPositionTracking() {
       startTracking()
     }
   }, [permission, isRunning, startTracking])
+
+  // Para o watch “idle” durante corrida; volta quando termina (um único GPS activo).
+  useEffect(() => {
+    if (isRunning) {
+      stopTracking()
+    } else if (permission === 'granted') {
+      startTracking()
+    }
+  }, [isRunning, permission, startTracking, stopTracking])
 
   return {
     startTracking,

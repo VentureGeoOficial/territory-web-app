@@ -12,6 +12,7 @@
 | `users` | `email` ASC | Lookup por email (amigos) |
 | `users` | `username` ASC | Lookup Admin por slug quando `usernames/{slug}` em falta ([`/api/friends/lookup`](../../app/api/friends/lookup/route.ts)) |
 | `territories` | `status` ASC, `createdAt` ASC | Listagens filtradas por estado/tempo |
+| `territories` | `centerLat` ASC | Query por faixa de latitude do centro do território ([`subscribeTerritories`](../../lib/firebase/territories.ts) + viewport do mapa) |
 
 **fieldOverrides:** vazio.
 

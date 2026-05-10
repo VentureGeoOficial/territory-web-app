@@ -54,6 +54,7 @@ function mergeDerivedWithExisting(derived: User[], existing: User[]): User[] {
 export function useFirestoreTerritorySync() {
   const setTerritories = useTerritoryStore((s) => s.setTerritories)
   const setUsers = useTerritoryStore((s) => s.setUsers)
+  const mapViewportBounds = useTerritoryStore((s) => s.mapViewportBounds)
 
   useEffect(() => {
     const repo = getTerritoryRepository()
@@ -70,9 +71,10 @@ export function useFirestoreTerritorySync() {
         setUsers(mergeDerivedWithExisting(derived, existing))
       },
       (err) => console.error('[Firestore territories]', err),
+      mapViewportBounds,
     )
     return () => {
       unsub?.()
     }
-  }, [setTerritories, setUsers])
+  }, [setTerritories, setUsers, mapViewportBounds])
 }

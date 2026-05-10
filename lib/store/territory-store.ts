@@ -1,7 +1,17 @@
 import { create } from 'zustand'
 import type { Position } from 'geojson'
 import type { Territory, User, MapMode, TerritoryFilters } from '../territory/types'
-import { SUZANO_MAP_CENTER } from '../territory/regions'
+import type { TerritoryViewportBounds } from '../firebase/territories'
+import { SUZANO_BOUNDING_BOX, SUZANO_MAP_CENTER } from '../territory/regions'
+
+const [minLng, minLat, maxLng, maxLat] = SUZANO_BOUNDING_BOX
+
+const INITIAL_MAP_VIEWPORT: TerritoryViewportBounds = {
+  south: minLat,
+  north: maxLat,
+  west: minLng,
+  east: maxLng,
+}
 
 interface TerritoryState {
   territories: Territory[]
@@ -10,6 +20,8 @@ interface TerritoryState {
 
   mapCenter: Position
   mapZoom: number
+  /** Limites visíveis Leaflet; usado por `subscribeTerritories` para query por `centerLat` + filtro lng. */
+  mapViewportBounds: TerritoryViewportBounds
   mapMode: MapMode
   selectedTerritoryId: string | null
 
@@ -27,6 +39,7 @@ interface TerritoryState {
 
   setMapCenter: (center: Position) => void
   setMapZoom: (zoom: number) => void
+  setMapViewportBounds: (bounds: TerritoryViewportBounds) => void
   setMapMode: (mode: MapMode) => void
   selectTerritory: (id: string | null) => void
 
@@ -47,6 +60,7 @@ export const useTerritoryStore = create<TerritoryState>((set, get) => ({
   currentUserId: '',
   mapCenter: SUZANO_MAP_CENTER,
   mapZoom: 14,
+  mapViewportBounds: INITIAL_MAP_VIEWPORT,
   mapMode: 'view',
   selectedTerritoryId: null,
   filters: {},
@@ -94,6 +108,7 @@ export const useTerritoryStore = create<TerritoryState>((set, get) => ({
 
   setMapCenter: (center) => set({ mapCenter: center }),
   setMapZoom: (zoom) => set({ mapZoom: zoom }),
+  setMapViewportBounds: (bounds) => set({ mapViewportBounds: bounds }),
   setMapMode: (mode) => set({ mapMode: mode }),
   selectTerritory: (id) => set({ selectedTerritoryId: id }),
 
