@@ -23,21 +23,38 @@ export async function POST(req: Request) {
     }
 
     const db = getAdminFirestore()
-    const snap = await db.collection('usernames').doc(slug).get()
-    if (!snap.exists) {
+    const usernameDoc = await db.collection('usernames').doc(slug).get()
+
+    if (usernameDoc.exists) {
+      const uid = String(usernameDoc.data()?.uid ?? '')
+      if (!uid) {
+        return NextResponse.json({ email: null })
+      }
+      const userSnap = await db.collection('users').doc(uid).get()
+      const emailRaw =
+        userSnap.exists && typeof (userSnap.data() as { email?: string }).email === 'string'
+          ? String((userSnap.data() as { email: string }).email).trim().toLowerCase()
+          : null
+      return NextResponse.json({ email: emailRaw })
+    }
+
+    const userBySlug = await db
+      .collection('users')
+      .where('username', '==', slug)
+      .limit(1)
+      .get()
+    if (userBySlug.empty) {
       return NextResponse.json({ email: null })
     }
 
-    const uid = String(snap.data()?.uid ?? '')
-    if (!uid) {
-      return NextResponse.json({ email: null })
-    }
-
-    const userSnap = await db.collection('users').doc(uid).get()
+    const doc = userBySlug.docs[0]!
+    const data = doc.data() as { email?: string }
+    console.info(
+      '[api/auth/resolve-identifier]',
+      JSON.stringify({ lookup_source: 'users_username_fallback' }),
+    )
     const emailRaw =
-      userSnap.exists && typeof (userSnap.data() as { email?: string }).email === 'string'
-        ? String((userSnap.data() as { email: string }).email).trim().toLowerCase()
-        : null
+      typeof data.email === 'string' ? data.email.trim().toLowerCase() : null
 
     return NextResponse.json({ email: emailRaw })
   } catch (e) {

@@ -19,4 +19,4 @@ Mitigação recomendada: Firebase App Check (não implementado no código analis
 ## APIs servidor (2026-05-09)
 
 - `verifyIdToken(token, true)` nas rotas `/api/runs/complete`, `/api/territories/capture`, `/api/friends/lookup` — revogação ativa.
-- Login por username usa [`POST /api/auth/resolve-identifier`](../../app/api/auth/resolve-identifier/route.ts) (Admin) em vez de ler email em `usernames/*`.
+- Login por username usa [`POST /api/auth/resolve-identifier`](../../app/api/auth/resolve-identifier/route.ts) (Admin): resolve `usernames/{slug}` → `users/{uid}` → campo `email`; se `usernames` estiver em falta, fallback **`users` onde `username == slug`** (alinhado ao lookup de amigos). No cliente, [`lib/auth/auth-service.ts`](../../lib/auth/auth-service.ts) trata como **e-mail** qualquer identificador com **exatamente um `@`** e parte local não vazia (suporta domínios multi-segmento, ex.: `.com.br`), evitando regex restritiva que enviava esses valores ao resolver de username.
