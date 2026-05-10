@@ -19,7 +19,8 @@ Mitigação recomendada: Firebase App Check (não implementado no código analis
 ## APIs servidor (2026-05-09)
 
 - `verifyIdToken(token, true)` nas rotas `/api/runs/complete`, `/api/territories/capture`, `/api/friends/lookup` — revogação ativa.
-- Login por username usa [`POST /api/auth/resolve-identifier`](../../app/api/auth/resolve-identifier/route.ts) (Admin): resolve `usernames/{slug}` → `users/{uid}` → campo `email`; se `usernames` estiver em falta, fallback **`users` onde `username == slug`** (alinhado ao lookup de amigos). Slug aceite na API: `[a-z0-9_]{3,30}` (igual ao cadastro). No cliente, [`lib/auth/auth-service.ts`](../../lib/auth/auth-service.ts) trata como **e-mail** qualquer identificador com **exatamente um `@`** e parte local não vazia (suporta domínios multi-segmento, ex.: `.com.br`), evitando regex restritiva que enviava esses valores ao resolver de username.
+- **Login:** apenas **e-mail + senha** no formulário ([`loginSchema`](../../lib/auth/schemas.ts) `.email()`); [`login()`](../../lib/auth/auth-service.ts) **não** chama `POST /api/auth/resolve-identifier`. Username para convites/redes sociais usa-se na página **Amigos** (`lookupFriendUid`), não no login.
+- A rota [`POST /api/auth/resolve-identifier`](../../app/api/auth/resolve-identifier/route.ts) permanece disponível para ferramentas futuras ou integrações; não faz parte do fluxo de login na UI actual.
 
 ## Senha e observabilidade (`login` / `loginWithGoogle`)
 
@@ -46,4 +47,4 @@ Mitigação recomendada: Firebase App Check (não implementado no código analis
 | `auth/invalid-email` | E-mail inválido. |
 | Outro / sem código | Não foi possível entrar. Tente novamente. |
 
-Erros `AuthError` lançados antes do `signIn` (ex.: identificador inválido, utilizador não encontrado na resolução de username) **não** são alterados pelo `catch` genérico — são repropagados.
+Erros `AuthError` lançados antes do `signIn` são repropagados (ex.: validação Zod no formulário). Falhas Firebase no `signIn` seguem a matriz acima.

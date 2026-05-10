@@ -2,6 +2,7 @@ import type { Unsubscribe } from 'firebase/firestore'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
 import {
   subscribeTerritories as subscribeTerritoriesFirebase,
+  type TerritoryViewportBounds,
 } from '@/lib/firebase/territories'
 import { subscribeGlobalLeaderboard } from '@/lib/firebase/ranking'
 import type { RankingEntry, Territory } from '@/lib/territory/types'
@@ -10,6 +11,7 @@ export interface TerritoryRepository {
   subscribeTerritories(
     onUpdate: (territories: Territory[]) => void,
     onError?: (e: Error) => void,
+    viewportBounds?: TerritoryViewportBounds | null,
   ): Unsubscribe | null
 }
 

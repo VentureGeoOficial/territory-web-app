@@ -40,19 +40,47 @@ const BRAND = {
   success: '#22c55e',
 }
 
+/** Actualiza viewport na store (debounce) para filtrar listener Firestore de territórios. */
 function MapEventHandler() {
   const setMapCenter = useTerritoryStore((s) => s.setMapCenter)
   const setMapZoom = useTerritoryStore((s) => s.setMapZoom)
+  const setMapViewportBounds = useTerritoryStore((s) => s.setMapViewportBounds)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  const scheduleViewport = useCallback(
+    (leafletMap: LeafletMap) => {
+      window.clearTimeout(debounceRef.current)
+      debounceRef.current = window.setTimeout(() => {
+        const b = leafletMap.getBounds()
+        setMapViewportBounds({
+          south: b.getSouth(),
+          north: b.getNorth(),
+          west: b.getWest(),
+          east: b.getEast(),
+        })
+      }, 400)
+    },
+    [setMapViewportBounds],
+  )
 
   const map = useMapEvents({
     moveend() {
       const center = map.getCenter()
       setMapCenter([center.lng, center.lat])
+      scheduleViewport(map)
     },
     zoomend() {
       setMapZoom(map.getZoom())
+      scheduleViewport(map)
     },
   })
+
+  useEffect(() => {
+    scheduleViewport(map)
+    return () => {
+      if (debounceRef.current) window.clearTimeout(debounceRef.current)
+    }
+  }, [map, scheduleViewport])
 
   return null
 }

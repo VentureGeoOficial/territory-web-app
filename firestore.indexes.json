@@ -71,6 +71,16 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "territories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "centerLat",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []
