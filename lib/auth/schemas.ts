@@ -14,7 +14,7 @@ export const loginSchema = z.object({
   identifier: z
     .string()
     .trim()
-    .min(3, 'Informe e-mail ou nome de usuário'),
+    .min(3, 'Informe seu e-mail'),
   password: z.string().min(1, 'Informe a senha'),
 })
 
