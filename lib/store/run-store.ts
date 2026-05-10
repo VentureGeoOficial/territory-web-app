@@ -21,6 +21,12 @@ interface RunState {
   /** Se está rastreando a posição do usuário */
   isTrackingPosition: boolean
   distanceMeters: number
+  /** Pausa anti-cheat: velocidade média acima do limite permitido */
+  isPausedDueToSpeed: boolean
+  /** Início do período de pausa atual (ms), se `isPausedDueToSpeed` */
+  speedPauseSegmentStartedAt: number | null
+  /** Tempo já acumulado em pausa por velocidade (ms) nesta corrida */
+  accumulatedSpeedPauseMs: number
 
   setPermission: (p: GeoPermissionState) => void
   resetRunState: () => void
@@ -30,6 +36,7 @@ interface RunState {
   setLivePosition: (lat: number, lng: number) => void
   setCurrentUserPosition: (lat: number, lng: number) => void
   setIsTrackingPosition: (isTracking: boolean) => void
+  setSpeedPaused: (paused: boolean) => void
 }
 
 export const useRunStore = create<RunState>((set, get) => ({
@@ -41,6 +48,9 @@ export const useRunStore = create<RunState>((set, get) => ({
   currentUserPosition: null,
   isTrackingPosition: false,
   distanceMeters: 0,
+  isPausedDueToSpeed: false,
+  speedPauseSegmentStartedAt: null,
+  accumulatedSpeedPauseMs: 0,
 
   setPermission: (p) => set({ permission: p }),
 
@@ -51,6 +61,9 @@ export const useRunStore = create<RunState>((set, get) => ({
       points: [],
       livePosition: null,
       distanceMeters: 0,
+      isPausedDueToSpeed: false,
+      speedPauseSegmentStartedAt: null,
+      accumulatedSpeedPauseMs: 0,
       // Mantém currentUserPosition e isTrackingPosition
     }),
 
@@ -61,6 +74,9 @@ export const useRunStore = create<RunState>((set, get) => ({
       points: [],
       livePosition: null,
       distanceMeters: 0,
+      isPausedDueToSpeed: false,
+      speedPauseSegmentStartedAt: null,
+      accumulatedSpeedPauseMs: 0,
     }),
 
   cancelRun: () => get().resetRunState(),
@@ -83,4 +99,23 @@ export const useRunStore = create<RunState>((set, get) => ({
   setCurrentUserPosition: (lat, lng) => set({ currentUserPosition: { lat, lng } }),
 
   setIsTrackingPosition: (isTracking) => set({ isTrackingPosition: isTracking }),
+
+  setSpeedPaused: (paused) =>
+    set((state) => {
+      if (paused === state.isPausedDueToSpeed) return {}
+      if (paused) {
+        const now = Date.now()
+        return {
+          isPausedDueToSpeed: true,
+          speedPauseSegmentStartedAt: now,
+        }
+      }
+      const start = state.speedPauseSegmentStartedAt
+      const delta = start != null ? Date.now() - start : 0
+      return {
+        isPausedDueToSpeed: false,
+        speedPauseSegmentStartedAt: null,
+        accumulatedSpeedPauseMs: state.accumulatedSpeedPauseMs + delta,
+      }
+    }),
 }))

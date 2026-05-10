@@ -9,8 +9,9 @@
 ## `startRun`
 
 - `startRun()` na store, `setMapMode('run')`.
-- Inicia `watchFilteredTrack` com limites anti-fraude (intervalo 1500ms, distância 6m, accuracy 65m, velocidade max 9 m/s).
-- Em cada ponto: `appendTrackPoint`, `setLivePosition`, `setCurrentUserPosition`.
+- Instancia [`SpeedGate`](../../lib/services/speed-gate.ts) (accuracy máx 65 m) e inicia [`watchRunTrack`](../../lib/services/location-service.ts) (intervalo 1500 ms, distância 6 m, accuracy 65 m).
+- `onSpeedPauseChange` → [`setSpeedPaused`](../../lib/store/run-store.ts) (`isPausedDueToSpeed`): em pausa **não** há `appendTrackPoint`/`distância` (delegado ao `watchRunTrack`).
+- Em cada ponto aceite: `appendTrackPoint`, posição ao vivo; em pausa, só marcador espaçado.
 
 ## `cancelRun`
 
