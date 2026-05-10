@@ -2,9 +2,9 @@
 
 import * as React from 'react'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
-import { subscribeAcceptedFriends } from '@/lib/firebase/friends'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { useGlobalLeaderboard } from '@/hooks/use-global-leaderboard'
+import { useFriendIds } from '@/hooks/use-friend-ids'
 import { AuthenticatedShell } from '@/components/layout/authenticated-shell'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,16 +16,7 @@ import type { RankingEntry } from '@/lib/territory/types'
 export default function CompeticaoPage() {
   const uid = useAuthStore((s) => s.user?.id)
   const global = useGlobalLeaderboard(50)
-  const [friendIds, setFriendIds] = React.useState<string[]>([])
-
-  React.useEffect(() => {
-    if (!uid || !isFirebaseConfigured()) {
-      setFriendIds([])
-      return
-    }
-    const unsub = subscribeAcceptedFriends(uid, setFriendIds)
-    return () => unsub?.()
-  }, [uid])
+  const friendIds = useFriendIds()
 
   const friendsOnly = React.useMemo(() => {
     if (!uid) return [] as RankingEntry[]
@@ -69,19 +60,16 @@ export default function CompeticaoPage() {
             />
           </TabsContent>
           <TabsContent value="global">
-            <Card>
-              <CardHeader>
-                <CardTitle>Em breve</CardTitle>
-                <CardDescription>
-                  O ranking global será disponibilizado numa atualização futura.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Por agora, compete apenas com o seu círculo de amigos na aba Amigos.
-                </p>
-              </CardContent>
-            </Card>
+            {!isFirebaseConfigured() && (
+              <p className="text-xs text-amber-500 mb-2">
+                Configure o Firebase para ver o ranking global.
+              </p>
+            )}
+            <LeaderboardCard
+              entries={global}
+              currentUserId={uid ?? ''}
+              isLoading={false}
+            />
           </TabsContent>
         </Tabs>
       </div>

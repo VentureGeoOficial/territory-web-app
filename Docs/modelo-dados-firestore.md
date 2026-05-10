@@ -59,7 +59,7 @@ ID auto-gerado.
 |-------|------|-----------|
 | `fromUserId` | string | Quem pediu |
 | `toUserId` | string | Destino |
-| `status` | string | `pending` \| `accepted` \| `rejected` |
+| `status` | string | `pending` \| `accepted` \| `rejected` \| `cancelled` |
 | `createdAt` | number | Epoch ms |
 
 Amizade aceite: documento passa a `accepted`; listagens usam queries compostas (`fromUserId`+`status` e `toUserId`+`status`).

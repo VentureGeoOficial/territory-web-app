@@ -8,10 +8,12 @@
 | ERROR | Exceção não tratada | `[api/friends/lookup]` |
 | WARN | *(cliente)* | `[lookupFriendUid] API error` em `lib/firebase/friends.ts` quando `!res.ok` |
 
+Logs INFO no cliente para pedidos / aceitação — ver [DOC_FriendsService.md](../Services/DOC_FriendsService.md).
+
 ## Objetivo
 
 Detectar falhas Admin SDK ou pedidos malformados sem gravar emails ou UIDs alvo.
 
 ## Destino
 
-Stdout / consola browser (warn cliente).
+Stdout / consola browser (warn cliente); servidor Vercel (INFO API).

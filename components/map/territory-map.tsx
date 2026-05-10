@@ -166,11 +166,14 @@ function LocationControl() {
 const TerritoryPolygon = memo(function TerritoryPolygon({
   territory,
   isOwn,
+  isFriend,
   isSelected,
   onClick,
 }: {
   territory: Territory
   isOwn: boolean
+  /** Outro utilizador na lista de amigos aceites (não é o dono). */
+  isFriend: boolean
   isSelected: boolean
   onClick: () => void
 }) {
@@ -188,7 +191,10 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
 
   const color = getColor()
   const fillOpacity = isSelected ? 0.5 : 0.35
-  const weight = isSelected ? 3 : 2
+  let weight = isSelected ? 3 : 2
+  if (isFriend && !isOwn && territory.status !== 'disputed') {
+    weight = isSelected ? 4 : 3
+  }
 
   const StatusIcon =
     territory.status === 'disputed'
@@ -213,6 +219,9 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
           ? 'Protegido'
           : territory.status
 
+  const friendDash =
+    isFriend && !isOwn && territory.status !== 'disputed' ? '10, 8' : undefined
+
   return (
     <Polygon
       positions={positions}
@@ -221,6 +230,7 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
         fillColor: color,
         fillOpacity,
         weight,
+        dashArray: friendDash,
         className:
           territory.status === 'disputed'
             ? 'territory-dispute'
@@ -246,8 +256,19 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
               }}
             />
             <div>
-              <div className="font-semibold text-foreground">
-                {isOwn ? 'Seu Territorio' : territory.userName || 'Usuario'}
+              <div className="font-semibold text-foreground flex flex-wrap items-center gap-2">
+                <span>{isOwn ? 'Seu Territorio' : territory.userName || 'Usuario'}</span>
+                {isFriend && !isOwn && (
+                  <span
+                    className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded"
+                    style={{
+                      background: `${BRAND.electric}33`,
+                      color: BRAND.electric,
+                    }}
+                  >
+                    Amigo
+                  </span>
+                )}
               </div>
               <div className="text-xs text-muted-foreground capitalize">
                 Nivel {territory.dominanceLevel}
@@ -384,7 +405,7 @@ const UserPositionMarker = memo(function UserPositionMarker() {
   )
 })
 
-export function TerritoryMap() {
+export function TerritoryMap({ friendIds = [] }: { friendIds?: string[] }) {
   const mapId = useId()
   const mapRef = useRef<LeafletMap | null>(null)
 
@@ -411,6 +432,8 @@ export function TerritoryMap() {
       {} as Record<string, () => void>,
     )
   }, [territories, handleTerritoryClick])
+
+  const friendIdSet = useMemo(() => new Set(friendIds), [friendIds])
 
   useEffect(() => {
     return () => {
@@ -453,6 +476,9 @@ export function TerritoryMap() {
           key={territory.id}
           territory={territory}
           isOwn={territory.userId === currentUserId}
+          isFriend={
+            territory.userId !== currentUserId && friendIdSet.has(territory.userId)
+          }
           isSelected={selectedTerritoryId === territory.id}
           onClick={territoryClickHandlers[territory.id]!}
         />

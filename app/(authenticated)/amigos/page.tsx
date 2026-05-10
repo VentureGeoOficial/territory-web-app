@@ -3,15 +3,16 @@
 import * as React from 'react'
 import { toast } from 'sonner'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
+import type { PublicProfileSnapshotData } from '@/lib/firebase/user-profile'
 import {
   acceptFriendRequest,
   cancelFriendRequest,
+  FRIEND_USERNAME_SLUG_PATTERN,
   lookupFriendUid,
   rejectFriendRequest,
   sendFriendRequest,
-  subscribeAcceptedFriends,
   subscribeFriendRequests,
-  getPublicProfileSummary,
+  validateNoExistingFriendship,
   type FriendRequestDoc,
 } from '@/lib/services/friends-service'
 import { getFirebaseAuth } from '@/lib/firebase/client'
@@ -24,20 +25,41 @@ import { Input } from '@/components/ui/input'
 import { FriendsListSkeleton } from '@/components/ui/skeletons'
 import { formatArea } from '@/lib/territory/geo'
 import { useRateLimit } from '@/hooks/use-rate-limit'
+import { useFriendIds } from '@/hooks/use-friend-ids'
+import { useFriendProfiles } from '@/hooks/use-friend-profiles'
+
+function formatPublicLabel(
+  uid: string,
+  profile: PublicProfileSnapshotData | undefined,
+): string {
+  const name = profile?.displayName?.trim() || 'Corredor'
+  const slug = profile?.username?.trim()
+  return slug ? `${name} (@${slug})` : `${name} · ${uid.slice(0, 6)}…`
+}
 
 export default function AmigosPage() {
   const uid = useAuthStore((s) => s.user?.id)
 
-  const [email, setEmail] = React.useState('')
+  const [usernameInput, setUsernameInput] = React.useState('')
   const [incoming, setIncoming] = React.useState<FriendRequestDoc[]>([])
   const [outgoing, setOutgoing] = React.useState<FriendRequestDoc[]>([])
-  const [friendIds, setFriendIds] = React.useState<string[]>([])
-  const [friendProfiles, setFriendProfiles] = React.useState<
-    { id: string; displayName: string; totalAreaM2: number }[]
-  >([])
-  const [isLoadingFriends, setIsLoadingFriends] = React.useState(true)
-  
-  // Rate limit para envio de pedidos: max 3 por minuto
+  const friendIds = useFriendIds()
+
+  const profileUids = React.useMemo(() => {
+    const s = new Set<string>()
+    friendIds.forEach((id) => s.add(id))
+    incoming.forEach((r) => s.add(r.fromUserId))
+    outgoing.forEach((r) => s.add(r.toUserId))
+    return [...s]
+  }, [friendIds, incoming, outgoing])
+
+  const profileMap = useFriendProfiles(profileUids)
+
+  const sortedIncoming = React.useMemo(
+    () => [...incoming].sort((a, b) => b.createdAt - a.createdAt),
+    [incoming],
+  )
+
   const { canExecute, recordExecution, isLimited } = useRateLimit({
     minInterval: 2000,
     maxAttempts: 3,
@@ -53,52 +75,25 @@ export default function AmigosPage() {
     return () => unsub?.()
   }, [uid])
 
-  React.useEffect(() => {
-    if (!uid || !isFirebaseConfigured()) return
-    const unsub = subscribeAcceptedFriends(uid, setFriendIds)
-    return () => unsub?.()
-  }, [uid])
-
-  React.useEffect(() => {
-    if (!isFirebaseConfigured() || friendIds.length === 0) {
-      setFriendProfiles([])
-      setIsLoadingFriends(false)
-      return
-    }
-    setIsLoadingFriends(true)
-    let cancelled = false
-    void (async () => {
-      const rows: { id: string; displayName: string; totalAreaM2: number }[] = []
-      for (const id of friendIds) {
-        const p = await getPublicProfileSummary(id)
-        if (p)
-          rows.push({
-            id,
-            displayName: p.displayName,
-            totalAreaM2: p.totalAreaM2,
-          })
-      }
-      if (!cancelled) {
-        setFriendProfiles(rows)
-        setIsLoadingFriends(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [friendIds])
-
   async function handleSendRequest(e: React.FormEvent) {
     e.preventDefault()
-    if (!uid || !email.trim()) return
-    
+    if (!uid || !usernameInput.trim()) return
+
+    const slug = usernameInput.trim().replace(/^@/, '').toLowerCase()
+    if (!FRIEND_USERNAME_SLUG_PATTERN.test(slug)) {
+      toast.error(
+        'Username inválido. Use 3–20 caracteres (a-z, 0-9 ou _), sem espaços.',
+      )
+      return
+    }
+
     if (!canExecute()) {
       toast.error('Muitos pedidos enviados. Aguarde um momento.')
       return
     }
-    
+
     recordExecution()
-    
+
     try {
       const auth = getFirebaseAuth()
       const idToken = await auth.currentUser?.getIdToken()
@@ -107,7 +102,7 @@ export default function AmigosPage() {
         return
       }
       const lookup = await lookupFriendUid({
-        email: email.trim().toLowerCase(),
+        username: slug,
         idToken,
       })
       if (lookup.kind === 'error') {
@@ -133,16 +128,57 @@ export default function AmigosPage() {
         return
       }
       if (lookup.kind === 'not_found') {
-        toast.error('Nenhum utilizador encontrado com esse e-mail.')
+        toast.error('Nenhum utilizador encontrado com esse @username.')
         return
       }
+
+      const pre = validateNoExistingFriendship({
+        uid,
+        targetUid: lookup.uid,
+        friendIds,
+        incoming,
+        outgoing,
+      })
+      if (!pre.ok) {
+        if (pre.reason === 'self') {
+          toast.error('Não pode enviar pedido a si mesmo.')
+          return
+        }
+        if (pre.reason === 'already_friend') {
+          toast.error('Já é amigo deste utilizador.')
+          return
+        }
+        if (pre.reason === 'pending_outgoing') {
+          toast.error('Já existe um pedido pendente para este utilizador.')
+          return
+        }
+        if (pre.reason === 'pending_incoming') {
+          toast.error(
+            'Este utilizador já lhe enviou um pedido. Aceite-o na secção «Pedidos recebidos».',
+          )
+          return
+        }
+      }
+
       await sendFriendRequest(uid, lookup.uid)
       toast.success('Pedido enviado.')
-      setEmail('')
-    } catch {
+      setUsernameInput('')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : ''
+      if (msg === 'DUPLICATE_REQUEST') {
+        toast.error(
+          'Já existe pedido pendente ou amizade com este utilizador. Atualize a página.',
+        )
+        return
+      }
       toast.error('Não foi possível enviar o pedido.')
     }
   }
+
+  const isLoadingFriends =
+    isFirebaseConfigured() &&
+    friendIds.length > 0 &&
+    friendIds.some((id) => !profileMap.has(id))
 
   return (
     <AuthenticatedShell>
@@ -170,19 +206,26 @@ export default function AmigosPage() {
           <>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Adicionar por e-mail</CardTitle>
+                <CardTitle className="text-base">Adicionar por @username</CardTitle>
                 <CardDescription>
-                  O utilizador precisa ter conta no TerritoryRun com o mesmo e-mail.
+                  Introduza o nome público (slug) do utilizador — o mesmo definido no registo.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSendRequest} className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    type="email"
-                    placeholder="amigo@exemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm select-none">
+                      @
+                    </span>
+                    <Input
+                      type="text"
+                      autoComplete="username"
+                      placeholder="nome_publico"
+                      className="pl-8"
+                      value={usernameInput}
+                      onChange={(e) => setUsernameInput(e.target.value)}
+                    />
+                  </div>
                   <Button type="submit" disabled={isLimited}>
                     {isLimited ? 'Aguarde...' : 'Enviar pedido'}
                   </Button>
@@ -190,41 +233,58 @@ export default function AmigosPage() {
               </CardContent>
             </Card>
 
-            {incoming.length > 0 && (
-              <Card>
+            {sortedIncoming.length > 0 && (
+              <Card aria-live="polite">
                 <CardHeader>
                   <CardTitle className="text-base">Pedidos recebidos</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {incoming.map((r) => (
-                    <div
-                      key={r.id}
-                      className="flex items-center justify-between gap-2 border border-border rounded-lg px-3 py-2 text-sm"
-                    >
-                      <span>Pedido de {r.fromUserId.slice(0, 8)}…</span>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            void acceptFriendRequest(r.id).then(() =>
-                              toast.success('Pedido aceite.'),
-                            )
-                          }}
-                        >
-                          Aceitar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            void rejectFriendRequest(r.id)
-                          }}
-                        >
-                          Recusar
-                        </Button>
+                  {sortedIncoming.map((r) => {
+                    const p = profileMap.get(r.fromUserId)
+                    return (
+                      <div
+                        key={r.id}
+                        className="flex items-center justify-between gap-2 border border-border rounded-lg px-3 py-2 text-sm"
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span
+                            className="h-8 w-8 rounded-full shrink-0 border border-border"
+                            style={{
+                              backgroundColor: p?.color ?? 'hsl(var(--muted))',
+                            }}
+                            title={formatPublicLabel(r.fromUserId, p)}
+                          />
+                          <span className="truncate">
+                            Pedido de{' '}
+                            <span className="font-medium">
+                              {formatPublicLabel(r.fromUserId, p)}
+                            </span>
+                          </span>
+                        </span>
+                        <div className="flex gap-2 shrink-0">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              void acceptFriendRequest(r.id).then(() =>
+                                toast.success('Pedido aceite.'),
+                              )
+                            }}
+                          >
+                            Aceitar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              void rejectFriendRequest(r.id)
+                            }}
+                          >
+                            Recusar
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </CardContent>
               </Card>
             )}
@@ -236,26 +296,43 @@ export default function AmigosPage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="text-sm text-muted-foreground space-y-2">
-                    {outgoing.map((r) => (
-                      <li
-                        key={r.id}
-                        className="flex items-center justify-between gap-2 border border-border rounded-lg px-3 py-2"
-                      >
-                        <span>Pendente → {r.toUserId.slice(0, 8)}…</span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          type="button"
-                          onClick={() => {
-                            void cancelFriendRequest(r.id).then(() =>
-                              toast.success('Pedido cancelado.'),
-                            )
-                          }}
+                    {outgoing.map((r) => {
+                      const p = profileMap.get(r.toUserId)
+                      return (
+                        <li
+                          key={r.id}
+                          className="flex items-center justify-between gap-2 border border-border rounded-lg px-3 py-2"
                         >
-                          Cancelar
-                        </Button>
-                      </li>
-                    ))}
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span
+                              className="h-8 w-8 rounded-full shrink-0 border border-border"
+                              style={{
+                                backgroundColor: p?.color ?? 'hsl(var(--muted))',
+                              }}
+                            />
+                            <span className="truncate text-foreground">
+                              Pendente →{' '}
+                              <span className="font-medium">
+                                {formatPublicLabel(r.toUserId, p)}
+                              </span>
+                            </span>
+                          </span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            type="button"
+                            className="shrink-0"
+                            onClick={() => {
+                              void cancelFriendRequest(r.id).then(() =>
+                                toast.success('Pedido cancelado.'),
+                              )
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </CardContent>
               </Card>
@@ -269,21 +346,46 @@ export default function AmigosPage() {
               <CardContent>
                 {isLoadingFriends ? (
                   <FriendsListSkeleton count={3} />
-                ) : friendProfiles.length === 0 ? (
+                ) : friendIds.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nenhum amigo ainda.</p>
                 ) : (
                   <ul className="space-y-2">
-                    {friendProfiles.map((f) => (
-                      <li
-                        key={f.id}
-                        className="flex justify-between rounded-lg border border-border px-3 py-2 text-sm"
-                      >
-                        <span>{f.displayName}</span>
-                        <span className="font-mono text-muted-foreground">
-                          {formatArea(f.totalAreaM2)}
-                        </span>
-                      </li>
-                    ))}
+                    {friendIds.map((fid) => {
+                      const p = profileMap.get(fid)
+                      const area = Number(p?.totalAreaM2 ?? 0)
+                      return (
+                        <li
+                          key={fid}
+                          className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-sm"
+                        >
+                          <span className="flex items-center gap-2 min-w-0">
+                            {p?.avatarUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={p.avatarUrl}
+                                alt=""
+                                className="h-9 w-9 rounded-full object-cover border border-border shrink-0"
+                              />
+                            ) : (
+                              <span
+                                className="h-9 w-9 rounded-full shrink-0 border border-border flex items-center justify-center text-xs font-semibold text-background"
+                                style={{
+                                  backgroundColor: p?.color ?? 'hsl(var(--muted-foreground))',
+                                }}
+                              >
+                                {(p?.displayName ?? '?').slice(0, 1).toUpperCase()}
+                              </span>
+                            )}
+                            <span className="truncate font-medium">
+                              {formatPublicLabel(fid, p)}
+                            </span>
+                          </span>
+                          <span className="font-mono text-muted-foreground shrink-0">
+                            {formatArea(area)}
+                          </span>
+                        </li>
+                      )
+                    })}
                   </ul>
                 )}
               </CardContent>

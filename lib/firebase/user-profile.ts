@@ -210,7 +210,10 @@ export async function getUserProfile(uid: string): Promise<UserProfileDoc | null
 /** Dados legíveis por `onSnapshot` em `publicProfiles/{uid}` (sociais / mapa). */
 export interface PublicProfileSnapshotData {
   displayName?: string
+  /** Slug público (sem @); mesma convenção que `usernames/{slug}`. */
+  username?: string
   color?: string
+  avatarUrl?: string
   totalAreaM2?: number
   territoriesCount?: number
   totalDistanceM?: number
