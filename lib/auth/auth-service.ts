@@ -114,7 +114,7 @@ export async function requestPasswordReset(
 
 /**
  * Registo com Firebase Auth + Firestore (perfil + username único).
- * Requer Firebase configurado.
+ * Usa API route com Admin SDK para criar perfil (ignora regras do Firestore).
  */
 export async function registerWithFirebase(
   values: SignupFormValues,
@@ -132,9 +132,6 @@ export async function registerWithFirebase(
   } = await import('firebase/auth')
   const { getFirebaseAuth } = await import('@/lib/firebase/client')
   const { firebaseUserToSession } = await import('./firebase-session')
-  const { createUserProfileAfterSignup } = await import(
-    '@/lib/firebase/user-profile'
-  )
 
   const auth = getFirebaseAuth()
   const email = values.email.trim().toLowerCase()
@@ -152,14 +149,33 @@ export async function registerWithFirebase(
     await updateProfile(cred.user, {
       displayName: profile.nomeCompleto,
     })
-    await createUserProfileAfterSignup(cred.user.uid, cred.user.email ?? email, {
-      nomeCompleto: profile.nomeCompleto,
-      usernameSlug: profile.username,
-      dataNascimento: profile.dataNascimento,
-      sexo: profile.sexo,
-      peso: profile.peso,
-      altura: profile.altura,
+
+    // Obter ID token para autenticar na API
+    const idToken = await cred.user.getIdToken()
+
+    // Criar perfil via API com Admin SDK (ignora regras do Firestore)
+    const response = await fetch('/api/auth/create-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        idToken,
+        nomeCompleto: profile.nomeCompleto,
+        usernameSlug: profile.username,
+        dataNascimento: profile.dataNascimento,
+        sexo: profile.sexo,
+        peso: profile.peso,
+        altura: profile.altura,
+      }),
     })
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+      if (data.error === 'USERNAME_TAKEN') {
+        throw new Error('USERNAME_TAKEN')
+      }
+      throw new Error(data.error || 'Erro ao criar perfil')
+    }
+
     return firebaseUserToSession(cred.user)
   } catch (e: unknown) {
     if (created) {

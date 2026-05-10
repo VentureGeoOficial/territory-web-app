@@ -98,8 +98,7 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.keys().hasOnly(['uid', 'createdAt'])
         && request.resource.data.uid == request.auth.uid
-        && (request.resource.data.createdAt is timestamp
-            || request.resource.data.createdAt is int)
+        && request.resource.data.createdAt is number
         && slug.matches('^[a-z0-9_]{3,30}$')
         && !exists(/databases/$(database)/documents/usernames/$(slug));
       allow update, delete: if false;
