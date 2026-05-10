@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const body = json as { username?: string }
     const raw = typeof body.username === 'string' ? body.username.trim().toLowerCase() : ''
     const slug = raw.replace(/^@/, '')
-    if (!slug || !/^[a-z0-9_]{3,30}$/.test(slug)) {
+    if (!slug || !/^[a-z0-9_]{3,20}$/.test(slug)) {
       return NextResponse.json({ error: 'Username inválido.' }, { status: 400 })
     }
 
