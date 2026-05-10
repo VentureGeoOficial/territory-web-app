@@ -173,6 +173,18 @@ export async function registerWithFirebase(
       e && typeof e === 'object' && 'code' in e
         ? String((e as { code: string }).code)
         : ''
+    const ts = new Date().toISOString()
+    if (code) {
+      console.error(
+        `[${ts}] [ERROR] [registerWithFirebase] Falha no cadastro`,
+        { source: 'lib/auth/auth-service.ts', code },
+      )
+    } else {
+      console.error(
+        `[${ts}] [ERROR] [registerWithFirebase] Falha no cadastro (sem código)`,
+        { source: 'lib/auth/auth-service.ts' },
+      )
+    }
     if (code === 'auth/email-already-in-use') {
       throw new AuthError('Este e-mail já está registado.')
     }
@@ -182,10 +194,29 @@ export async function registerWithFirebase(
     if (code === 'auth/invalid-email') {
       throw new AuthError('E-mail inválido.')
     }
+    if (code === 'auth/operation-not-allowed') {
+      throw new AuthError(
+        'O registo com e-mail e senha não está ativo no projeto Firebase. Ative "E-mail/senha" em Authentication → Sign-in method na consola.',
+      )
+    }
+    if (code === 'auth/network-request-failed') {
+      throw new AuthError(
+        'Falha de rede ao contactar o Firebase. Verifique a ligação e tente novamente.',
+      )
+    }
     if (code === 'permission-denied') {
-      console.warn('[registerWithFirebase] Firestore permission-denied ao criar perfil')
       throw new AuthError(
         'O servidor recusou gravar o perfil (Firestore). Confirme as Security Rules e redeploy. Se persistir, verifique o consola do navegador.',
+      )
+    }
+    if (
+      code === 'failed-precondition' ||
+      code === 'aborted' ||
+      code === 'unavailable' ||
+      code === 'resource-exhausted'
+    ) {
+      throw new AuthError(
+        'O servidor não conseguiu concluir o cadastro neste momento. Tente novamente dentro de alguns minutos.',
       )
     }
     const msg = e instanceof Error ? e.message : String(e)

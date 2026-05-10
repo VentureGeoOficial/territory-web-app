@@ -11,9 +11,9 @@ import {
   sendFriendRequest,
   subscribeAcceptedFriends,
   subscribeFriendRequests,
+  getPublicProfileSummary,
   type FriendRequestDoc,
-} from '@/lib/firebase/friends'
-import { getPublicProfileSummary } from '@/lib/firebase/user-profile'
+} from '@/lib/services/friends-service'
 import { getFirebaseAuth } from '@/lib/firebase/client'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { AuthenticatedShell } from '@/components/layout/authenticated-shell'

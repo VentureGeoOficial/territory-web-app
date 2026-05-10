@@ -6,10 +6,11 @@
 
 | Função | Descrição |
 |--------|-----------|
-| `createUserProfileAfterSignup` | Transação: reserva `usernames/{slug}` (`uid`, `createdAt` apenas), cria `users`, `publicProfiles`, `usersPrivate` |
+| `createUserProfileAfterSignup` | Transação: reserva `usernames/{slug}` (`uid`, `createdAt` = epoch ms cliente), cria `users`, `publicProfiles`, `usersPrivate` |
 | `ensureUserProfile` | Garante doc mínimo em `users` após login |
 | `getUserProfile` | Leitura `users/{uid}` (só o próprio utilizador pelas rules) |
 | `getPublicProfileSummary` | Leitura `publicProfiles/{uid}` para dados públicos (ex.: lista de amigos) |
+| `subscribePublicProfile` | `onSnapshot(publicProfiles/{uid})` — usado pelo hook de sync; erro opcional no callback |
 | `updateNotificationPreferences` | Atualiza campos em `users`, `publicProfiles`, `usersPrivate` conforme implementação |
 | Outras atualizações de perfil | Update docs dispersos (avatar, legal, etc.) — ver ficheiro completo |
 

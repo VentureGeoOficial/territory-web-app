@@ -6,11 +6,13 @@ import { useTerritoryStore } from '@/lib/store/territory-store'
 import {
   clearWatch,
   probeGeolocationPermission,
-  watchFilteredTrack,
+  watchRunTrack,
 } from '@/lib/services/location-service'
+import { SpeedGate } from '@/lib/services/speed-gate'
 
 export function useRunSession() {
   const watchIdRef = useRef<number | null>(null)
+  const speedGateRef = useRef<SpeedGate | null>(null)
   const setMapMode = useTerritoryStore((s) => s.setMapMode)
   const permission = useRunStore((s) => s.permission)
   const setPermission = useRunStore((s) => s.setPermission)
@@ -32,20 +34,29 @@ export function useRunSession() {
   }, [setPermission])
 
   const setCurrentUserPosition = useRunStore((s) => s.setCurrentUserPosition)
+  const setSpeedPaused = useRunStore((s) => s.setSpeedPaused)
 
   const startRun = useCallback(() => {
+    const gate = new SpeedGate({ maxAccuracyM: 65 })
+    speedGateRef.current = gate
     startRunStore()
     setMapMode('run')
-    watchIdRef.current = watchFilteredTrack({
+    watchIdRef.current = watchRunTrack({
       minIntervalMs: 1500,
       minDistanceM: 6,
       maxAccuracyM: 65,
-      maxSpeedMps: 9,
+      gate,
+      onSpeedPauseChange: (paused) => {
+        setSpeedPaused(paused)
+      },
       onPoint: (tp) => {
         appendTrackPoint(tp)
         setLivePosition(tp.latitude, tp.longitude)
-        // Também atualiza a posição atual do usuário
         setCurrentUserPosition(tp.latitude, tp.longitude)
+      },
+      onLivePosition: (lat, lng) => {
+        setLivePosition(lat, lng)
+        setCurrentUserPosition(lat, lng)
       },
       onError: (code) => {
         if (code === 1) setPermission('denied')
@@ -56,6 +67,7 @@ export function useRunSession() {
     setLivePosition,
     setCurrentUserPosition,
     setMapMode,
+    setSpeedPaused,
     startRunStore,
     setPermission,
   ])
@@ -65,6 +77,7 @@ export function useRunSession() {
       clearWatch(watchIdRef.current)
       watchIdRef.current = null
     }
+    speedGateRef.current = null
   }, [])
 
   const cancelRun = useCallback(() => {

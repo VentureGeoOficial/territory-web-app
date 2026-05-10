@@ -59,3 +59,50 @@ export async function submitCompletedRunViaApi(
 
   return { territoryId: data.territoryId, runId: data.runId }
 }
+
+export interface SubmitTerritoryCaptureParams {
+  points: TrackPoint[]
+  startedAt: number
+  endedAt: number
+  distanceMeters: number
+  durationSeconds: number
+  routeJson: string
+  idToken: string
+}
+
+/**
+ * Conquista sobre território inimigo (`POST /api/territories/capture`) — Admin SDK no servidor.
+ */
+export async function submitTerritoryCaptureViaApi(
+  params: SubmitTerritoryCaptureParams,
+): Promise<void> {
+  if (!isFirebaseConfigured()) {
+    throw new Error('Firebase não configurado.')
+  }
+
+  const res = await fetch('/api/territories/capture', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${params.idToken}`,
+    },
+    body: JSON.stringify({
+      points: params.points,
+      startedAt: params.startedAt,
+      endedAt: params.endedAt,
+      distanceMeters: params.distanceMeters,
+      durationSeconds: params.durationSeconds,
+      routeJson: params.routeJson,
+    }),
+  })
+
+  const data = (await res.json().catch(() => ({}))) as { error?: string }
+
+  if (!res.ok) {
+    const msg =
+      typeof data.error === 'string'
+        ? data.error
+        : 'Não foi possível concluir a conquista.'
+    throw new Error(msg)
+  }
+}

@@ -1,11 +1,13 @@
 import {
   doc,
   getDoc,
+  onSnapshot,
   runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
   type Timestamp,
+  type Unsubscribe,
 } from 'firebase/firestore'
 import { getFirestoreDb } from './client'
 import { isFirebaseConfigured } from './config'
@@ -83,9 +85,11 @@ export async function createUserProfileAfterSignup(
     if (taken.exists()) {
       throw new Error('USERNAME_TAKEN')
     }
+    // `usernames/*/createdAt`: usar epoch ms (inteiro). `serverTimestamp()` na
+    // transição rules costuma falhar `is timestamp` / `is int` durante a avaliação.
     trx.set(usernameRef, {
       uid,
-      createdAt: serverTimestamp(),
+      createdAt: Date.now(),
     })
     trx.set(userRef, {
       displayName: data.nomeCompleto,
@@ -203,6 +207,41 @@ export async function getUserProfile(uid: string): Promise<UserProfileDoc | null
 }
 
 /** Leitura pública de ranking/social (`publicProfiles`) — não usar `users/{uid}` de terceiros (rules). */
+/** Dados legíveis por `onSnapshot` em `publicProfiles/{uid}` (sociais / mapa). */
+export interface PublicProfileSnapshotData {
+  displayName?: string
+  color?: string
+  totalAreaM2?: number
+  territoriesCount?: number
+  totalDistanceM?: number
+  totalDurationSeconds?: number
+  xp?: number
+}
+
+/** Subscrição ao documento público do utilizador — isola o hook da instância Firestore. */
+export function subscribePublicProfile(
+  uid: string,
+  onNext: (data: PublicProfileSnapshotData | null) => void,
+  onError?: (e: Error) => void,
+): Unsubscribe | null {
+  if (!isFirebaseConfigured()) return null
+  const db = getFirestoreDb()
+  const ref = doc(db, PUBLIC_PROFILES, uid)
+  return onSnapshot(
+    ref,
+    (snap) => {
+      if (!snap.exists()) {
+        onNext(null)
+        return
+      }
+      onNext(snap.data() as PublicProfileSnapshotData)
+    },
+    (err) => {
+      onError?.(err)
+    },
+  )
+}
+
 export async function getPublicProfileSummary(
   uid: string,
 ): Promise<{ displayName: string; totalAreaM2: number } | null> {
