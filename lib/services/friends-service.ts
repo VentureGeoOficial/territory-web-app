@@ -10,6 +10,7 @@ export {
   subscribeAcceptedFriends,
   subscribeFriendRequests,
   type FriendRequestDoc,
+  type LookupFriendUidResult,
 } from '@/lib/firebase/friends'
 
 export { getPublicProfileSummary } from '@/lib/firebase/user-profile'

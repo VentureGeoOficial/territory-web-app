@@ -1,7 +1,38 @@
 import { NextResponse } from 'next/server'
 
 import { ApiAuthError, verifyAuthOrFail } from '@/lib/firebase/admin-auth'
-import { getAdminFirestore } from '@/lib/firebase/admin-app'
+import { getAdminAuth, getAdminFirestore } from '@/lib/firebase/admin-app'
+
+function isAuthUserNotFound(e: unknown): boolean {
+  return (
+    typeof e === 'object' &&
+    e !== null &&
+    'code' in e &&
+    (e as { code?: string }).code === 'auth/user-not-found'
+  )
+}
+
+async function resolveUidByEmailAuth(
+  emailRaw: string,
+  callerUid: string,
+): Promise<string | null> {
+  try {
+    const userRecord = await getAdminAuth().getUserByEmail(emailRaw)
+    if (userRecord.uid === callerUid) return null
+    console.info(
+      '[api/friends/lookup]',
+      JSON.stringify({
+        component: 'FriendsLookup',
+        lookup_source: 'auth_fallback',
+        callerUidPrefix: callerUid.slice(0, 8),
+      }),
+    )
+    return userRecord.uid
+  } catch (e: unknown) {
+    if (isAuthUserNotFound(e)) return null
+    throw e
+  }
+}
 
 /**
  * Utilizador autenticado: resolve email ou username → uid alvo (para pedidos de amizade).
@@ -41,7 +72,8 @@ export async function POST(req: Request) {
         .limit(1)
         .get()
       if (snap.empty) {
-        return NextResponse.json({ uid: null })
+        const fromAuth = await resolveUidByEmailAuth(emailRaw, callerUid)
+        return NextResponse.json({ uid: fromAuth })
       }
       const target = snap.docs[0]!.id
       if (target === callerUid) {

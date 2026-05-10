@@ -106,15 +106,37 @@ export default function AmigosPage() {
         toast.error('Sessão inválida. Entre novamente.')
         return
       }
-      const target = await lookupFriendUid({
+      const lookup = await lookupFriendUid({
         email: email.trim().toLowerCase(),
         idToken,
       })
-      if (!target) {
+      if (lookup.kind === 'error') {
+        if (lookup.code === 'unauthorized') {
+          toast.error('Sessão expirada. Entre novamente.')
+          return
+        }
+        if (lookup.code === 'service_unavailable') {
+          toast.error(
+            'Serviço indisponível. Verifique a configuração do servidor (conta de serviço Firebase).',
+          )
+          return
+        }
+        if (lookup.code === 'firebase_not_configured') {
+          toast.error('Firebase não está configurado neste ambiente.')
+          return
+        }
+        if (lookup.code === 'bad_request') {
+          toast.error('Pedido inválido. Tente novamente.')
+          return
+        }
+        toast.error('Serviço temporariamente indisponível. Tente mais tarde.')
+        return
+      }
+      if (lookup.kind === 'not_found') {
         toast.error('Nenhum utilizador encontrado com esse e-mail.')
         return
       }
-      await sendFriendRequest(uid, target)
+      await sendFriendRequest(uid, lookup.uid)
       toast.success('Pedido enviado.')
       setEmail('')
     } catch {

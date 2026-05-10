@@ -27,12 +27,28 @@ export interface FriendRequestDoc {
 
 const REQUESTS = 'friendRequests'
 
+export type LookupFriendUidResult =
+  | { kind: 'found'; uid: string }
+  | { kind: 'not_found' }
+  | {
+      kind: 'error'
+      code:
+        | 'firebase_not_configured'
+        | 'unauthorized'
+        | 'service_unavailable'
+        | 'bad_request'
+        | 'internal'
+      httpStatus?: number
+    }
+
 export async function lookupFriendUid(params: {
   email?: string
   username?: string
-  idToken: string,
-}): Promise<string | null> {
-  if (!isFirebaseConfigured()) return null
+  idToken: string
+}): Promise<LookupFriendUidResult> {
+  if (!isFirebaseConfigured()) {
+    return { kind: 'error', code: 'firebase_not_configured' }
+  }
   const res = await fetch('/api/friends/lookup', {
     method: 'POST',
     headers: {
@@ -44,12 +60,30 @@ export async function lookupFriendUid(params: {
       username: params.username,
     }),
   })
-  const data = (await res.json().catch(() => ({}))) as { uid?: string | null; error?: string }
+  const data = (await res.json().catch(() => ({}))) as {
+    uid?: string | null
+    error?: string
+  }
   if (!res.ok) {
     console.warn('[lookupFriendUid] API error', { status: res.status })
-    return null
+    if (res.status === 401) {
+      return { kind: 'error', code: 'unauthorized', httpStatus: 401 }
+    }
+    if (res.status === 503) {
+      return { kind: 'error', code: 'service_unavailable', httpStatus: 503 }
+    }
+    if (res.status === 400) {
+      return { kind: 'error', code: 'bad_request', httpStatus: 400 }
+    }
+    if (res.status >= 500) {
+      return { kind: 'error', code: 'internal', httpStatus: res.status }
+    }
+    return { kind: 'error', code: 'internal', httpStatus: res.status }
   }
-  return typeof data.uid === 'string' ? data.uid : null
+  if (typeof data.uid === 'string') {
+    return { kind: 'found', uid: data.uid }
+  }
+  return { kind: 'not_found' }
 }
 
 export async function sendFriendRequest(
