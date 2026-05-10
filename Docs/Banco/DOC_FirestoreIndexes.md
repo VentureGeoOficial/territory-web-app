@@ -10,6 +10,7 @@
 | `friendRequests` | `fromUserId` ASC, `status` ASC | Pedidos enviados |
 | `users` | `totalAreaM2` DESC | Ranking global ([`lib/firebase/ranking.ts`](../../lib/firebase/ranking.ts)) |
 | `users` | `email` ASC | Lookup por email (amigos) |
+| `users` | `username` ASC | Lookup Admin por slug quando `usernames/{slug}` em falta ([`/api/friends/lookup`](../../app/api/friends/lookup/route.ts)) |
 | `territories` | `status` ASC, `createdAt` ASC | Listagens filtradas por estado/tempo |
 
 **fieldOverrides:** vazio.

@@ -12,7 +12,9 @@
 
 **UI `/amigos`:** o utilizador introduz apenas **@username** (slug público). Não é obrigatório digitar e-mail de terceiros no cliente — reduz superfície de enumeração por e-mail comparando com fluxos que pedem e-mail em claro.
 
-**Fallback Auth:** quando a coleção `users` não tem correspondência, o servidor usa `getUserByEmail` com o mesmo endereço já enviado pelo cliente autenticado. Não amplia a superfície face ao lookup só por Firestore (o chamador já conhecia o e-mail); o impacto em enumeração permanece o descrito em A07.
+**Fallback Auth (e-mail):** quando `users` não tem correspondência por e-mail, o servidor usa `getUserByEmail` com o mesmo endereço já enviado pelo cliente autenticado.
+
+**Fallback `users.username` (slug):** se `usernames/{slug}` não existir (dados legados), o Admin consulta `users` com `username == slug` e usa o **ID do documento** como UID alvo. O cliente já indicou o slug pretendido; impacto em enumeração equivalente ao lookup por `usernames`.
 
 ## Logs
 
@@ -20,4 +22,4 @@
 
 ## Data
 
-2026-05-09 (revisão fallback Auth: 2026-05-10)
+2026-05-09 (revisões: fallback Auth 2026-05-10; fallback `users.username` 2026-05-10)

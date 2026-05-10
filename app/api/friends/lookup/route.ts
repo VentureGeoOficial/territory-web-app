@@ -12,6 +12,37 @@ function isAuthUserNotFound(e: unknown): boolean {
   )
 }
 
+async function resolveUidFromUsernameSlug(
+  db: ReturnType<typeof getAdminFirestore>,
+  slug: string,
+  callerUid: string,
+): Promise<string | null> {
+  const usernameDoc = await db.collection('usernames').doc(slug).get()
+  if (usernameDoc.exists) {
+    const target = String(usernameDoc.data()?.uid ?? '')
+    if (!target || target === callerUid) return null
+    return target
+  }
+
+  const userSnap = await db
+    .collection('users')
+    .where('username', '==', slug)
+    .limit(1)
+    .get()
+  if (userSnap.empty) return null
+  const target = userSnap.docs[0]!.id
+  if (target === callerUid) return null
+  console.info(
+    '[api/friends/lookup]',
+    JSON.stringify({
+      component: 'FriendsLookup',
+      lookup_source: 'users_username_fallback',
+      callerUidPrefix: callerUid.slice(0, 8),
+    }),
+  )
+  return target
+}
+
 async function resolveUidByEmailAuth(
   emailRaw: string,
   callerUid: string,
@@ -87,15 +118,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Username inválido.' }, { status: 400 })
     }
 
-    const doc = await db.collection('usernames').doc(slug).get()
-    if (!doc.exists) {
+    const targetUid = await resolveUidFromUsernameSlug(db, slug, callerUid)
+    if (!targetUid) {
       return NextResponse.json({ uid: null })
     }
-    const target = String(doc.data()?.uid ?? '')
-    if (!target || target === callerUid) {
-      return NextResponse.json({ uid: null })
-    }
-    return NextResponse.json({ uid: target })
+    return NextResponse.json({ uid: targetUid })
   } catch (e) {
     if (e instanceof ApiAuthError) {
       return NextResponse.json({ error: e.message }, { status: e.status })
