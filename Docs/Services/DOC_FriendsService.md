@@ -6,7 +6,7 @@
 
 | Função | Descrição |
 |--------|-----------|
-| `lookupFriendUid({ email \| username, idToken })` | `POST /api/friends/lookup` — Admin resolve uid |
+| `lookupFriendUid({ email \| username, idToken })` | `POST /api/friends/lookup` — Admin Firestore: query `users.email`; se vazio, fallback **Firebase Auth** (`getUserByEmail`). Devolve `LookupFriendUidResult` (`found` \| `not_found` \| `error` com código HTTP mapeado no cliente). |
 | `sendFriendRequest(from, to)` | `addDoc` em `friendRequests` status `pending` |
 | `subscribeFriendRequests(userId, onUpdate)` | Duas queries snapshot: incoming/outgoing pending; merge |
 | `acceptFriendRequest` / `rejectFriendRequest` | `updateDoc` status |
