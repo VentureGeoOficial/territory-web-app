@@ -63,17 +63,65 @@ export async function login(
     if (!resolvedEmail) {
       throw new AuthError('Usuário não encontrado.')
     }
-    const cred = await signInWithEmailAndPassword(
-      auth,
-      resolvedEmail,
-      credentials.password,
-    )
+    // 1ª tentativa com senha literal (compatível com senhas que incluem espaços intencionais).
+    let cred
+    try {
+      cred = await signInWithEmailAndPassword(
+        auth,
+        resolvedEmail,
+        credentials.password,
+      )
+    } catch (firstErr: unknown) {
+      const firstCode =
+        firstErr && typeof firstErr === 'object' && 'code' in firstErr
+          ? String((firstErr as { code: string }).code)
+          : ''
+      const trimmedPwd = credentials.password.trim()
+      // Re-tenta só em falhas típicas de credencial e quando há espaços extra (autofill / paste).
+      if (
+        (firstCode === 'auth/invalid-credential' ||
+          firstCode === 'auth/wrong-password' ||
+          firstCode === 'auth/user-not-found') &&
+        trimmedPwd !== credentials.password &&
+        trimmedPwd.length > 0
+      ) {
+        cred = await signInWithEmailAndPassword(
+          auth,
+          resolvedEmail,
+          trimmedPwd,
+        )
+        const ts = new Date().toISOString()
+        console.warn(
+          `[${ts}] [WARN] [login] Login recuperado após trim da senha`,
+          JSON.stringify({
+            component: 'AuthService',
+            source: 'lib/auth/auth-service.ts',
+            functionality: 'login',
+            recovered_with: 'password_trim',
+          }),
+        )
+      } else {
+        throw firstErr
+      }
+    }
     return firebaseUserToSession(cred.user)
   } catch (e: unknown) {
+    // Propaga erros de validação/resolução sem sobrescrever a mensagem.
+    if (e instanceof AuthError) throw e
     const code =
       e && typeof e === 'object' && 'code' in e
         ? String((e as { code: string }).code)
         : ''
+    const ts = new Date().toISOString()
+    console.error(
+      `[${ts}] [ERROR] [login] Falha na autenticação`,
+      JSON.stringify({
+        component: 'AuthService',
+        source: 'lib/auth/auth-service.ts',
+        functionality: 'login',
+        code: code || 'unknown',
+      }),
+    )
     if (
       code === 'auth/invalid-credential' ||
       code === 'auth/wrong-password' ||
@@ -104,7 +152,21 @@ export async function loginWithGoogle(): Promise<AuthSession> {
     const auth = getFirebaseAuth()
     const cred = await signInWithPopup(auth, provider)
     return firebaseUserToSession(cred.user)
-  } catch {
+  } catch (e: unknown) {
+    const code =
+      e && typeof e === 'object' && 'code' in e
+        ? String((e as { code: string }).code)
+        : ''
+    const ts = new Date().toISOString()
+    console.error(
+      `[${ts}] [ERROR] [loginWithGoogle] Falha no login social`,
+      JSON.stringify({
+        component: 'AuthService',
+        source: 'lib/auth/auth-service.ts',
+        functionality: 'loginWithGoogle',
+        code: code || 'unknown',
+      }),
+    )
     throw new AuthError('Não foi possível entrar com Google. Tente novamente.')
   }
 }
@@ -153,6 +215,10 @@ export async function registerWithFirebase(
   const auth = getFirebaseAuth()
   const email = values.email.trim().toLowerCase()
   const { confirmPassword: _, ...profile } = values
+  // Remove espaços acidentais na senha só quando o trim mantém regra mínima (Zod min 6).
+  const pwdTrimmed = values.password.trim()
+  const passwordForAuth =
+    pwdTrimmed.length >= 6 ? pwdTrimmed : values.password
 
   let created: import('firebase/auth').User | null = null
 
@@ -160,7 +226,7 @@ export async function registerWithFirebase(
     const cred = await createUserWithEmailAndPassword(
       auth,
       email,
-      values.password,
+      passwordForAuth,
     )
     created = cred.user
     await updateProfile(cred.user, {
