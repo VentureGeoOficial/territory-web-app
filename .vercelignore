@@ -1,0 +1,53 @@
+# =============================================================================
+# .vercelignore  arquivos que NÃO devem ser enviados para o deploy da Vercel
+# Funciona como um .gitignore, mas específico para o upload do build.
+# Reduz drasticamente o tamanho do pacote enviado a cada deploy/branch.
+# =============================================================================
+
+# Documentação interna (não precisa estar no runtime de produção)
+Docs/
+DEPLOY_VERCEL_FIREBASE.md
+FIREBASE_RULES.md
+SECURITY_FIREBASE.md
+
+# Testes e configurações de teste (não rodam em produção na Vercel)
+__tests__/
+vitest.config.ts
+coverage/
+*.lcov
+
+# Cloud Functions (deployadas no Firebase, NÃO na Vercel)
+functions/
+
+# Regras Firebase (deployadas via `firebase deploy`, não pela Vercel)
+firebase.json
+firestore.rules
+firestore.indexes.json
+storage.rules
+
+# CI / GitHub Actions
+.github/
+
+# Arquivos do v0 / Cursor
+.cursor/
+.v0-trash/
+.snowflake/
+
+# Caches / artefatos de build local
+*.tsbuildinfo
+.next/cache/
+.turbo/
+.swc/
+
+# Logs / temporários
+*.log
+.tmp_*
+*.tmp
+*.bak
+
+# Assets brutos (caso queira mover futuramente para fora do bundle)
+# IMG/
+
+# Arquivos de configuração local
+.env.example
+index.html
