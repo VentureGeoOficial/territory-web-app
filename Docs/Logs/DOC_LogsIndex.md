@@ -17,5 +17,6 @@
 | [`lib/services/location-service.ts`](../../lib/services/location-service.ts) | `info` | Transições [`SpeedGate`](../Services/DOC_speed-gate.ts.md) em corrida (`enter`\|`exit`), sem coordenadas |
 | [`hooks/use-public-profile-sync.ts`](../../hooks/use-public-profile-sync.ts) | `error` | Snapshot `publicProfiles` falhou (`message`, `userId`; sem segredos) |
 | [`lib/firebase/client.ts`](../../lib/firebase/client.ts) | `error` / `warn` | Init app / fallback Firestore — ver [DOC_firebase-client.md](../Services/DOC_firebase-client.md) |
+| [`components/home/marketing-landing.tsx`](../../components/home/marketing-landing.tsx) | `info` | Eventos `landing_cta_click` via Vercel Analytics — ver [DOC_marketing-landing.tsx.md](DOC_marketing-landing.tsx.md) |
 
 **Não existe** logger estruturado centralizado; padrão atual = `console.*`.
