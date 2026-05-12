@@ -151,7 +151,7 @@
 </head>
 <body>
   <div class="sheet">
-    <p class="hint"><strong>PDF:</strong> no Chrome ou Edge → <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Guardar como PDF</strong>. Papel recomendado: <strong>A4 horizontal</strong> ou <strong>A3 horizontal</strong> na primeira página (canvas).<br />
+    <p class="hint"><strong>PDF:</strong> no Chrome ou Edge → <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Salvar como PDF</strong>. Papel recomendado: <strong>A4 horizontal</strong> ou <strong>A3 horizontal</strong> na primeira página (canvas).<br />
       <span class="dl"><strong>Descarregar:</strong>
         <a href="BMC_TerritoryRun.svg" download="BMC_TerritoryRun.svg">SVG (imagem)</a>
         <a href="BMC_TerritoryRun.html">Quadro só HTML</a>
@@ -162,6 +162,7 @@
       <h1>DOC_BMC_ModeloNegocios — relatório completo</h1>
       <p class="meta"><strong>Produto / startup:</strong> Venture Geo — Territory Run (PWA web) · <strong>Ferramenta:</strong> Business Model Canvas (Osterwalder &amp; Pigneur, 2010) · <strong>Data:</strong> 2026-05-11</p>
       <p class="meta"><strong>Método:</strong> conteúdo alinhado ao código e documentação técnica do repositório.</p>
+      <p class="meta"><strong>Identificação institucional:</strong> Centro Universitário Piaget — UniPiaget Brasil · CST em Análise e Desenvolvimento de Sistemas, 2026.1 · Projeto de Startups · Etapa 5 (BMC).</p>
     </header>
 
     <figure class="canvas-wrap full">
@@ -183,10 +184,10 @@
       <h2>1. Canvas — os nove blocos (síntese)</h2>
 
       <h3>1.1 Segmentos de Clientes</h3>
-      <p><strong>B2C (utilizador final — gratuito)</strong></p>
+      <p><strong>B2C (usuário final — gratuito)</strong></p>
       <ul>
         <li><strong>Corredores amadores e profissionais</strong> que buscam <strong>motivação extra</strong> (metas territoriais no mapa).</li>
-        <li><strong>Entusiastas de tecnologia e desporto (Geogamers)</strong> — mapa, competição e dados.</li>
+        <li><strong>Entusiastas de tecnologia e esporte (Geogamers)</strong> — mapa, competição e dados.</li>
         <li>Foco em <strong>performance, dados e estratégia</strong> (área, ranking, evolução).</li>
         <li><em>MVP geográfico:</em> Suzano-SP e Grande SP — <code>SUZANO_BOUNDING_BOX</code> (<a href="../../lib/territory/regions.ts">regions.ts</a>, <a href="../Funcoes/DOC_Regions.md">DOC_Regions</a>).</li>
       </ul>
@@ -213,11 +214,15 @@
       <p><strong>Justificativa:</strong> rotas em <a href="../Telas/DOC_TelasIndex.md">DOC_TelasIndex</a>; copy B2B na landing.</p>
 
       <h3>1.3 Canais</h3>
-      <p><strong>Landing page oficial</strong> na <strong>Vercel</strong> (Next.js em produção) — entrada <code>/</code> — <a href="../Telas/DOC_TelaHome.md">DOC_TelaHome</a>, <a href="../../app/page.tsx">app/page.tsx</a>.</p>
-      <p><strong>Aplicativo mobile Territory Run</strong> como <strong>PWA</strong> (*Progressive Web App*); <strong>Google Play</strong> e <strong>App Store</strong> como extensão de canal no roadmap — ver § 1.8 e <a href="../../README.md">README</a>.</p>
-      <p><strong>Redes sociais</strong> com conteúdo dinâmico — Instagram e Facebook (links na landing).</p>
+      <p><strong>Texto sintético para o quadro (lista acordada):</strong></p>
+      <ol>
+        <li><strong>Landing page oficial</strong> hospedada na <strong>Vercel</strong>.</li>
+        <li><strong>Aplicativo mobile TerritoryRun</strong> (marca também <strong>Territory Run</strong>; no repositório, <strong>PWA</strong> — <em>Progressive Web App</em> — instalável pelo navegador; lojas nativas no roadmap — § 1.8).</li>
+        <li><strong>Redes sociais</strong> focadas em <strong>conteúdo dinâmico</strong> (<strong>Instagram</strong> / <strong>Facebook</strong>).</li>
+      </ol>
+      <p><strong>Complemento técnico-documental:</strong> entrada <code>/</code> — <a href="../Telas/DOC_TelaHome.md">DOC_TelaHome</a>, <a href="../../app/page.tsx">app/page.tsx</a>; <a href="../../lib/pwa/use-install-prompt.ts">use-install-prompt</a>, <a href="../../README.md">README</a>; ícones e <em>links</em> na <a href="../../components/home/marketing-landing.tsx">landing</a>.</p>
       <p><strong>Complementares:</strong> marketing de proximidade (Suzano / Grande SP); <strong>contato</strong> B2B <code>patrocinio@venturegeo.com.br</code>; rotas autenticadas — <a href="../Telas/DOC_TelasIndex.md">DOC_TelasIndex</a>.</p>
-      <p><strong>Justificativa:</strong> repositório comprova Vercel + PWA; “aplicativo mobile” inclui a PWA instalável.</p>
+      <p><strong>Justificativa:</strong> o repositório comprova <strong>Vercel + PWA</strong>; “aplicativo mobile”, neste estágio, materializa-se como <strong>PWA instalável</strong>, sem binário publicado nas lojas.</p>
 
       <h3>1.4 Relacionamento com Clientes</h3>
       <p><strong>B2C:</strong> <strong>experiência gamificada</strong> com foco em <strong>retenção e competitividade</strong> (ranking, territórios, amigos); <strong>interação humanizada</strong> com o mascote <strong>Speed</strong> (landing); <strong>notificações inteligentes</strong> e <strong>suporte técnico via plataforma</strong> (<a href="../Telas/DOC_TelaAjuda.md">/ajuda</a>, canais na app); self-service (<a href="../Integracoes/DOC_FirebaseAuth.md">DOC_FirebaseAuth</a>); <a href="../lgpd.md">LGPD</a>.</p>
@@ -293,12 +298,20 @@
       <h2>4. Observabilidade e segurança (âmbito desta entrega)</h2>
       <p>Esta entrega de documentação <strong>não altera</strong> serviços nem hooks; sem novos logs — ver <a href="../Logs/DOC_LogsIndex.md">DOC_LogsIndex</a>. Sem código executável novo; superfície de ataque inalterada — <a href="../Seguranca/SEC_Geral.md">SEC_Geral</a>.</p>
 
-      <h2>5. Referências cruzadas</h2>
+      <h2>5. Referências cruzadas (repositório)</h2>
       <ul>
         <li><a href="../Geral/DOC_RelatorioFinal.md">DOC_RelatorioFinal</a></li>
         <li><a href="../DOC_IndiceDocumentacao.md">DOC_IndiceDocumentacao</a></li>
         <li><a href="../../components/home/marketing-landing.tsx">marketing-landing.tsx</a></li>
       </ul>
+
+      <h2>6. Referências (normas ABNT)</h2>
+      <p>Referências bibliográficas segundo a <strong>ABNT NBR 6023</strong> (ordem alfabética). Citações no texto segundo a <strong>ABNT NBR 10520</strong>.</p>
+      <p style="margin-left: 2rem; text-indent: -2rem;">ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <strong>NBR 10520</strong> — Informação e documentação — Apresentação de citações em documentos — Procedimento. Rio de Janeiro: ABNT, 2023.</p>
+      <p style="margin-left: 2rem; text-indent: -2rem;">ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <strong>NBR 6023</strong> — Informação e documentação — Referências — Elaboração. Rio de Janeiro: ABNT, 2023.</p>
+      <p style="margin-left: 2rem; text-indent: -2rem;">OSTERWALDER, Alexander; PIGNEUR, Yves. <strong>Business model generation</strong>: a handbook for visionaries, game changers, and challengers. Hoboken: John Wiley &amp; Sons, 2010.</p>
+      <p style="margin-left: 2rem; text-indent: -2rem;">VENTURE GEO. <strong>Territory Run</strong> [recurso eletrônico]. <em>Repositório de código-fonte</em>. GitHub, [s.d.]. Disponível em: https://github.com/VentureGeoOficial/territory-web-app. Acesso em: 11 maio 2026.</p>
+      <p><strong>Nota:</strong> arquivos internos (<code>Docs/*.md</code>, <code>app/*.tsx</code>) são documentação técnica anexa; se a banca exigir, inclua <em>hash</em> de <em>commit</em> ou capturas na versão impressa.</p>
     </div>
 
     <footer class="foot">

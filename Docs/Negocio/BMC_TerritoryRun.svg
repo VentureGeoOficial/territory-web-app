@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="420mm" height="297mm" viewBox="0 0 420 297" font-family="system-ui, Segoe UI, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="420mm" height="297mm" viewBox="0 0 420 297" font-family="system-ui, 'Segoe UI', Arial, sans-serif">
   <defs>
     <style type="text/css"><![CDATA[
       .title { fill: #0f172a; font-size: 7px; font-weight: 700; }
@@ -14,16 +14,16 @@
   </defs>
   <rect width="420" height="297" fill="#ffffff"/>
 
-  <text x="210" y="12" text-anchor="middle" class="title">Territory Run / Venture Geo - Business Model Canvas (Etapa 5)</text>
-  <text x="210" y="18" text-anchor="middle" class="footer">MVP geografico: Suzano-SP (SUZANO_BOUNDING_BOX) - PWA Next.js + Firebase - 2026-05-11</text>
+  <text x="210" y="12" text-anchor="middle" class="title">Territory Run / Venture Geo ? Business Model Canvas (Etapa 5)</text>
+  <text x="210" y="18" text-anchor="middle" class="footer">MVP geogr?fico: Suzano-SP (SUZANO_BOUNDING_BOX) · PWA Next.js + Firebase · 2026-05-11</text>
 
   <g transform="translate(8, 24)">
     <rect class="block" x="0" y="0" width="60" height="175"/>
     <rect class="blockHdr" x="0" y="0" width="60" height="10"/>
     <text x="3" y="7" class="blockTitle">Parcerias-Chave</text>
-    <text x="3" y="16" class="bodySm">Servicos geolocalizacao</text>
-    <text x="3" y="21" class="bodySm">e APIs mapas (GPS)</text>
-    <text x="3" y="28" class="bodySm">Distribuicao: Google Play</text>
+    <text x="3" y="16" class="bodySm">Servi?os de geolocaliza??o</text>
+    <text x="3" y="21" class="bodySm">e APIs de mapas (GPS)</text>
+    <text x="3" y="28" class="bodySm">Distribui??o: Google Play</text>
     <text x="3" y="33" class="bodySm">e Apple App Store</text>
     <text x="3" y="40" class="bodySm">Google Firebase (Auth,</text>
     <text x="3" y="45" class="bodySm">Firestore, Functions)</text>
@@ -39,21 +39,21 @@
     <rect class="block" x="64" y="0" width="60" height="86"/>
     <rect class="blockHdr" x="64" y="0" width="60" height="10"/>
     <text x="67" y="7" class="blockTitle">Atividades-Chave</text>
-    <text x="67" y="18" class="body">Dev/evolucao produto</text>
-    <text x="67" y="24" class="body">(mapa, corrida, UI)</text>
-    <text x="67" y="33" class="body">Captura hostil + txn</text>
+    <text x="67" y="18" class="body">Desenvolvimento / evolu??o</text>
+    <text x="67" y="24" class="body">do produto (mapa, UI)</text>
+    <text x="67" y="33" class="body">Captura hostil + transa??es</text>
     <text x="67" y="39" class="body">Firestore / Admin API</text>
-    <text x="67" y="48" class="body">Anti-fraude speed-gate</text>
+    <text x="67" y="48" class="body">Anti-fraude (speed-gate)</text>
     <text x="67" y="57" class="body">CF expireStaleTerrit.</text>
     <text x="67" y="63" class="body">(60 em 60 min)</text>
-    <text x="67" y="72" class="body">Seguranca continua</text>
+    <text x="67" y="72" class="body">Seguran?a cont?nua</text>
     <text x="67" y="78" class="body">Vendas B2B</text>
 
     <rect class="block" x="64" y="89" width="60" height="86"/>
     <rect class="blockHdr" x="64" y="89" width="60" height="10"/>
     <text x="67" y="96" class="blockTitle">Recursos-Chave</text>
-    <text x="67" y="106" class="bodySm">Algoritmo proprietario</text>
-    <text x="67" y="111" class="bodySm">territorio + geo (GPS)</text>
+    <text x="67" y="106" class="bodySm">Algoritmo propriet?rio</text>
+    <text x="67" y="111" class="bodySm">de territ?rio + geo (GPS)</text>
     <text x="67" y="118" class="bodySm">Marca + Speed na UI</text>
     <text x="67" y="125" class="bodySm">Equipe interna: startup</text>
     <text x="67" y="130" class="bodySm">de 3 pessoas</text>
@@ -65,64 +65,65 @@
     <text x="131" y="7" class="blockTitle">Proposta de Valor</text>
     <text x="131" y="17" class="body" font-weight="700">B2C</text>
     <text x="131" y="23" class="body">Corrida individual vira</text>
-    <text x="131" y="29" class="body">batalha tatica de</text>
+    <text x="131" y="29" class="body">batalha t?tica de</text>
     <text x="131" y="35" class="body">conquista territorial</text>
-    <text x="131" y="44" class="body">Gamificacao urbana:</text>
-    <text x="131" y="50" class="body">grids e HUDs - feedback</text>
-    <text x="131" y="56" class="body">visual tempo real (mapa)</text>
-    <text x="131" y="65" class="body">PWA gratis; ranking,</text>
-    <text x="131" y="71" class="body">trofeus, amigos</text>
-    <text x="131" y="80" class="body" font-weight="700">B2B / sustentacao</text>
-    <text x="131" y="86" class="body">Anuncios de parceiros</text>
-    <text x="131" y="92" class="body">(financia usuario</text>
-    <text x="131" y="98" class="body">100% gratis na landing)</text>
+    <text x="131" y="44" class="body">Gamifica??o urbana:</text>
+    <text x="131" y="50" class="body">grids e HUDs ? feedback</text>
+    <text x="131" y="56" class="body">visual em tempo real</text>
+    <text x="131" y="65" class="body">PWA gr?tis; ranking,</text>
+    <text x="131" y="71" class="body">trof?us, amigos</text>
+    <text x="131" y="80" class="body" font-weight="700">B2B / sustenta??o</text>
+    <text x="131" y="86" class="body">An?ncios de parceiros</text>
+    <text x="131" y="92" class="body">(financiam uso</text>
+    <text x="131" y="98" class="body">100% gr?tis na landing)</text>
     <text x="131" y="107" class="body">Entrada marcas: a partir</text>
-    <text x="131" y="113" class="body">de R$ 49,99 / mes</text>
+    <text x="131" y="113" class="body">de R$ 49,99 / m?s</text>
 
     <rect class="block" x="236" y="0" width="60" height="86"/>
     <rect class="blockHdr" x="236" y="0" width="60" height="10"/>
     <text x="239" y="7" class="blockTitle">Relacionamento</text>
-    <text x="239" y="17" class="bodySm">Experiencia gamificada</text>
-    <text x="239" y="22" class="bodySm">retencao + competitividade</text>
+    <text x="239" y="17" class="bodySm">Experi?ncia gamificada:</text>
+    <text x="239" y="22" class="bodySm">reten??o + competitividade</text>
     <text x="239" y="29" class="bodySm">Mascote Speed:</text>
-    <text x="239" y="34" class="bodySm">interacao humanizada</text>
-    <text x="239" y="41" class="bodySm">Notificacoes inteligentes</text>
-    <text x="239" y="46" class="bodySm">+ suporte tecnico via</text>
+    <text x="239" y="34" class="bodySm">intera??o humanizada</text>
+    <text x="239" y="41" class="bodySm">Notifica??es inteligentes</text>
+    <text x="239" y="46" class="bodySm">+ suporte t?cnico via</text>
     <text x="239" y="51" class="bodySm">plataforma (/ajuda)</text>
     <text x="239" y="58" class="bodySm">Self-service PWA +</text>
     <text x="239" y="63" class="bodySm">LGPD / termos</text>
     <text x="239" y="70" class="bodySm">B2B: consultivo</text>
-    <text x="239" y="75" class="bodySm">direto (email)</text>
+    <text x="239" y="75" class="bodySm">direto (e-mail)</text>
 
     <rect class="block" x="236" y="89" width="60" height="86"/>
     <rect class="blockHdr" x="236" y="89" width="60" height="10"/>
     <text x="239" y="96" class="blockTitle">Canais</text>
-    <text x="239" y="105" class="bodySm">Landing oficial Vercel</text>
-    <text x="239" y="110" class="bodySm">App mobile (PWA)</text>
-    <text x="239" y="117" class="bodySm">Redes IG/FB dinamicas</text>
-    <text x="239" y="124" class="bodySm">Marketing local</text>
-    <text x="239" y="131" class="bodySm">Contato B2B: email</text>
-    <text x="239" y="138" class="bodySm">patrocinio@</text>
-    <text x="239" y="143" class="bodySm">venturegeo.com.br</text>
-    <text x="239" y="152" class="bodySm">/mapa /competicao...</text>
+    <text x="239" y="104" class="bodySm">Landing page oficial</text>
+    <text x="239" y="109" class="bodySm">hospedada na Vercel.</text>
+    <text x="239" y="116" class="bodySm">Aplicativo mobile</text>
+    <text x="239" y="121" class="bodySm">TerritoryRun (PWA).</text>
+    <text x="239" y="128" class="bodySm">Redes sociais focadas</text>
+    <text x="239" y="133" class="bodySm">em conte?do din?mico</text>
+    <text x="239" y="140" class="bodySm">(Instagram/Facebook).</text>
+    <text x="239" y="147" class="bodySm">Marketing local; B2B</text>
+    <text x="239" y="152" class="bodySm">e rotas /mapa?</text>
 
     <rect class="block" x="300" y="0" width="104" height="175"/>
     <rect class="blockHdr" x="300" y="0" width="104" height="10"/>
     <text x="303" y="7" class="blockTitle">Segmentos de Clientes</text>
     <text x="303" y="17" class="body" font-weight="700">B2C</text>
     <text x="303" y="23" class="body">Corredores amadores e</text>
-    <text x="303" y="29" class="body">profissionais (motivacao</text>
+    <text x="303" y="29" class="body">profissionais (motiva??o</text>
     <text x="303" y="35" class="body">extra no treino)</text>
     <text x="303" y="44" class="body">Entusiastas tech +</text>
     <text x="303" y="50" class="body">esporte (Geogamers)</text>
     <text x="303" y="59" class="body">Performance, dados e</text>
-    <text x="303" y="65" class="body">estrategia no mapa</text>
+    <text x="303" y="65" class="body">estrat?gia no mapa</text>
     <text x="303" y="74" class="body">Foco regional MVP:</text>
     <text x="303" y="80" class="body">Suzano + Grande SP</text>
     <text x="303" y="89" class="body" font-weight="700">B2B (receita)</text>
     <text x="303" y="95" class="body">Marcas locais /</text>
-    <text x="303" y="101" class="body">nutricao / vestuario</text>
-    <text x="303" y="110" class="body">Comercio geo; (futuro)</text>
+    <text x="303" y="101" class="body">nutri??o / vestu?rio</text>
+    <text x="303" y="110" class="body">Com?rcio geo; (futuro)</text>
     <text x="303" y="116" class="body">prefeitura / eventos</text>
   </g>
 
@@ -130,24 +131,24 @@
     <rect class="block" x="0" y="0" width="200" height="78"/>
     <rect class="blockHdr" x="0" y="0" width="200" height="10"/>
     <text x="3" y="7" class="blockTitle">Estrutura de Custos</text>
-    <text x="3" y="17" class="bodyXs">Hospedagem (Vercel) + manutencao</text>
+    <text x="3" y="17" class="bodyXs">Hospedagem (Vercel) + manuten??o</text>
     <text x="3" y="22" class="bodyXs">do banco (Firestore, Auth, CF)</text>
-    <text x="3" y="30" class="bodyXs">Desenvolvimento continuo (equipe)</text>
+    <text x="3" y="30" class="bodyXs">Desenvolvimento cont?nuo (equipe)</text>
     <text x="3" y="38" class="bodyXs">Marketing digital + ferramentas</text>
-    <text x="3" y="46" class="bodyXs">Variavel: uso Firestore em escala</text>
+    <text x="3" y="46" class="bodyXs">Vari?vel: uso Firestore em escala</text>
     <text x="3" y="54" class="bodyXs">Eventual: auditoria + LGPD</text>
 
     <rect class="block" x="204" y="0" width="200" height="78"/>
     <rect class="blockHdr" x="204" y="0" width="200" height="10"/>
     <text x="207" y="7" class="blockTitle">Fontes de Receita</text>
-    <text x="207" y="17" class="bodyXs">Hoje: B2B anuncios - landing</text>
-    <text x="207" y="22" class="bodyXs">R$ 49,99/mes - contato email</text>
+    <text x="207" y="17" class="bodyXs">Hoje: B2B an?ncios ? landing</text>
+    <text x="207" y="22" class="bodyXs">R$ 49,99/m?s ? contato e-mail</text>
     <text x="207" y="30" class="bodyXs">Roadmap: assinatura premium</text>
-    <text x="207" y="38" class="bodyXs">Freemium + territorio basico</text>
+    <text x="207" y="38" class="bodyXs">Freemium + territ?rio b?sico</text>
     <text x="207" y="46" class="bodyXs">Futuro: taxas in-app, skins</text>
-    <text x="207" y="54" class="bodyXs">Sem gateway pagto no repo</text>
+    <text x="207" y="54" class="bodyXs">Sem gateway de pagto no repo</text>
   </g>
 
-  <text x="210" y="288" text-anchor="middle" class="footer">Centro Universitario Piaget - UniPiaget Brasil - CST ADS 2026.1 - Projeto Startups Etapa 5 (BMC)</text>
-  <text x="210" y="293.5" text-anchor="middle" class="footer">Equipe Venture Geo: Leonardo Souza Bastos - Henrique Casagrande - Marcelo Candido</text>
+  <text x="210" y="288" text-anchor="middle" class="footer">Centro Universit?rio Piaget ? UniPiaget Brasil ? CST ADS 2026.1 ? Projeto Startups Etapa 5 (BMC)</text>
+  <text x="210" y="293.5" text-anchor="middle" class="footer">Equipe Venture Geo: Leonardo Souza Bastos ? Henrique Casagrande ? Marcelo Candido</text>
 </svg>

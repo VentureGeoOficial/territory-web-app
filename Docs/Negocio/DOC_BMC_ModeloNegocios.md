@@ -11,14 +11,16 @@
 |----------|---------|
 | Canvas SVG (A3 paisagem, vetorial) | [`BMC_TerritoryRun.svg`](BMC_TerritoryRun.svg) |
 | Canvas HTML (imprimir → PDF) | [`BMC_TerritoryRun.html`](BMC_TerritoryRun.html) |
-| **Relatório PDF (canvas + texto)** | [`BMC_TerritoryRun_Completo.html`](BMC_TerritoryRun_Completo.html) — abrir no browser → **Ctrl+P** → **Guardar como PDF** (recom.: A4 ou A3 horizontal na primeira página) |
+| **Relatório PDF (canvas + texto)** | [`BMC_TerritoryRun_Completo.html`](BMC_TerritoryRun_Completo.html) — abrir no navegador → **Ctrl+P** → **Salvar como PDF** (recomenda-se **A4** ou **A3** na horizontal na primeira página) |
 
-> **Nota (SVG):** o arquivo `BMC_TerritoryRun.svg` usa **rótulos sem acentos** (ASCII) para evitar problemas de encoding em alguns visualizadores no Windows; o texto completo em português correto está neste `DOC_*.md` e nos HTML.
+> **Nota (SVG):** o arquivo `BMC_TerritoryRun.svg` está em **UTF-8**, com **acentuação em português**. Se algum visualizador antigo exibir caracteres incorretos, abra o arquivo no **Chrome**, no **Edge** ou no **Inkscape**.
 
 **Baixar arquivos (local):**
 
 - **SVG:** clique com o botão direito em [`BMC_TerritoryRun.svg`](BMC_TerritoryRun.svg) → “Salvar como…” **ou** use o botão “Descarregar SVG” em [`BMC_TerritoryRun.html`](BMC_TerritoryRun.html).
 - **PDF único (imagem + texto):** abra [`BMC_TerritoryRun_Completo.html`](BMC_TerritoryRun_Completo.html) e use **Imprimir → Salvar como PDF**.
+
+**Identificação institucional (uso acadêmico):** Centro Universitário Piaget — UniPiaget Brasil. Curso Superior de Tecnologia em Análise e Desenvolvimento de Sistemas (CST em ADS), **2026.1**. Disciplina: **Projeto de Startups**. Etapa 5 — Modelo de Negócios (*Business Model Canvas*).
 
 ---
 
@@ -64,13 +66,19 @@
 
 ### 1.3 Canais
 
-**Presença digital e distribuição**
+**Texto sintético para o quadro do canvas (lista acordada com a equipe)**
 
-- **Landing page oficial**, hospedada na **Vercel** (aplicação **Next.js** em produção) — ponto de entrada em `/` com marketing do produto; ver [`Docs/Telas/DOC_TelaHome.md`](../Telas/DOC_TelaHome.md) e [`app/page.tsx`](../../app/page.tsx).
-- **Aplicativo Territory Run em dispositivos móveis**, disponibilizado como **PWA** (*Progressive Web App*): instalação pelo navegador, experiência *mobile-first*. **Aplicativos nativos** nas lojas **Google Play** e **Apple App Store** figuram como **extensão de canal** no roadmap (alinhado ao § 1.8).
-- **Redes sociais** com **conteúdo dinâmico** — **Instagram** e **Facebook** (presença e links na landing; calendário editorial como atividade operacional).
+1. **Landing page oficial** hospedada na **Vercel**.
+2. **Aplicativo mobile TerritoryRun** (marca também grafada **Territory Run**; no repositório, entregue como **PWA** — *Progressive Web App* — instalável pelo navegador; **versões nativas** para lojas podem integrar o roadmap — ver § 1.8).
+3. **Redes sociais** focadas em **conteúdo dinâmico** (**Instagram** / **Facebook**).
 
-**Complementares**
+**Detalhamento técnico-documental (complemento ao canvas)**
+
+- A **landing page** corresponde à aplicação **Next.js** em produção na **Vercel**, com entrada na raiz `/` — [`Docs/Telas/DOC_TelaHome.md`](../Telas/DOC_TelaHome.md), [`app/page.tsx`](../../app/page.tsx).
+- O **aplicativo móvel** corresponde, no **MVP**, à experiência **web responsiva** e **PWA** — [`lib/pwa/use-install-prompt.ts`](../../lib/pwa/use-install-prompt.ts), [`README.md`](../../README.md).
+- As **redes sociais** constam na landing com ícones e *links* — [`components/home/marketing-landing.tsx`](../../components/home/marketing-landing.tsx); a **produção de conteúdo dinâmico** é atividade operacional de marketing.
+
+**Canais complementares**
 
 - **Marketing de proximidade** em Suzano / Grande SP (eventos, clubes, parques), coerente com a geofence do MVP.
 - **B2B:** **contato** por e-mail (`patrocinio@venturegeo.com.br`) e **relacionamento consultivo** (proposta comercial, formatos de mídia no mapa).
@@ -79,7 +87,7 @@
 
 - Rotas autenticadas sob `(authenticated)` — mapa, competição, amigos, troféus, conta, ajuda — ver [`README.md`](../../README.md) e [`Docs/Telas/DOC_TelasIndex.md`](../Telas/DOC_TelasIndex.md).
 
-**Justificativa:** o repositório comprova **Vercel + PWA**; a menção a “aplicativo mobile” no BMC, em contexto acadêmico, inclui a **PWA instalável**. Lojas de apps nativas permanecem como **evolução** explícita, não como entrega atual do binário.
+**Justificativa:** a lista em três itens atende ao enunciado acadêmico e à comunicação institucional; o detalhamento mantém **fidelidade ao código** (Vercel + PWA), explicitando que “aplicativo mobile”, neste estágio, materializa-se como **PWA**, sem binário publicado nas lojas no repositório atual.
 
 ---
 
@@ -220,8 +228,24 @@
 
 ---
 
-## 5. Referências cruzadas (leitura recomendada)
+## 5. Referências cruzadas (documentação do repositório)
 
 - [`Docs/Geral/DOC_RelatorioFinal.md`](../Geral/DOC_RelatorioFinal.md) — visão única do sistema.
 - [`Docs/DOC_IndiceDocumentacao.md`](../DOC_IndiceDocumentacao.md) — índice mestre (esta pasta indexada em “Negócio”).
-- [`components/home/marketing-landing.tsx`](../../components/home/marketing-landing.tsx) — posicionamento Venture Geo, gratuitidade, patrocínios, squad.
+- [`components/home/marketing-landing.tsx`](../../components/home/marketing-landing.tsx) — posicionamento Venture Geo, gratuitidade, patrocínios, *squad*.
+
+---
+
+## 6. Referências (normas ABNT)
+
+As referências bibliográficas seguem a **ABNT NBR 6023** (ordem alfabética por sobrenome do primeiro autor ou por título, quando aplicável). Citações no texto seguem a **ABNT NBR 10520** (citação direta curta entre aspas; citação de fontes eletrônicas com data de acesso quando obrigatório em trabalhos da instituição).
+
+ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. **NBR 10520** — Informação e documentação — Apresentação de citações em documentos — Procedimento. Rio de Janeiro: ABNT, 2023.
+
+ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. **NBR 6023** — Informação e documentação — Referências — Elaboração. Rio de Janeiro: ABNT, 2023.
+
+OSTERWALDER, Alexander; PIGNEUR, Yves. **Business model generation**: a handbook for visionaries, game changers, and challengers. Hoboken: John Wiley & Sons, 2010.
+
+VENTURE GEO. **Territory Run** [recurso eletrônico]. *Repositório de código-fonte*. GitHub, [s.d.]. Disponível em: https://github.com/VentureGeoOficial/territory-web-app. Acesso em: 11 maio 2026.
+
+**Nota:** referências a arquivos internos do repositório (por exemplo, `Docs/*.md`, `app/*.tsx`) são **documentação técnica** anexa ao trabalho; em versão impressa para banca, inclua capturas de tela ou *hash* do *commit* no rodapé, se exigido pelo professor.
