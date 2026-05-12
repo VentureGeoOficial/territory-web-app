@@ -13,7 +13,7 @@
 | Canvas HTML (imprimir → PDF) | [`BMC_TerritoryRun.html`](BMC_TerritoryRun.html) |
 | **Relatório PDF (canvas + texto)** | [`BMC_TerritoryRun_Completo.html`](BMC_TerritoryRun_Completo.html) — abrir no navegador → **Ctrl+P** → **Salvar como PDF** (recomenda-se **A4** ou **A3** na horizontal na primeira página) |
 
-> **Nota (SVG):** o arquivo `BMC_TerritoryRun.svg` está em **UTF-8**, com **acentuação em português**. Se algum visualizador antigo exibir caracteres incorretos, abra o arquivo no **Chrome**, no **Edge** ou no **Inkscape**.
+> **Nota (SVG):** o texto visível usa **entidades XML numéricas** (por exemplo, `&#225;` para *á*, `&#8212;` para travessão), mantendo o ficheiro em **ASCII** no corpo — evita erro de *encoding* no parser XML do browser (comum no Windows com CRLF ou cópias que corrompem UTF-8). O português acentuado é o mesmo do quadro; o `DOC_*.md` e os HTML continuam em UTF-8 normal.
 
 **Baixar arquivos (local):**
 
