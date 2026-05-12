@@ -37,6 +37,23 @@
       font-size: 10pt;
       margin-bottom: 16px;
     }
+    .hint .dl {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .hint .dl a {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #7dd3fc;
+      color: #0369a1;
+      font-weight: 600;
+      font-size: 10pt;
+    }
     @media print {
       body { background: #fff; padding: 0; }
       .sheet { box-shadow: none; max-width: none; margin: 0; padding: 0; }
@@ -134,12 +151,18 @@
 </head>
 <body>
   <div class="sheet">
-    <p class="hint"><strong>PDF:</strong> abra este ficheiro no Chrome ou Edge → <kbd>Ctrl</kbd>+<kbd>P</kbd> → destino <strong>Guardar como PDF</strong>. Para o canvas ocupar uma página inteira com boa legibilidade, escolha <strong>A4 horizontal</strong> ou <strong>A3 horizontal</strong> e margens <strong>normais</strong>.</p>
+    <p class="hint"><strong>PDF:</strong> no Chrome ou Edge → <kbd>Ctrl</kbd>+<kbd>P</kbd> → <strong>Salvar como PDF</strong>. Papel recomendado: <strong>A4 horizontal</strong> ou <strong>A3 horizontal</strong> na primeira página (canvas).<br />
+      <span class="dl"><strong>Descarregar:</strong>
+        <a href="BMC_TerritoryRun.svg" download="BMC_TerritoryRun.svg">SVG (imagem)</a>
+        <a href="BMC_TerritoryRun.html">Quadro só HTML</a>
+        <a href="./DOC_BMC_ModeloNegocios.md" download="DOC_BMC_ModeloNegocios.md">Markdown (doc)</a>
+      </span></p>
 
     <header class="full">
       <h1>DOC_BMC_ModeloNegocios — relatório completo</h1>
       <p class="meta"><strong>Produto / startup:</strong> Venture Geo — Territory Run (PWA web) · <strong>Ferramenta:</strong> Business Model Canvas (Osterwalder &amp; Pigneur, 2010) · <strong>Data:</strong> 2026-05-11</p>
       <p class="meta"><strong>Método:</strong> conteúdo alinhado ao código e documentação técnica do repositório.</p>
+      <p class="meta"><strong>Identificação institucional:</strong> Centro Universitário Piaget — UniPiaget Brasil · CST em Análise e Desenvolvimento de Sistemas, 2026.1 · Projeto de Startups · Etapa 5 (BMC).</p>
     </header>
 
     <figure class="canvas-wrap full">
@@ -161,11 +184,12 @@
       <h2>1. Canvas — os nove blocos (síntese)</h2>
 
       <h3>1.1 Segmentos de Clientes</h3>
-      <p><strong>B2C (utilizador final — gratuito)</strong></p>
+      <p><strong>B2C (usuário final — gratuito)</strong></p>
       <ul>
-        <li>Corredores e caminhantes amadores na região de <strong>Suzano-SP e Grande SP</strong> (geofence atual do produto).</li>
-        <li>Pessoas 18–35 anos interessadas em <strong>gamificação fitness</strong>, competição saudável e experiências tipo <em>real-life gaming</em> no mapa.</li>
-        <li>Grupos locais (clubes de corrida, treinos em parque, comunidades de bairro).</li>
+        <li><strong>Corredores amadores e profissionais</strong> que buscam <strong>motivação extra</strong> (metas territoriais no mapa).</li>
+        <li><strong>Entusiastas de tecnologia e esporte (Geogamers)</strong> — mapa, competição e dados.</li>
+        <li>Foco em <strong>performance, dados e estratégia</strong> (área, ranking, evolução).</li>
+        <li><em>MVP geográfico:</em> Suzano-SP e Grande SP — <code>SUZANO_BOUNDING_BOX</code> (<a href="../../lib/territory/regions.ts">regions.ts</a>, <a href="../Funcoes/DOC_Regions.md">DOC_Regions</a>).</li>
       </ul>
       <p><strong>B2B (pagante — receita)</strong></p>
       <ul>
@@ -173,49 +197,52 @@
         <li>Comércio de bairro com interesse em <strong>exposição contextual</strong> junto ao mapa e às rotas.</li>
         <li>(Médio prazo) prefeituras / turismo para <strong>eventos e ativações</strong> em espaço público.</li>
       </ul>
-      <p><strong>Justificativa:</strong> o MVP técnico restringe criação de território à caixa <code>SUZANO_BOUNDING_BOX</code> — ver <a href="../../lib/territory/regions.ts">lib/territory/regions.ts</a> e <a href="../Funcoes/DOC_Regions.md">Docs/Funcoes/DOC_Regions.md</a>. A landing posiciona o produto como gratuito — ver <a href="../../components/home/marketing-landing.tsx">components/home/marketing-landing.tsx</a>.</p>
+      <p><strong>Justificativa:</strong> segmentação de mercado alinhada à narrativa Venture Geo; âncora técnica do MVP em Suzano — <a href="../../components/home/marketing-landing.tsx">marketing-landing.tsx</a>.</p>
 
       <h3>1.2 Proposta de Valor</h3>
       <p><strong>Para o corredor (B2C)</strong></p>
       <ul>
-        <li>Transformar corrida/caminhada em <strong>conquista territorial visível</strong> no mapa (loop fechado, área em m², estados de território).</li>
-        <li><strong>Ranking global e entre amigos</strong>, troféus e progressão por metas — <a href="../Telas/DOC_TelaCompeticao.md">DOC_TelaCompeticao</a>, <a href="../Funcoes/DOC_Trophies.md">DOC_Trophies</a>, <a href="../Funcoes/DOC_Scoring.md">DOC_Scoring</a>.</li>
-        <li><strong>Disputa territorial</strong> (captura hostil com regras no servidor) — <a href="../Fluxos/DOC_FluxoCorridaECaptura.md">DOC_FluxoCorridaECaptura</a>, <a href="../Geral/DOC_RelatorioFinal.md">DOC_RelatorioFinal</a>.</li>
-        <li><strong>PWA</strong> sem loja de apps — <a href="../Componentes/DOC_MarketingLanding.md">DOC_MarketingLanding</a>, <a href="../../lib/pwa/use-install-prompt.ts">lib/pwa/use-install-prompt.ts</a>.</li>
-        <li><strong>100% gratuito</strong> para utilizadores (copy na landing).</li>
+        <li><strong>Corrida individual → batalha tática de conquista territorial</strong> — <a href="../Fluxos/DOC_FluxoCorridaECaptura.md">DOC_FluxoCorridaECaptura</a>.</li>
+        <li><strong>Gamificação urbana</strong> com <strong>feedback visual em tempo real</strong> (grid no mapa, overlays/HUDs de sessão — evolução de produto sobre o mapa em tempo real).</li>
+        <li>Ranking, troféus, amigos, PWA — <a href="../Telas/DOC_TelaCompeticao.md">DOC_TelaCompeticao</a>, <a href="../Funcoes/DOC_Trophies.md">DOC_Trophies</a>, <a href="../../lib/pwa/use-install-prompt.ts">use-install-prompt</a>.</li>
+        <li><strong>100% gratuito</strong>; sustentação com <strong>anúncios de parceiros</strong> (landing).</li>
       </ul>
       <p><strong>Para a marca (B2B)</strong></p>
       <ul>
-        <li><strong>Audiência engajada</strong> e <strong>geolocalizada por bairro</strong>.</li>
-        <li><strong>Patrocínios e anúncios</strong> integrados — <strong>R$ 49,99/mês</strong> e <code>patrocinio@venturegeo.com.br</code> na landing.</li>
+        <li><strong>Anúncios de parceiros</strong> e patrocínios na experiência — <strong>R$ 49,99/mês</strong>, <code>patrocinio@venturegeo.com.br</code>.</li>
       </ul>
-      <p><strong>Justificativa:</strong> rotas autenticadas em <a href="../Telas/DOC_TelasIndex.md">DOC_TelasIndex</a>; B2B na secção de patrocínios de <code>marketing-landing.tsx</code>.</p>
+      <p><strong>Justificativa:</strong> rotas em <a href="../Telas/DOC_TelasIndex.md">DOC_TelasIndex</a>; copy B2B na landing.</p>
 
       <h3>1.3 Canais</h3>
-      <p><strong>Aquisição B2C:</strong> Web/PWA em <code>/</code> — <a href="../Telas/DOC_TelaHome.md">DOC_TelaHome</a>, <a href="../../app/page.tsx">app/page.tsx</a>; redes na landing; marketing local Suzano.</p>
-      <p><strong>Entrega B2C:</strong> rotas autenticadas — <a href="../../README.md">README.md</a>.</p>
-      <p><strong>Aquisição / entrega B2B:</strong> e-mail comercial; proposta consultiva (sem portal self-service versionado).</p>
-      <p><strong>Justificativa:</strong> canais digitais no código; portal de anunciantes como evolução.</p>
+      <p><strong>Texto sintético para o quadro (lista acordada):</strong></p>
+      <ol>
+        <li><strong>Landing page oficial</strong> hospedada na <strong>Vercel</strong>.</li>
+        <li><strong>Aplicativo mobile TerritoryRun</strong> (marca também <strong>Territory Run</strong>; no repositório, <strong>PWA</strong> — <em>Progressive Web App</em> — instalável pelo navegador; lojas nativas no roadmap — § 1.8).</li>
+        <li><strong>Redes sociais</strong> focadas em <strong>conteúdo dinâmico</strong> (<strong>Instagram</strong> / <strong>Facebook</strong>).</li>
+      </ol>
+      <p><strong>Complemento técnico-documental:</strong> entrada <code>/</code> — <a href="../Telas/DOC_TelaHome.md">DOC_TelaHome</a>, <a href="../../app/page.tsx">app/page.tsx</a>; <a href="../../lib/pwa/use-install-prompt.ts">use-install-prompt</a>, <a href="../../README.md">README</a>; ícones e <em>links</em> na <a href="../../components/home/marketing-landing.tsx">landing</a>.</p>
+      <p><strong>Complementares:</strong> marketing de proximidade (Suzano / Grande SP); <strong>contato</strong> B2B <code>patrocinio@venturegeo.com.br</code>; rotas autenticadas — <a href="../Telas/DOC_TelasIndex.md">DOC_TelasIndex</a>.</p>
+      <p><strong>Justificativa:</strong> o repositório comprova <strong>Vercel + PWA</strong>; “aplicativo mobile”, neste estágio, materializa-se como <strong>PWA instalável</strong>, sem binário publicado nas lojas.</p>
 
       <h3>1.4 Relacionamento com Clientes</h3>
-      <p><strong>B2C:</strong> self-service (<a href="../Integracoes/DOC_FirebaseAuth.md">DOC_FirebaseAuth</a>, <a href="../Fluxos/DOC_FluxoLogin.md">fluxos</a>); amigos — <a href="../../lib/services/friends-service.ts">friends-service.ts</a>, <a href="../Services/DOC_FriendsService.md">DOC_FriendsService</a>; FAQ <a href="../Telas/DOC_TelaAjuda.md">/ajuda</a>; termos e privacidade; <a href="../lgpd.md">Docs/lgpd.md</a>.</p>
-      <p><strong>B2B:</strong> relacionamento consultivo (e-mail + reunião), pacotes na landing.</p>
-      <p><strong>Justificativa:</strong> sem call center/CRM no repositório.</p>
+      <p><strong>B2C:</strong> <strong>experiência gamificada</strong> com foco em <strong>retenção e competitividade</strong> (ranking, territórios, amigos); <strong>interação humanizada</strong> com o mascote <strong>Speed</strong> (landing); <strong>notificações inteligentes</strong> e <strong>suporte técnico via plataforma</strong> (<a href="../Telas/DOC_TelaAjuda.md">/ajuda</a>, canais na app); self-service (<a href="../Integracoes/DOC_FirebaseAuth.md">DOC_FirebaseAuth</a>); <a href="../lgpd.md">LGPD</a>.</p>
+      <p><strong>B2B:</strong> consultivo direto (e-mail), pacotes na landing.</p>
+      <p><strong>Justificativa:</strong> combinação de comunidade digital já suportada pelo código com a persona Speed; sem call center 24/7 no repositório.</p>
 
       <h3>1.5 Fontes de Receita</h3>
-      <p><strong>Principal:</strong> patrocínios e anúncios B2B a partir de <strong>R$ 49,99/mês</strong>.</p>
-      <p><strong>Secundárias (hipóteses):</strong> eventos patrocinados; white-label; subscrição B2C premium (não existe no código).</p>
-      <p><strong>Justificativa:</strong> sem Stripe/IAP — <a href="../Dependencias/DOC_DependenciasNPM.md">DOC_DependenciasNPM</a>.</p>
+      <p><strong>Atual (landing):</strong> patrocínios e anúncios B2B — a partir de <strong>R$ 49,99/mês</strong>; <strong>contato</strong> <code>patrocinio@venturegeo.com.br</code>.</p>
+      <p><strong>Roadmap (sem cobrança no código):</strong> <strong>assinatura mensal premium</strong>; modelo <strong><em>freemium</em></strong> (uso gratuito + conquista de territórios na modalidade básica); <strong>taxas por serviços no aplicativo</strong> e <strong>itens de personalização</strong>.</p>
+      <p><strong>Outras hipóteses:</strong> eventos patrocinados; white-label.</p>
+      <p><strong>Justificativa:</strong> sem gateway de pagamento no <a href="../../package.json">package.json</a> — <a href="../Dependencias/DOC_DependenciasNPM.md">DOC_DependenciasNPM</a>.</p>
 
       <h3>1.6 Recursos-Chave</h3>
       <ul>
-        <li>Stack Next.js, Firebase, Leaflet, Turf, Zustand — <a href="../Geral/DOC_RelatorioFinal.md">DOC_RelatorioFinal</a>, <a href="../Dependencias/DOC_DependenciasNPM.md">DOC_DependenciasNPM</a>.</li>
-        <li>Firestore + regras — <a href="../Banco/DOC_FirestoreSchema.md">DOC_FirestoreSchema</a>, <a href="../../firestore.rules">firestore.rules</a>.</li>
-        <li>Domínio e funções — <a href="../Funcoes/DOC_FuncoesIndex.md">DOC_FuncoesIndex</a>.</li>
-        <li><code>expireStaleTerritories</code> — <a href="../APIs/DOC_CloudFunctions.md">DOC_CloudFunctions</a>.</li>
-        <li>Marca Venture Geo, Speed, squad na landing.</li>
+        <li><strong>Algoritmos proprietários</strong> de domínio territorial e geolocalização — <code>lib/territory</code>, <a href="../../lib/firebase/transactions.ts">transactions.ts</a>, GPS + mapa — <a href="../Funcoes/DOC_FuncoesIndex.md">DOC_FuncoesIndex</a>.</li>
+        <li><strong>Marca Venture Geo</strong> e mascote <strong>Speed</strong> na interface — <a href="../../components/home/marketing-landing.tsx">marketing-landing.tsx</a>.</li>
+        <li><strong>Equipe interna</strong> — startup de <strong>três pessoas</strong> (Squad na landing).</li>
+        <li><em>Infraestrutura:</em> Next.js, Firebase, Firestore, Cloud Functions — <a href="../Geral/DOC_RelatorioFinal.md">DOC_RelatorioFinal</a>.</li>
       </ul>
-      <p><strong>Justificativa:</strong> ativos versionados ou declarados no código.</p>
+      <p><strong>Justificativa:</strong> núcleo diferenciador + plataforma técnica documentada.</p>
 
       <h3>1.7 Atividades-Chave</h3>
       <ul>
@@ -228,21 +255,22 @@
 
       <h3>1.8 Parcerias-Chave</h3>
       <ul>
+        <li><strong>Serviços de geolocalização e APIs de mapas (GPS)</strong> — Leaflet, Turf, OSM — <a href="../Integracoes/DOC_Leaflet.md">DOC_Leaflet</a>, <a href="../Integracoes/DOC_TurfJS.md">DOC_TurfJS</a>.</li>
+        <li><strong>Google Play e Apple App Store</strong> — canal futuro para apps nativos; <strong>MVP atual = PWA web</strong> — <a href="../../README.md">README</a>.</li>
         <li>Google Firebase — <a href="../Integracoes/DOC_FirebaseFirestore.md">DOC_FirebaseFirestore</a>.</li>
         <li>Vercel + Analytics — <a href="../Integracoes/DOC_VercelAnalytics.md">DOC_VercelAnalytics</a>.</li>
-        <li>OSM + Leaflet — <a href="../Integracoes/DOC_Leaflet.md">DOC_Leaflet</a>.</li>
-        <li>OSS: Leaflet, Turf, shadcn, Radix — <a href="../Dependencias/DOC_DependenciasNPM.md">DOC_DependenciasNPM</a>.</li>
-        <li>Clubes locais (a desenvolver); UniPiaget Brasil CST ADS 2026.1.</li>
+        <li>OSS (shadcn, Radix, …) — <a href="../Dependencias/DOC_DependenciasNPM.md">DOC_DependenciasNPM</a>.</li>
+        <li>Clubes locais; UniPiaget Brasil CST ADS 2026.1.</li>
       </ul>
 
       <h3>1.9 Estrutura de Custos</h3>
       <ul>
-        <li><strong>Variável:</strong> Firestore (listeners amplos, API capture) — <a href="../Geral/DOC_RelatorioFinal.md">DOC_RelatorioFinal</a> (gargalos).</li>
-        <li><strong>Variável:</strong> Auth MAU; Functions; Vercel.</li>
-        <li><strong>Fixo:</strong> equipa, domínio, ferramentas.</li>
-        <li><strong>Eventual:</strong> auditoria, LGPD — <a href="../Seguranca/SEC_Geral.md">SEC_Geral</a>, <a href="../Geral/DOC_RelatorioSegurancaV2.md">DOC_RelatorioSegurancaV2</a>.</li>
+        <li><strong>Hospedagem da plataforma</strong> (Vercel) e <strong>manutenção do banco de dados</strong> (Firestore, Auth, Cloud Functions) — custos variáveis com escala; ver <a href="../Geral/DOC_RelatorioFinal.md">DOC_RelatorioFinal</a>.</li>
+        <li><strong>Desenvolvimento contínuo</strong> de funcionalidades (equipe técnica, <em>sprints</em>, QA).</li>
+        <li><strong>Marketing digital</strong>, divulgação e <strong>ferramentas de suporte</strong> (redes, analytics).</li>
+        <li><strong>Eventual:</strong> auditoria de segurança; assessoria LGPD — <a href="../Seguranca/SEC_Geral.md">SEC_Geral</a>.</li>
       </ul>
-      <p><strong>Natureza:</strong> value-driven + cost-driven (nuvem escala com uso).</p>
+      <p><strong>Natureza:</strong> orientada a valor + sensível à escala na nuvem.</p>
 
       <h2>2. Tabela de coerência interna (validação)</h2>
       <table>
@@ -252,7 +280,7 @@
         <tbody>
           <tr><td>Segmentos (Suzano) ↔ Canais locais</td><td>Geofence em código; marketing físico coerente.</td></tr>
           <tr><td>Proposta B2C ↔ Funcionalidades</td><td>Mapa, corrida, ranking, amigos, troféus implementados.</td></tr>
-          <tr><td>Proposta B2B ↔ Receita</td><td>Copy de patrocínio na landing com preço e contacto.</td></tr>
+          <tr><td>Proposta B2B ↔ Receita</td><td>Copy de patrocínio na landing com preço e <strong>contato</strong> comercial.</td></tr>
           <tr><td>Recursos (Firebase) ↔ Custos</td><td>Mesmo fornecedor gera valor e custo variável.</td></tr>
           <tr><td>Atividades (scheduler) ↔ Proposta</td><td>Expiração sustenta dinâmica do jogo.</td></tr>
           <tr><td>Canais PWA ↔ Proposta</td><td>Instalação sem loja reduz fricção B2C.</td></tr>
@@ -264,23 +292,31 @@
         <li><strong>Unit economics sensíveis:</strong> R$ 49,99/mês por patrocinador versus custo Firestore a escala — validar com quotas e CAC B2B (<a href="../Geral/DOC_RelatorioFinal.md">DOC_RelatorioFinal</a>, riscos R3–R4).</li>
         <li><strong>Mercado geográfico limitado no MVP:</strong> densidade de MAU em Suzano antes de escalar patrocínios.</li>
         <li><strong>Dependência de plataforma:</strong> Firebase e Vercel; mitigar com monitorização e otimização de queries.</li>
-        <li><strong>Pivot opcional:</strong> subscrição B2C leve no futuro — não implementado.</li>
+        <li><strong>Monetização B2C (roadmap):</strong> <em>freemium</em>, assinatura premium e compras no aplicativo — não implementado; exige gateway e termos legais.</li>
       </ol>
 
       <h2>4. Observabilidade e segurança (âmbito desta entrega)</h2>
       <p>Esta entrega de documentação <strong>não altera</strong> serviços nem hooks; sem novos logs — ver <a href="../Logs/DOC_LogsIndex.md">DOC_LogsIndex</a>. Sem código executável novo; superfície de ataque inalterada — <a href="../Seguranca/SEC_Geral.md">SEC_Geral</a>.</p>
 
-      <h2>5. Referências cruzadas</h2>
+      <h2>5. Referências cruzadas (repositório)</h2>
       <ul>
         <li><a href="../Geral/DOC_RelatorioFinal.md">DOC_RelatorioFinal</a></li>
         <li><a href="../DOC_IndiceDocumentacao.md">DOC_IndiceDocumentacao</a></li>
         <li><a href="../../components/home/marketing-landing.tsx">marketing-landing.tsx</a></li>
       </ul>
+
+      <h2>6. Referências (normas ABNT)</h2>
+      <p>Referências bibliográficas segundo a <strong>ABNT NBR 6023</strong> (ordem alfabética). Citações no texto segundo a <strong>ABNT NBR 10520</strong>.</p>
+      <p style="margin-left: 2rem; text-indent: -2rem;">ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <strong>NBR 10520</strong> — Informação e documentação — Apresentação de citações em documentos — Procedimento. Rio de Janeiro: ABNT, 2023.</p>
+      <p style="margin-left: 2rem; text-indent: -2rem;">ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <strong>NBR 6023</strong> — Informação e documentação — Referências — Elaboração. Rio de Janeiro: ABNT, 2023.</p>
+      <p style="margin-left: 2rem; text-indent: -2rem;">OSTERWALDER, Alexander; PIGNEUR, Yves. <strong>Business model generation</strong>: a handbook for visionaries, game changers, and challengers. Hoboken: John Wiley &amp; Sons, 2010.</p>
+      <p style="margin-left: 2rem; text-indent: -2rem;">VENTURE GEO. <strong>Territory Run</strong> [recurso eletrônico]. <em>Repositório de código-fonte</em>. GitHub, [s.d.]. Disponível em: https://github.com/VentureGeoOficial/territory-web-app. Acesso em: 11 maio 2026.</p>
+      <p><strong>Nota:</strong> arquivos internos (<code>Docs/*.md</code>, <code>app/*.tsx</code>) são documentação técnica anexa; se a banca exigir, inclua <em>hash</em> de <em>commit</em> ou capturas na versão impressa.</p>
     </div>
 
     <footer class="foot">
       Centro Universitário Piaget — UniPiaget Brasil · CST em Análise e Desenvolvimento de Sistemas — 2026.1 · Projeto de Startups — Etapa 5 (BMC)<br />
-      Equipa Venture Geo (landing): Leonardo Souza Bastos · Henrique Casagrande · Marcelo Candido
+      Equipe Venture Geo (landing): Leonardo Souza Bastos · Henrique Casagrande · Marcelo Candido
     </footer>
   </div>
 </body>

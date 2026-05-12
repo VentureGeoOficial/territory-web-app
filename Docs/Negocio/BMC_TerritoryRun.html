@@ -61,6 +61,14 @@
       line-height: 1.35;
       flex: 1;
     }
+    .cell.value .body {
+      font-size: 9px;
+      line-height: 1.32;
+    }
+    .cell.partners .body {
+      font-size: 9px;
+      line-height: 1.32;
+    }
     .cell .body p { margin: 0 0 6px; }
     .cell .body strong { color: var(--ink); }
     .partners { grid-column: 1; grid-row: 1 / span 2; }
@@ -85,6 +93,30 @@
       text-align: center;
       line-height: 1.4;
     }
+    .download-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+      margin: 0 0 14px;
+      font-size: 12px;
+    }
+    .download-bar a {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .download-bar a:hover {
+      border-color: var(--ink);
+      background: #fff;
+    }
     @page {
       size: A3 landscape;
       margin: 10mm;
@@ -100,16 +132,22 @@
   <h1>Territory Run · Venture Geo — Business Model Canvas (Etapa 5)</h1>
   <p class="subtitle">MVP geográfico: Suzano-SP (SUZANO_BOUNDING_BOX) · PWA Next.js + Firebase · 2026-05-11</p>
 
+  <nav class="download-bar" aria-label="Descarregar artefatos">
+    <a href="BMC_TerritoryRun.svg" download="BMC_TerritoryRun.svg">Descarregar SVG (imagem)</a>
+    <a href="BMC_TerritoryRun_Completo.html">Abrir relatório completo (PDF)</a>
+  </nav>
+
   <section class="bmc" aria-label="Business Model Canvas — blocos superiores">
     <article class="cell partners">
       <header>Parcerias-Chave</header>
       <div class="body">
+        <p>· <strong>Serviços de geolocalização e APIs de mapas (GPS)</strong> — navegador, Leaflet, OSM, Turf</p>
+        <p>· <strong>Plataformas de distribuição de apps:</strong> Google Play e Apple App Store (roadmap apps nativos; hoje PWA)</p>
         <p>· Google Firebase (Auth, Firestore, Functions)</p>
         <p>· Vercel + Analytics</p>
-        <p>· OSM + Leaflet + Turf</p>
         <p>· OSS: shadcn/ui, Radix, Zustand</p>
         <p>· Clubes e academias locais (aquisição Suzano)</p>
-        <p>· UniPiaget Brasil — CST ADS 2026.1 (contexto académico)</p>
+        <p>· UniPiaget Brasil — CST ADS 2026.1 (contexto acadêmico)</p>
       </div>
     </article>
     <article class="cell activities">
@@ -126,44 +164,43 @@
     <article class="cell resources">
       <header>Recursos-Chave</header>
       <div class="body">
-        <p>· Código Next.js 16 + React 19 + TypeScript</p>
-        <p>· Modelo Firestore + regras de segurança</p>
-        <p>· Squad Venture Geo (3 devs na landing)</p>
-        <p>· Marca + mascote Speed (IP)</p>
-        <p>· Telemetria de corridas (ativo de dados futuros)</p>
+        <p>· <strong>Algoritmos proprietários</strong> de domínio territorial e geolocalização (<code>lib/territory</code>, captura, GPS + mapa)</p>
+        <p>· <strong>Marca Venture Geo</strong> e mascote <strong>Speed</strong> integrados à interface (landing + UI)</p>
+        <p>· <strong>Equipe interna</strong> — startup de <strong>três pessoas</strong> (Squad na landing)</p>
+        <p>· <em>Suporte:</em> stack Next.js, Firebase, Firestore, Cloud Functions</p>
       </div>
     </article>
     <article class="cell value">
       <header>Proposta de Valor</header>
       <div class="body">
         <p><strong>B2C — corredor</strong></p>
-        <p>· Território no mapa (loop, área m², estados)</p>
-        <p>· Ranking global + amigos; troféus; disputas territoriais</p>
-        <p>· PWA gratuita; instalar sem loja de apps</p>
+        <p>· <strong>Transformação da corrida individual</strong> numa <strong>batalha tática de conquista territorial</strong> (mapa, loop, área, estados)</p>
+        <p>· <strong>Gamificação urbana</strong> com <strong>feedback visual em tempo real</strong> (grid no mapa, HUDs/overlays de corrida — evolução de produto)</p>
+        <p>· Ranking global + amigos; troféus; disputas territoriais; PWA gratuita</p>
         <p>· Geoprivacidade como valor (rules + transparência)</p>
-        <p><strong>B2B — marca</strong></p>
-        <p>· Audiência ativa geolocalizada (Suzano / Grande SP)</p>
-        <p>· Patrocínios/anúncios na experiência gamificada</p>
-        <p>· Entrada declarada na landing: a partir de R$ 49,99/mês</p>
+        <p><strong>B2B / sustentação</strong></p>
+        <p>· <strong>Fontes de receita:</strong> <strong>anúncios de parceiros</strong> e patrocínios integrados à experiência</p>
+        <p>· Entrada na landing: a partir de R$ 49,99/mês — <strong>contato</strong> <code>patrocinio@venturegeo.com.br</code></p>
       </div>
     </article>
     <article class="cell relationship">
       <header>Relacionamento com Clientes</header>
       <div class="body">
-        <p>· Self-service na PWA (cadastro, login Google)</p>
-        <p>· Comunidade: amigos + competição social</p>
-        <p>· FAQ /ajuda assíncrono</p>
-        <p>· Termos + privacidade (LGPD)</p>
-        <p>· B2B: atendimento consultivo direto</p>
+        <p>· <strong>Experiência gamificada</strong> com foco em <strong>retenção e competitividade</strong> (ranking, territórios, amigos)</p>
+        <p>· <strong>Interação humanizada</strong> através do mascote <strong>Speed</strong> (landing e narrativa Venture Geo)</p>
+        <p>· <strong>Notificações inteligentes</strong> e <strong>suporte técnico via plataforma</strong> (FAQ <code>/ajuda</code>, canais na app)</p>
+        <p>· Self-service na PWA (cadastro, login Google); termos + privacidade (LGPD)</p>
+        <p>· B2B: atendimento consultivo direto por e-mail</p>
       </div>
     </article>
     <article class="cell channels">
       <header>Canais</header>
       <div class="body">
-        <p>· Web/PWA na raiz <code>/</code></p>
-        <p>· Redes sociais (Instagram, Facebook, LinkedIn)</p>
-        <p>· Marketing local Suzano</p>
-        <p>· E-mail <code>patrocinio@venturegeo.com.br</code></p>
+        <p>· <strong>Landing page oficial</strong> hospedada na <strong>Vercel</strong> (Next.js, <code>/</code>)</p>
+        <p>· <strong>Aplicativo mobile TerritoryRun</strong> como <strong>PWA</strong> (instalação pelo navegador); lojas nativas no roadmap</p>
+        <p>· <strong>Redes sociais</strong> focadas em <strong>conteúdo dinâmico</strong> (Instagram / Facebook)</p>
+        <p>· Marketing local Suzano + Grande SP</p>
+        <p>· <strong>Contato</strong> B2B: <code>patrocinio@venturegeo.com.br</code></p>
         <p>· Rotas <code>/mapa</code>, <code>/competicao</code>, <code>/amigos</code>, <code>/trofeus</code></p>
       </div>
     </article>
@@ -171,9 +208,10 @@
       <header>Segmentos de Clientes</header>
       <div class="body">
         <p><strong>B2C (free)</strong></p>
-        <p>· Corredores/caminhantes Suzano + Grande SP</p>
-        <p>· 18–35 anos — fitness urbano / RL-gaming</p>
-        <p>· Clubes e grupos locais</p>
+        <p>· <strong>Corredores amadores e profissionais</strong> que buscam <strong>motivação extra</strong> (treino com meta territorial)</p>
+        <p>· <strong>Entusiastas de tecnologia e esporte (Geogamers)</strong> — mapa, dados, competição</p>
+        <p>· <strong>Usuários</strong> focados em <strong>performance, dados e estratégia</strong> no mapa</p>
+        <p>· <em>MVP geográfico:</em> Suzano-SP e Grande SP (<code>SUZANO_BOUNDING_BOX</code>)</p>
         <p><strong>B2B (receita)</strong></p>
         <p>· Marcas esportivas, nutrição, vestuário</p>
         <p>· Comércio de bairro geo</p>
@@ -186,28 +224,29 @@
     <article class="cell">
       <header>Estrutura de Custos</header>
       <div class="body">
-        <p>· <strong>Variável:</strong> Firestore reads/writes + listeners (queries amplas; API de captura percorre coleção — ver <em>DOC_RelatorioFinal</em>)</p>
-        <p>· <strong>Variável:</strong> Firebase Auth MAU; Cloud Functions agendadas; bandwidth Vercel</p>
-        <p>· <strong>Fixo:</strong> equipa técnica + comercial; domínio; ferramentas design/analytics</p>
-        <p>· <strong>Eventual:</strong> auditoria de segurança; assessoria jurídica LGPD</p>
-        <p><strong>Perfil:</strong> value-driven (UX/privacidade) + cost-driven (nuvem escala com uso)</p>
+        <p>· <strong>Hospedagem</strong> da plataforma (Vercel) e <strong>manutenção do banco</strong> (Firestore, Auth, Functions)</p>
+        <p>· <strong>Desenvolvimento contínuo</strong> de funcionalidades (equipe técnica, *sprints*, QA)</p>
+        <p>· <strong>Marketing digital</strong>, divulgação e ferramentas de suporte (analytics, redes)</p>
+        <p>· <strong>Variável:</strong> leituras/escritas Firestore em escala — ver <em>DOC_RelatorioFinal</em></p>
+        <p>· <strong>Eventual:</strong> auditoria de segurança; assessoria jurídica (LGPD)</p>
+        <p><strong>Perfil:</strong> *value-driven* + custos sensíveis à escala na nuvem</p>
       </div>
     </article>
     <article class="cell">
       <header>Fontes de Receita</header>
       <div class="body">
-        <p>· <strong>Principal:</strong> patrocínios e anúncios B2B integrados à experiência (copy em <code>MarketingLanding</code> — utilizadores 100% gratuitos)</p>
-        <p>· Pacotes desde <strong>R$ 49,99/mês</strong> + contacto <code>patrocinio@venturegeo.com.br</code></p>
-        <p>· <strong>Hipótese:</strong> eventos patrocinados; white-label prefeitura/clube</p>
-        <p>· <strong>Hipótese futura (não no código):</strong> tier premium B2C para métricas avançadas</p>
-        <p><strong>Nota:</strong> sem gateway de pagamento no repositório — faturação manual/contrato</p>
+        <p>· <strong>Atual (landing):</strong> patrocínios e anúncios B2B — a partir de <strong>R$ 49,99/mês</strong>; <strong>contato</strong> <code>patrocinio@venturegeo.com.br</code></p>
+        <p>· <strong>Roadmap:</strong> <strong>assinatura mensal premium</strong> (futuro)</p>
+        <p>· <strong>Freemium:</strong> captação com uso gratuito e territórios na modalidade básica</p>
+        <p>· <strong>Futuro:</strong> taxas por serviços <em>in-app</em> e itens de personalização</p>
+        <p><strong>Nota:</strong> sem gateway de pagamento no repositório — cobrança B2C ainda não implementada</p>
       </div>
     </article>
   </section>
 
   <footer>
     Centro Universitário Piaget — UniPiaget Brasil · CST em Análise e Desenvolvimento de Sistemas — 2026.1 · Projeto de Startups — Etapa 5 (BMC)<br />
-    Equipa técnica Venture Geo (landing): Leonardo Souza Bastos · Henrique Casagrande · Marcelo Candido<br />
+    Equipe técnica Venture Geo (landing): Leonardo Souza Bastos · Henrique Casagrande · Marcelo Candido<br />
     Documentação alinhada ao repositório: <a href="./DOC_BMC_ModeloNegocios.md">DOC_BMC_ModeloNegocios.md</a> · Imprimir este HTML para PDF (A3 paisagem)
   </footer>
 </body>
