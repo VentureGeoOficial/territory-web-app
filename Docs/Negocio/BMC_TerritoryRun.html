@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Territory Run — Business Model Canvas</title>
+  <style>
+    :root {
+      --ink: #0f172a;
+      --text: #1e293b;
+      --muted: #475569;
+      --line: #94a3b8;
+      --panel: #f8fafc;
+      --hdr: #0f172a;
+      --hdr-fg: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 12px;
+      font-family: system-ui, "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background: #fff;
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 15px;
+      color: var(--ink);
+      text-align: center;
+    }
+    .subtitle {
+      margin: 0 0 14px;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .bmc {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.7fr 1fr 1.15fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 6px;
+      min-height: 520px;
+    }
+    .cell {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .cell header {
+      background: var(--hdr);
+      color: var(--hdr-fg);
+      padding: 6px 8px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .cell .body {
+      padding: 8px;
+      font-size: 10px;
+      line-height: 1.35;
+      flex: 1;
+    }
+    .cell .body p { margin: 0 0 6px; }
+    .cell .body strong { color: var(--ink); }
+    .partners { grid-column: 1; grid-row: 1 / span 2; }
+    .activities { grid-column: 2; grid-row: 1; }
+    .resources { grid-column: 2; grid-row: 2; }
+    .value { grid-column: 3; grid-row: 1 / span 2; }
+    .relationship { grid-column: 4; grid-row: 1; }
+    .channels { grid-column: 4; grid-row: 2; }
+    .segments { grid-column: 5; grid-row: 1 / span 2; }
+    .bottom {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 8px;
+      min-height: 160px;
+    }
+    .bottom .cell { min-height: 140px; }
+    footer {
+      margin-top: 12px;
+      font-size: 9px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.4;
+    }
+    @page {
+      size: A3 landscape;
+      margin: 10mm;
+    }
+    @media print {
+      body { padding: 0; }
+      .bmc { min-height: 155mm; page-break-inside: avoid; }
+      .bottom { min-height: 55mm; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Territory Run · Venture Geo — Business Model Canvas (Etapa 5)</h1>
+  <p class="subtitle">MVP geográfico: Suzano-SP (SUZANO_BOUNDING_BOX) · PWA Next.js + Firebase · 2026-05-11</p>
+
+  <section class="bmc" aria-label="Business Model Canvas — blocos superiores">
+    <article class="cell partners">
+      <header>Parcerias-Chave</header>
+      <div class="body">
+        <p>· Google Firebase (Auth, Firestore, Functions)</p>
+        <p>· Vercel + Analytics</p>
+        <p>· OSM + Leaflet + Turf</p>
+        <p>· OSS: shadcn/ui, Radix, Zustand</p>
+        <p>· Clubes e academias locais (aquisição Suzano)</p>
+        <p>· UniPiaget Brasil — CST ADS 2026.1 (contexto académico)</p>
+      </div>
+    </article>
+    <article class="cell activities">
+      <header>Atividades-Chave</header>
+      <div class="body">
+        <p>· Desenvolvimento e evolução do produto (mapa, corrida, UI)</p>
+        <p>· Captura hostil + transações Firestore / Admin API</p>
+        <p>· Anti-fraude (speed-gate) e validação de corridas</p>
+        <p>· Cloud Function <code>expireStaleTerritories</code> (60 em 60 min)</p>
+        <p>· Segurança contínua (rate limit, App Check — backlog)</p>
+        <p>· Vendas B2B de patrocínios</p>
+      </div>
+    </article>
+    <article class="cell resources">
+      <header>Recursos-Chave</header>
+      <div class="body">
+        <p>· Código Next.js 16 + React 19 + TypeScript</p>
+        <p>· Modelo Firestore + regras de segurança</p>
+        <p>· Squad Venture Geo (3 devs na landing)</p>
+        <p>· Marca + mascote Speed (IP)</p>
+        <p>· Telemetria de corridas (ativo de dados futuros)</p>
+      </div>
+    </article>
+    <article class="cell value">
+      <header>Proposta de Valor</header>
+      <div class="body">
+        <p><strong>B2C — corredor</strong></p>
+        <p>· Território no mapa (loop, área m², estados)</p>
+        <p>· Ranking global + amigos; troféus; disputas territoriais</p>
+        <p>· PWA gratuita; instalar sem loja de apps</p>
+        <p>· Geoprivacidade como valor (rules + transparência)</p>
+        <p><strong>B2B — marca</strong></p>
+        <p>· Audiência ativa geolocalizada (Suzano / Grande SP)</p>
+        <p>· Patrocínios/anúncios na experiência gamificada</p>
+        <p>· Entrada declarada na landing: a partir de R$ 49,99/mês</p>
+      </div>
+    </article>
+    <article class="cell relationship">
+      <header>Relacionamento com Clientes</header>
+      <div class="body">
+        <p>· Self-service na PWA (cadastro, login Google)</p>
+        <p>· Comunidade: amigos + competição social</p>
+        <p>· FAQ /ajuda assíncrono</p>
+        <p>· Termos + privacidade (LGPD)</p>
+        <p>· B2B: atendimento consultivo direto</p>
+      </div>
+    </article>
+    <article class="cell channels">
+      <header>Canais</header>
+      <div class="body">
+        <p>· Web/PWA na raiz <code>/</code></p>
+        <p>· Redes sociais (Instagram, Facebook, LinkedIn)</p>
+        <p>· Marketing local Suzano</p>
+        <p>· E-mail <code>patrocinio@venturegeo.com.br</code></p>
+        <p>· Rotas <code>/mapa</code>, <code>/competicao</code>, <code>/amigos</code>, <code>/trofeus</code></p>
+      </div>
+    </article>
+    <article class="cell segments">
+      <header>Segmentos de Clientes</header>
+      <div class="body">
+        <p><strong>B2C (free)</strong></p>
+        <p>· Corredores/caminhantes Suzano + Grande SP</p>
+        <p>· 18–35 anos — fitness urbano / RL-gaming</p>
+        <p>· Clubes e grupos locais</p>
+        <p><strong>B2B (receita)</strong></p>
+        <p>· Marcas esportivas, nutrição, vestuário</p>
+        <p>· Comércio de bairro geo</p>
+        <p>· (Futuro) prefeitura / turismo em eventos</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="bottom" aria-label="Business Model Canvas — custos e receitas">
+    <article class="cell">
+      <header>Estrutura de Custos</header>
+      <div class="body">
+        <p>· <strong>Variável:</strong> Firestore reads/writes + listeners (queries amplas; API de captura percorre coleção — ver <em>DOC_RelatorioFinal</em>)</p>
+        <p>· <strong>Variável:</strong> Firebase Auth MAU; Cloud Functions agendadas; bandwidth Vercel</p>
+        <p>· <strong>Fixo:</strong> equipa técnica + comercial; domínio; ferramentas design/analytics</p>
+        <p>· <strong>Eventual:</strong> auditoria de segurança; assessoria jurídica LGPD</p>
+        <p><strong>Perfil:</strong> value-driven (UX/privacidade) + cost-driven (nuvem escala com uso)</p>
+      </div>
+    </article>
+    <article class="cell">
+      <header>Fontes de Receita</header>
+      <div class="body">
+        <p>· <strong>Principal:</strong> patrocínios e anúncios B2B integrados à experiência (copy em <code>MarketingLanding</code> — utilizadores 100% gratuitos)</p>
+        <p>· Pacotes desde <strong>R$ 49,99/mês</strong> + contacto <code>patrocinio@venturegeo.com.br</code></p>
+        <p>· <strong>Hipótese:</strong> eventos patrocinados; white-label prefeitura/clube</p>
+        <p>· <strong>Hipótese futura (não no código):</strong> tier premium B2C para métricas avançadas</p>
+        <p><strong>Nota:</strong> sem gateway de pagamento no repositório — faturação manual/contrato</p>
+      </div>
+    </article>
+  </section>
+
+  <footer>
+    Centro Universitário Piaget — UniPiaget Brasil · CST em Análise e Desenvolvimento de Sistemas — 2026.1 · Projeto de Startups — Etapa 5 (BMC)<br />
+    Equipa técnica Venture Geo (landing): Leonardo Souza Bastos · Henrique Casagrande · Marcelo Candido<br />
+    Documentação alinhada ao repositório: <a href="./DOC_BMC_ModeloNegocios.md">DOC_BMC_ModeloNegocios.md</a> · Imprimir este HTML para PDF (A3 paisagem)
+  </footer>
+</body>
+</html>

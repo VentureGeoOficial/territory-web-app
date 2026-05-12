@@ -1,16 +1,127 @@
-# v0 sandbox internal files
+# =============================================================================
+# .gitignore  Territory Web App
+# Stack: Next.js 16 + Firebase + Vercel + v0 (PowerShell/Windows + pnpm)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# v0 (Vercel) sandbox / arquivos internos do ambiente do v0
+# -----------------------------------------------------------------------------
 __v0_runtime_loader.js
 __v0_devtools.tsx
 __v0_jsx-dev-runtime.ts
-.snowflake/
+__v0_*
 .v0-trash/
+.snowflake/
 .vercel/
 next.user-config.*
 
-# Environment variables
-.env*.local
+# -----------------------------------------------------------------------------
+# Variáveis de ambiente  NUNCA versionar segredos
+# -----------------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Mantemos .env.example versionado para servir de template (sem segredos)
+!.env.example
 
-# Common ignores
-node_modules
+# -----------------------------------------------------------------------------
+# Dependências
+# -----------------------------------------------------------------------------
+node_modules/
+**/node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+jspm_packages/
+
+# -----------------------------------------------------------------------------
+# Builds e caches  Next.js / TypeScript / SWC / Turbo
+# -----------------------------------------------------------------------------
 .next/
+out/
+build/
+dist/
+.turbo/
+.swc/
+*.tsbuildinfo
+next-env.d.ts.timestamp-*
+
+# -----------------------------------------------------------------------------
+# Logs e debug
+# -----------------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log
+
+# -----------------------------------------------------------------------------
+# Testes / cobertura
+# -----------------------------------------------------------------------------
+coverage/
+*.lcov
+.nyc_output/
+.vitest-cache/
+.vitest-mocks/
+
+# -----------------------------------------------------------------------------
+# Firebase (CLI, emuladores e Cloud Functions)
+# -----------------------------------------------------------------------------
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+database-debug.log*
+pubsub-debug.log*
+.runtimeconfig.json
+# Build de Functions  é gerado pelo `npm run build` dentro de /functions
+functions/lib/
+functions/.cache/
+
+# -----------------------------------------------------------------------------
+# IDEs / Editores
+# -----------------------------------------------------------------------------
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# .vscode é parcialmente versionado: ignoramos configs pessoais e mantemos
+# apenas o que for compartilhado por convenção do time.
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.history/
+
+# -----------------------------------------------------------------------------
+# Sistema Operacional
+# -----------------------------------------------------------------------------
 .DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# -----------------------------------------------------------------------------
+# Arquivos temporários do projeto / scripts auxiliares
+# -----------------------------------------------------------------------------
+.tmp_*
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# -----------------------------------------------------------------------------
+# Análise / bundle  (caso adicione futuramente)
+# -----------------------------------------------------------------------------
+.bundle-analyzer/
+analyze/
