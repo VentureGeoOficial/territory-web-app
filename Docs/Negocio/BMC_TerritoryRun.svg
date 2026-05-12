@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="420mm" height="297mm" viewBox="0 0 420 297" font-family="system-ui, Segoe UI, Arial, sans-serif">
+  <defs>
+    <style type="text/css"><![CDATA[
+      .title { fill: #0f172a; font-size: 7px; font-weight: 700; }
+      .blockTitle { fill: #f8fafc; font-size: 5.2px; font-weight: 700; }
+      .body { fill: #1e293b; font-size: 4.4px; font-weight: 400; }
+      .block { fill: #f8fafc; stroke: #94a3b8; stroke-width: 0.35; }
+      .blockHdr { fill: #0f172a; stroke: #0f172a; stroke-width: 0.2; }
+      .footer { fill: #475569; font-size: 3.8px; }
+    ]]></style>
+  </defs>
+  <rect width="420" height="297" fill="#ffffff"/>
+
+  <!-- Título -->
+  <text x="210" y="12" text-anchor="middle" class="title">Territory Run · Venture Geo  Business Model Canvas (Etapa 5)</text>
+  <text x="210" y="18" text-anchor="middle" class="footer">MVP geográfico: Suzano-SP (SUZANO_BOUNDING_BOX) · PWA Next.js + Firebase · 2026-05-11</text>
+
+  <!-- Linhas guia superior -->
+  <g transform="translate(8, 24)">
+    <!-- Colunas: partners | act/res | value | rel/chan | segments -->
+    <!-- Larguras: 58 | 58 | 100 | 58 | 72 = 346 + margens -> usar total 404 inner width, x from 0 -->
+    <!-- x: 0, 62, 124, 228, 290 -->
+    <!-- Altura bloco superior: 175, sub-blocos 87 -->
+
+    <!-- 1 Parcerias-Chave -->
+    <rect class="block" x="0" y="0" width="60" height="175"/>
+    <rect class="blockHdr" x="0" y="0" width="60" height="10"/>
+    <text x="3" y="7" class="blockTitle">Parcerias-Chave</text>
+    <text x="3" y="18" class="body">· Google Firebase (Auth,</text>
+    <text x="3" y="24" class="body">  Firestore, Functions)</text>
+    <text x="3" y="33" class="body">· Vercel + Analytics</text>
+    <text x="3" y="42" class="body">· OSM + Leaflet + Turf</text>
+    <text x="3" y="51" class="body">· OSS: shadcn, Radix,</text>
+    <text x="3" y="57" class="body">  Zustand</text>
+    <text x="3" y="66" class="body">· Clubes/academias locais</text>
+    <text x="3" y="72" class="body">  (aquisição Suzano)</text>
+    <text x="3" y="81" class="body">· UniPiaget Brasil  CST</text>
+    <text x="3" y="87" class="body">  ADS 2026.1 (académico)</text>
+
+    <!-- 2 Atividades-Chave (top) -->
+    <rect class="block" x="64" y="0" width="60" height="86"/>
+    <rect class="blockHdr" x="64" y="0" width="60" height="10"/>
+    <text x="67" y="7" class="blockTitle">Atividades-Chave</text>
+    <text x="67" y="18" class="body">· Dev/evolução produto</text>
+    <text x="67" y="24" class="body">  (mapa, corrida, UI)</text>
+    <text x="67" y="33" class="body">· Captura hostil + txn</text>
+    <text x="67" y="39" class="body">  Firestore/Admin API</text>
+    <text x="67" y="48" class="body">· Anti-fraude speed-gate</text>
+    <text x="67" y="57" class="body">· CF expireStaleTerritories</text>
+    <text x="67" y="63" class="body">  (60 em 60 min)</text>
+    <text x="67" y="72" class="body">· Segurança contínua</text>
+    <text x="67" y="78" class="body">· Vendas B2B patrocínios</text>
+
+    <!-- 3 Recursos-Chave (bottom) -->
+    <rect class="block" x="64" y="89" width="60" height="86"/>
+    <rect class="blockHdr" x="64" y="89" width="60" height="10"/>
+    <text x="67" y="96" class="blockTitle">Recursos-Chave</text>
+    <text x="67" y="107" class="body">· Código Next.js 16 +</text>
+    <text x="67" y="113" class="body">  React 19 + TS</text>
+    <text x="67" y="122" class="body">· Modelo Firestore +</text>
+    <text x="67" y="128" class="body">  regras de segurança</text>
+    <text x="67" y="137" class="body">· Squad Venture Geo</text>
+    <text x="67" y="143" class="body">  (3 devs na landing)</text>
+    <text x="67" y="152" class="body">· Marca + mascote Speed</text>
+    <text x="67" y="161" class="body">· Telemetria de corridas</text>
+    <text x="67" y="167" class="body">  (ativo dados futuros)</text>
+
+    <!-- 4 Proposta de Valor (centro largo) -->
+    <rect class="block" x="128" y="0" width="104" height="175"/>
+    <rect class="blockHdr" x="128" y="0" width="104" height="10"/>
+    <text x="131" y="7" class="blockTitle">Proposta de Valor</text>
+    <text x="131" y="19" class="body" font-weight="700">B2C  corredor</text>
+    <text x="131" y="26" class="body">· Território no mapa (loop,</text>
+    <text x="131" y="32" class="body">  área m², estados)</text>
+    <text x="131" y="41" class="body">· Ranking global + amigos;</text>
+    <text x="131" y="47" class="body">  troféus; disputas</text>
+    <text x="131" y="56" class="body">· PWA grátis; instalar sem</text>
+    <text x="131" y="62" class="body">  loja de apps</text>
+    <text x="131" y="71" class="body">· Geoprivacidade como valor</text>
+    <text x="131" y="83" class="body" font-weight="700">B2B  marca</text>
+    <text x="131" y="90" class="body">· Audiência ativa geo</text>
+    <text x="131" y="96" class="body">  (Suzano / Grande SP)</text>
+    <text x="131" y="105" class="body">· Patrocínios/anúncios na</text>
+    <text x="131" y="111" class="body">  experiência gamificada</text>
+    <text x="131" y="120" class="body">· Entrada: a partir de</text>
+    <text x="131" y="126" class="body">  R$ 49,99/mês (landing)</text>
+
+    <!-- 5 Relacionamento (top) -->
+    <rect class="block" x="236" y="0" width="60" height="86"/>
+    <rect class="blockHdr" x="236" y="0" width="60" height="10"/>
+    <text x="239" y="7" class="blockTitle">Relacionamento</text>
+    <text x="239" y="18" class="body">· Self-service na PWA</text>
+    <text x="239" y="24" class="body">  (cadastro, login Google)</text>
+    <text x="239" y="33" class="body">· Comunidade: amigos +</text>
+    <text x="239" y="39" class="body">  competição social</text>
+    <text x="239" y="48" class="body">· FAQ /ajuda assíncrono</text>
+    <text x="239" y="57" class="body">· Termos + privacidade</text>
+    <text x="239" y="63" class="body">  (LGPD)</text>
+    <text x="239" y="72" class="body">· B2B: atendimento</text>
+    <text x="239" y="78" class="body">  consultivo direto</text>
+
+    <!-- 6 Canais (bottom) -->
+    <rect class="block" x="236" y="89" width="60" height="86"/>
+    <rect class="blockHdr" x="236" y="89" width="60" height="10"/>
+    <text x="239" y="96" class="blockTitle">Canais</text>
+    <text x="239" y="107" class="body">· Web/PWA na raiz /</text>
+    <text x="239" y="113" class="body">· Redes (IG/FB/in)</text>
+    <text x="239" y="122" class="body">· Marketing local Suzano</text>
+    <text x="239" y="131" class="body">· E-mail patrocinio@</text>
+    <text x="239" y="137" class="body">  venturegeo.com.br</text>
+    <text x="239" y="146" class="body">· Rotas /mapa /competicao</text>
+    <text x="239" y="152" class="body">  /amigos /trofeus</text>
+
+    <!-- 7 Segmentos de Clientes -->
+    <rect class="block" x="300" y="0" width="104" height="175"/>
+    <rect class="blockHdr" x="300" y="0" width="104" height="10"/>
+    <text x="303" y="7" class="blockTitle">Segmentos de Clientes</text>
+    <text x="303" y="19" class="body" font-weight="700">B2C (free)</text>
+    <text x="303" y="26" class="body">· Corredores/caminhantes</text>
+    <text x="303" y="32" class="body">  Suzano + Grande SP</text>
+    <text x="303" y="41" class="body">· 1835 fitness urbano /</text>
+    <text x="303" y="47" class="body">  RL-gaming no mapa</text>
+    <text x="303" y="56" class="body">· Clubes e grupos locais</text>
+    <text x="303" y="68" class="body" font-weight="700">B2B (receita)</text>
+    <text x="303" y="75" class="body">· Marcas esportivas /</text>
+    <text x="303" y="81" class="body">  nutrição / vestuário</text>
+    <text x="303" y="90" class="body">· Comércio de bairro geo</text>
+    <text x="303" y="99" class="body">· (Futuro) prefeitura /</text>
+    <text x="303" y="105" class="body">  eventos turismo</text>
+  </g>
+
+  <!-- Linha inferior: Custos | Receita -->
+  <g transform="translate(8, 204)">
+    <rect class="block" x="0" y="0" width="200" height="78"/>
+    <rect class="blockHdr" x="0" y="0" width="200" height="10"/>
+    <text x="3" y="7" class="blockTitle">Estrutura de Custos</text>
+    <text x="3" y="18" class="body">· Variável: Firestore reads/writes + listeners (atenção: queries amplas /</text>
+    <text x="3" y="24" class="body">  API capture percorre coleção  ver DOC_RelatorioFinal)</text>
+    <text x="3" y="33" class="body">· Variável: Firebase Auth MAU; Cloud Functions agendadas; bandwidth Vercel</text>
+    <text x="3" y="42" class="body">· Fixo: equipa técnica + comercial; domínio; ferramentas design/analytics</text>
+    <text x="3" y="51" class="body">· Eventual: auditoria segurança; assessoria jurídica LGPD</text>
+    <text x="3" y="63" class="body" font-weight="700">Perfil: value-driven (UX/privacidade) + cost-driven (nuvem escala com uso)</text>
+
+    <rect class="block" x="204" y="0" width="200" height="78"/>
+    <rect class="blockHdr" x="204" y="0" width="200" height="10"/>
+    <text x="207" y="7" class="blockTitle">Fontes de Receita</text>
+    <text x="207" y="18" class="body">· Principal: patrocínios e anúncios B2B integrados à experiência (copy na</text>
+    <text x="207" y="24" class="body">  landing MarketingLanding  utilizadores 100% gratuitos)</text>
+    <text x="207" y="33" class="body">· Pacotes desde R$ 49,99/mês + contacto patrocinio@venturegeo.com.br</text>
+    <text x="207" y="42" class="body">· Hipótese: eventos patrocinados; white-label prefeitura/clube</text>
+    <text x="207" y="51" class="body">· Hipótese futura (não no código): tier premium B2C para métricas avançadas</text>
+    <text x="207" y="63" class="body" font-weight="700">Sem gateway de pagamento no repositório  faturação manual/contrato</text>
+  </g>
+
+  <!-- Rodapé académico -->
+  <text x="210" y="288" text-anchor="middle" class="footer">Centro Universitário Piaget  UniPiaget Brasil · CST em Análise e Desenvolvimento de Sistemas  2026.1 · Projeto de Startups  Etapa 5 (BMC)</text>
+  <text x="210" y="293.5" text-anchor="middle" class="footer">Equipa técnica Venture Geo (landing): Leonardo Souza Bastos · Henrique Casagrande · Marcelo Candido</text>
+</svg>

@@ -4,6 +4,7 @@ Documentação técnica gerada pela engenharia reversa do repositório. Cada sec
 
 | Secção | Índice |
 |--------|--------|
+| Negócio (BMC) | [Negocio/DOC_BMC_ModeloNegocios.md](Negocio/DOC_BMC_ModeloNegocios.md) |
 | Relatório final | [Geral/DOC_RelatorioFinal.md](Geral/DOC_RelatorioFinal.md) |
 | Arquitetura | [Arquitetura/DOC_VisaoGeral.md](Arquitetura/DOC_VisaoGeral.md) |
 | Configurações | [Configuracoes/DOC_NextConfig.md](Configuracoes/DOC_NextConfig.md) |
