@@ -11,6 +11,7 @@
 |----------|---------|
 | Canvas SVG (A3 paisagem, vetorial) | [`BMC_TerritoryRun.svg`](BMC_TerritoryRun.svg) |
 | Canvas HTML (imprimir → PDF) | [`BMC_TerritoryRun.html`](BMC_TerritoryRun.html) |
+| **Relatório PDF (canvas + texto)** | [`BMC_TerritoryRun_Completo.html`](BMC_TerritoryRun_Completo.html) — abrir no browser → **Ctrl+P** → **Guardar como PDF** (recom.: A4 ou A3 horizontal na primeira página) |
 
 ---
 
