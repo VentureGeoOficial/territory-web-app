@@ -43,3 +43,13 @@ src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/20260505_194510_000
 ## Trecho Afetado
 
 O trecho afetado estava nas imagens `<img>` da seção `#mascote-speed` e do bloco de patrocínios. A correção substituiu o `src` remoto por asset local importado em `components/home/marketing-landing.tsx`.
+
+## Atualização de Asset (2026-05-12)
+
+- O arquivo [`IMG/speed-mascote.png`](../../../IMG/speed-mascote.png) foi sobrescrito pela versão sem fundo do mascote (transparente), mantendo o mesmo caminho e nome para não exigir alteração de imports.
+- **Revisão OWASP da troca:**
+  - PNG é asset estático servido via `next/image`, sem execução de código. Não introduz vetor de XSS, SQLi, RCE ou exposição de credenciais.
+  - Arquivo foi fornecido pelo próprio responsável do produto e ingressou no repositório sem passar por upload de usuário final, eliminando o risco de payload malicioso de terceiros não confiáveis.
+  - Sem novo endpoint, sem nova dependência externa, sem alteração de cabeçalhos/CSP.
+- **Severidade da mudança:** N/A (mudança meramente visual de asset estático).
+- **Observação operacional:** o novo arquivo tem ~476 KB (versus ~41 KB anterior). O `next/image` aplica compressão e responsividade automaticamente, mas recomenda-se rodar uma otimização lossless (ex.: `oxipng` ou `pngquant`) caso o tamanho do bundle de assets se torne relevante em auditorias futuras de performance.

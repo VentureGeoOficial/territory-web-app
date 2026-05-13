@@ -19,8 +19,11 @@ Landing institucional da VentureGeo e do TerritoryRun. A página foi organizada 
 ## Imagens
 
 - O mascote da homepage usa o asset local [`IMG/speed-mascote.png`](../../IMG/speed-mascote.png).
+- Em 12/05/2026 esse asset foi atualizado para a versão sem fundo (transparente), substituindo a arte anterior com fundo preto. A troca foi feita preservando o mesmo nome de arquivo, sem alteração de imports.
+- O mascote aparece em três pontos da página: hero, seção `#mascote-speed` e CTA final. Todos consomem o asset através do componente interno `SpeedImage`.
 - As URLs externas antigas do Vercel Blob foram removidas para reduzir fragilidade operacional e dependência de domínio terceiro.
 - Imagens informativas do Speed usam `alt` descritivo; imagens meramente decorativas usam `aria-hidden`.
+- Otimização de delivery: o asset é importado estaticamente e servido via `next/image`, que aplica compressão, redimensionamento responsivo e cache. Não há serving direto do PNG bruto para o cliente.
 
 ## Observabilidade
 
