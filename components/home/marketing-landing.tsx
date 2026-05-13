@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { track } from '@vercel/analytics'
@@ -229,6 +230,99 @@ function SpeedImage({
   )
 }
 
+const HERO_VIDEO_SRC = '/speed-mascote.mp4'
+
+function SpeedHeroMedia({
+  alt,
+  className,
+  height = 420,
+}: {
+  alt: string
+  className?: string
+  height?: number
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const [useStaticFallback, setUseStaticFallback] = useState(false)
+  const width = Math.round(height * 1.6)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (reduceMotionQuery.matches) {
+      setUseStaticFallback(true)
+      return
+    }
+
+    const handlePreferenceChange = (event: MediaQueryListEvent) => {
+      setUseStaticFallback(event.matches)
+    }
+    reduceMotionQuery.addEventListener('change', handlePreferenceChange)
+    return () => reduceMotionQuery.removeEventListener('change', handlePreferenceChange)
+  }, [])
+
+  useEffect(() => {
+    if (useStaticFallback) return
+    const video = videoRef.current
+    if (!video) return
+    const playPromise = video.play()
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(() => {
+        track('landing_video_autoplay_blocked', {
+          feature: 'MarketingLanding',
+          section: 'hero',
+          asset: 'speed-mascote.mp4',
+        })
+      })
+    }
+  }, [useStaticFallback])
+
+  if (useStaticFallback) {
+    return <SpeedImage alt={alt} className={className} height={height} priority />
+  }
+
+  return (
+    <video
+      ref={videoRef}
+      width={width}
+      height={height}
+      className={className}
+      poster={speedMascot.src}
+      autoPlay
+      muted
+      playsInline
+      preload="metadata"
+      disablePictureInPicture
+      controls={false}
+      aria-label={alt}
+      onLoadedData={() => {
+        track('landing_video_loaded', {
+          feature: 'MarketingLanding',
+          section: 'hero',
+          asset: 'speed-mascote.mp4',
+        })
+      }}
+      onEnded={() => {
+        track('landing_video_completed', {
+          feature: 'MarketingLanding',
+          section: 'hero',
+          asset: 'speed-mascote.mp4',
+        })
+        setUseStaticFallback(true)
+      }}
+      onError={() => {
+        track('landing_video_error', {
+          feature: 'MarketingLanding',
+          section: 'hero',
+          asset: 'speed-mascote.mp4',
+        })
+        setUseStaticFallback(true)
+      }}
+    >
+      <source src={HERO_VIDEO_SRC} type="video/mp4" />
+    </video>
+  )
+}
+
 export function MarketingLanding() {
   const { canInstall, promptInstall } = useInstallPrompt()
 
@@ -365,11 +459,10 @@ export function MarketingLanding() {
             <div className="flex justify-center lg:justify-end">
               <div className="relative">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-accent/30 blur-[90px]" />
-                <SpeedImage
-                  alt="Speed, mascote explorador da VentureGeo segurando um mapa digital"
+                <SpeedHeroMedia
+                  alt="Speed, mascote explorador da VentureGeo, dando boas-vindas com um mapa digital"
                   height={420}
-                  priority
-                  className="relative z-10 h-auto w-full max-w-[360px] drop-shadow-2xl md:max-w-[440px]"
+                  className="relative z-10 h-auto w-full max-w-[360px] rounded-2xl drop-shadow-2xl md:max-w-[440px]"
                 />
               </div>
             </div>
