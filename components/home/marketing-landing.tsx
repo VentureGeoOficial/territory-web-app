@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { track } from '@vercel/analytics'
 import { VentureGeoBrandLogo } from '@/components/brand/venture-geo-logo'
+import { appendReturnTo } from '@/lib/legal/return-to'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -188,8 +189,8 @@ const footerSections = [
   {
     title: 'Legal',
     links: [
-      { label: 'Termos de Uso', href: '/termos' },
-      { label: 'Privacidade', href: '/privacidade' },
+      { label: 'Termos de Uso', href: appendReturnTo('/termos', '/') },
+      { label: 'Privacidade', href: appendReturnTo('/privacidade', '/') },
       { label: 'Contato', href: 'mailto:contato@venturegeo.com.br' },
     ],
   },

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { AuthenticatedShell } from '@/components/layout/authenticated-shell'
+import { appendReturnTo } from '@/lib/legal/return-to'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -48,10 +49,16 @@ export default function AjudaPage() {
           <CardContent className="space-y-2 text-sm">
             <p>Versão atual: v{APP_VERSION}</p>
             <div className="flex gap-3">
-              <Link className="text-primary hover:underline" href="/termos">
+              <Link
+                className="text-primary hover:underline"
+                href={appendReturnTo('/termos', '/ajuda')}
+              >
                 Termos de Uso
               </Link>
-              <Link className="text-primary hover:underline" href="/privacidade">
+              <Link
+                className="text-primary hover:underline"
+                href={appendReturnTo('/privacidade', '/ajuda')}
+              >
                 Política de Privacidade
               </Link>
             </div>
