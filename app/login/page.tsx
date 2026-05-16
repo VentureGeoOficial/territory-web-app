@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 import { VentureGeoBrandLogo, VentureGeoMascot } from '@/components/brand/venture-geo-logo'
+import { appendReturnTo } from '@/lib/legal/return-to'
 import { LoginForm } from '@/components/auth/login-form'
 import {
   Card,
@@ -52,11 +53,17 @@ export default function LoginPage() {
             </p>
             <p className="text-center text-xs text-muted-foreground">
               Ao entrar, você concorda com os{' '}
-              <Link href="/termos" className="text-primary hover:underline">
+              <Link
+                href={appendReturnTo('/termos', '/login')}
+                className="text-primary hover:underline"
+              >
                 Termos de Uso
               </Link>{' '}
               e a{' '}
-              <Link href="/privacidade" className="text-primary hover:underline">
+              <Link
+                href={appendReturnTo('/privacidade', '/login')}
+                className="text-primary hover:underline"
+              >
                 Política de Privacidade
               </Link>
               .
