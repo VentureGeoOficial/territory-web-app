@@ -2,6 +2,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -28,6 +29,7 @@ export interface FriendRequestDoc {
 }
 
 const REQUESTS = 'friendRequests'
+const USERNAMES = 'usernames'
 
 /**
  * Slug username permitido. Alinhado com:
@@ -120,60 +122,46 @@ async function findDuplicateEdgeForCaller(
 export type LookupFriendUidResult =
   | { kind: 'found'; uid: string }
   | { kind: 'not_found' }
-  | {
-      kind: 'error'
-      code:
-        | 'firebase_not_configured'
-        | 'unauthorized'
-        | 'service_unavailable'
-        | 'bad_request'
-        | 'internal'
-      httpStatus?: number
-    }
+  | { kind: 'error'; code: 'firebase_not_configured' | 'internal' }
 
+/**
+ * Resolve username (slug do registo) → uid via `usernames/{slug}` no Firestore.
+ * Leitura pública nas rules — não requer API Admin nem Bearer token.
+ */
 export async function lookupFriendUid(params: {
-  email?: string
-  username?: string
-  idToken: string
+  username: string
 }): Promise<LookupFriendUidResult> {
   if (!isFirebaseConfigured()) {
     return { kind: 'error', code: 'firebase_not_configured' }
   }
-  const res = await fetch('/api/friends/lookup', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${params.idToken}`,
-    },
-    body: JSON.stringify({
-      email: params.email,
-      username: params.username,
-    }),
-  })
-  const data = (await res.json().catch(() => ({}))) as {
-    uid?: string | null
-    error?: string
+
+  const slug = params.username.trim().replace(/^@/, '').toLowerCase()
+  if (!FRIEND_USERNAME_SLUG_PATTERN.test(slug)) {
+    return { kind: 'not_found' }
   }
-  if (!res.ok) {
-    console.warn('[lookupFriendUid] API error', { status: res.status })
-    if (res.status === 401) {
-      return { kind: 'error', code: 'unauthorized', httpStatus: 401 }
+
+  try {
+    const db = getFirestoreDb()
+    const snap = await getDoc(doc(db, USERNAMES, slug))
+    if (!snap.exists()) {
+      return { kind: 'not_found' }
     }
-    if (res.status === 503) {
-      return { kind: 'error', code: 'service_unavailable', httpStatus: 503 }
+    const targetUid = String(snap.data()?.uid ?? '')
+    if (!targetUid) {
+      return { kind: 'not_found' }
     }
-    if (res.status === 400) {
-      return { kind: 'error', code: 'bad_request', httpStatus: 400 }
-    }
-    if (res.status >= 500) {
-      return { kind: 'error', code: 'internal', httpStatus: res.status }
-    }
-    return { kind: 'error', code: 'internal', httpStatus: res.status }
+    return { kind: 'found', uid: targetUid }
+  } catch (e) {
+    console.warn(
+      '[lookupFriendUid]',
+      JSON.stringify({
+        event: 'lookup_failed',
+        slugPrefix: slug.slice(0, 4),
+        reason: e instanceof Error ? e.message : 'unknown',
+      }),
+    )
+    return { kind: 'error', code: 'internal' }
   }
-  if (typeof data.uid === 'string') {
-    return { kind: 'found', uid: data.uid }
-  }
-  return { kind: 'not_found' }
 }
 
 export async function sendFriendRequest(
