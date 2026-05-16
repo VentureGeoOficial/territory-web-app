@@ -96,15 +96,37 @@ export default function AmigosPage() {
 
     try {
       const auth = getFirebaseAuth()
-      const idToken = await auth.currentUser?.getIdToken()
+      // Forçar refresh do ID token (`getIdToken(true)`): tokens Firebase
+      // expiram em 1h e o token em cache pode estar inválido se a aba ficou
+      // aberta. Sem isto, `/api/friends/lookup` devolvia `unauthorized` e o
+      // utilizador via "Sessão expirada" mesmo continuando autenticado.
+      let idToken: string | undefined
+      try {
+        idToken = await auth.currentUser?.getIdToken(true)
+      } catch {
+        idToken = undefined
+      }
       if (!idToken) {
         toast.error('Sessão inválida. Entre novamente.')
         return
       }
-      const lookup = await lookupFriendUid({
+      let lookup = await lookupFriendUid({
         username: slug,
         idToken,
       })
+      // Se mesmo o token refrescado for rejeitado (relógio do cliente fora,
+      // revogação recente), tentar mais uma vez com novo refresh antes de
+      // dizer ao utilizador para reentrar.
+      if (lookup.kind === 'error' && lookup.code === 'unauthorized') {
+        try {
+          const retryToken = await auth.currentUser?.getIdToken(true)
+          if (retryToken) {
+            lookup = await lookupFriendUid({ username: slug, idToken: retryToken })
+          }
+        } catch {
+          /* mantém erro original */
+        }
+      }
       if (lookup.kind === 'error') {
         if (lookup.code === 'unauthorized') {
           toast.error('Sessão expirada. Entre novamente.')
