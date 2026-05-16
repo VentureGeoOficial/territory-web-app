@@ -15,7 +15,6 @@ import {
   validateNoExistingFriendship,
   type FriendRequestDoc,
 } from '@/lib/services/friends-service'
-import { getFirebaseAuth } from '@/lib/firebase/client'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { AuthenticatedShell } from '@/components/layout/authenticated-shell'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
@@ -82,7 +81,7 @@ export default function AmigosPage() {
     const slug = usernameInput.trim().replace(/^@/, '').toLowerCase()
     if (!FRIEND_USERNAME_SLUG_PATTERN.test(slug)) {
       toast.error(
-        'Username inválido. Use 3–20 caracteres (a-z, 0-9 ou _), sem espaços.',
+        'Username inválido. Use 3–30 caracteres (a-z, 0-9 ou _), sem espaços.',
       )
       return
     }
@@ -95,62 +94,19 @@ export default function AmigosPage() {
     recordExecution()
 
     try {
-      const auth = getFirebaseAuth()
-      // Forçar refresh do ID token (`getIdToken(true)`): tokens Firebase
-      // expiram em 1h e o token em cache pode estar inválido se a aba ficou
-      // aberta. Sem isto, `/api/friends/lookup` devolvia `unauthorized` e o
-      // utilizador via "Sessão expirada" mesmo continuando autenticado.
-      let idToken: string | undefined
-      try {
-        idToken = await auth.currentUser?.getIdToken(true)
-      } catch {
-        idToken = undefined
-      }
-      if (!idToken) {
-        toast.error('Sessão inválida. Entre novamente.')
-        return
-      }
-      let lookup = await lookupFriendUid({
-        username: slug,
-        idToken,
-      })
-      // Se mesmo o token refrescado for rejeitado (relógio do cliente fora,
-      // revogação recente), tentar mais uma vez com novo refresh antes de
-      // dizer ao utilizador para reentrar.
-      if (lookup.kind === 'error' && lookup.code === 'unauthorized') {
-        try {
-          const retryToken = await auth.currentUser?.getIdToken(true)
-          if (retryToken) {
-            lookup = await lookupFriendUid({ username: slug, idToken: retryToken })
-          }
-        } catch {
-          /* mantém erro original */
-        }
-      }
+      const lookup = await lookupFriendUid({ username: slug })
       if (lookup.kind === 'error') {
-        if (lookup.code === 'unauthorized') {
-          toast.error('Sessão expirada. Entre novamente.')
-          return
-        }
-        if (lookup.code === 'service_unavailable') {
-          toast.error(
-            'Serviço indisponível. Verifique a configuração do servidor (conta de serviço Firebase).',
-          )
-          return
-        }
         if (lookup.code === 'firebase_not_configured') {
           toast.error('Firebase não está configurado neste ambiente.')
           return
         }
-        if (lookup.code === 'bad_request') {
-          toast.error('Pedido inválido. Tente novamente.')
-          return
-        }
-        toast.error('Serviço temporariamente indisponível. Tente mais tarde.')
+        toast.error('Não foi possível procurar o utilizador. Tente novamente.')
         return
       }
       if (lookup.kind === 'not_found') {
-        toast.error('Nenhum utilizador encontrado com esse @username.')
+        toast.error(
+          'Utilizador não encontrado. Verifique se o nome de usuário está correto — é o mesmo definido no registo.',
+        )
         return
       }
 
