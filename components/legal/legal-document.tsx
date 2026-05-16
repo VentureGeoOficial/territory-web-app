@@ -1,10 +1,11 @@
 ﻿import type { LegalSection } from '@/lib/legal/content'
+import { LEGAL_UI_LABELS } from '@/lib/legal/ui-labels'
 import { cn } from '@/lib/utils'
 
 export function LegalDocument({
   title,
   version,
-  updatedAt = '16 de maio de 2026',
+  updatedAt = LEGAL_UI_LABELS.defaultUpdatedAt,
   sections,
   className,
 }: {
@@ -19,20 +20,18 @@ export function LegalDocument({
       <header className="space-y-2 border-b border-border pb-4">
         <h1 className="text-2xl font-bold text-foreground sm:text-3xl">{title}</h1>
         <p className="text-sm text-muted-foreground">
-          VersÃ£o {version} Â· Ãšltima atualizaÃ§Ã£o: {updatedAt}
+          {LEGAL_UI_LABELS.versionPrefix} {version} {LEGAL_UI_LABELS.metadataSeparator}{' '}
+          {LEGAL_UI_LABELS.lastUpdatedPrefix} {updatedAt}
         </p>
-        <p className="text-xs text-muted-foreground">
-          Rascunho para protÃ³tipo TerritoryRun. Recomenda-se revisÃ£o jurÃ­dica antes de uso
-          comercial em larga escala.
-        </p>
+        <p className="text-xs text-muted-foreground">{LEGAL_UI_LABELS.draftNotice}</p>
       </header>
 
       <nav
-        aria-label="Ãndice do documento"
+        aria-label={LEGAL_UI_LABELS.indexAriaLabel}
         className="rounded-lg border border-border bg-muted/30 p-4"
       >
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-          Ãndice
+          {LEGAL_UI_LABELS.indexTitle}
         </p>
         <ol className="space-y-1 text-sm">
           {sections.map((s) => (
@@ -63,5 +62,3 @@ export function LegalDocument({
     </article>
   )
 }
-
-
