@@ -26,7 +26,7 @@ export default function SegurancaPage() {
 
   return (
     <AuthenticatedShell>
-      <div className="space-y-6 pb-16 lg:pb-0">
+      <div className="space-y-6 pb-16">
         <div>
           <h1 className="text-2xl font-bold">Segurança da conta</h1>
           <p className="text-sm text-muted-foreground">

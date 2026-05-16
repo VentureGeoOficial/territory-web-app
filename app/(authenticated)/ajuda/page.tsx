@@ -8,7 +8,7 @@ import { APP_VERSION } from '@/lib/app-info'
 export default function AjudaPage() {
   return (
     <AuthenticatedShell>
-      <div className="space-y-6 pb-16 lg:pb-0">
+      <div className="space-y-6 pb-16">
         <h1 className="text-2xl font-bold">Ajuda e suporte</h1>
         <Card>
           <CardHeader>

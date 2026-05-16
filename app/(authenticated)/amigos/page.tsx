@@ -160,7 +160,7 @@ export default function AmigosPage() {
 
   return (
     <AuthenticatedShell>
-      <div className="space-y-8 max-w-2xl pb-16 lg:pb-0">
+      <div className="space-y-8 max-w-2xl pb-16">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Amigos e rivais</h1>
           <p className="text-muted-foreground text-sm mt-1">
