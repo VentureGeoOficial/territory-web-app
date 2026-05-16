@@ -29,8 +29,18 @@ export interface FriendRequestDoc {
 
 const REQUESTS = 'friendRequests'
 
-/** Alinhado com validação em `app/api/friends/lookup/route.ts` (slug username). */
-export const FRIEND_USERNAME_SLUG_PATTERN = /^[a-z0-9_]{3,20}$/
+/**
+ * Slug username permitido. Alinhado com:
+ *  - `firestore.rules` (collection `usernames` → `slug.matches('^[a-z0-9_]{3,30}$')`)
+ *  - `lib/auth/schemas.ts` (signup)
+ *  - `app/api/auth/create-profile`, `app/api/auth/resolve-identifier`
+ *  - `app/api/friends/lookup`
+ *
+ * Histórico: este pattern usava `{3,20}` e não combinava com o resto do sistema —
+ * utilizadores com username 21–30 chars (criados via signup válido) ficavam sem
+ * possibilidade de ser adicionados como amigos.
+ */
+export const FRIEND_USERNAME_SLUG_PATTERN = /^[a-z0-9_]{3,30}$/
 
 export type ValidateFriendshipResult =
   | { ok: true }
@@ -61,34 +71,49 @@ export function validateNoExistingFriendship(params: {
   return { ok: true }
 }
 
-/** Duas queries por direção com `status ==` (evita `in` + índices extra em produção). */
-async function hasBlockingDirectedEdge(
+/**
+ * Verifica duplicação de aresta amigo entre `callerUid` (igual a `request.auth.uid`)
+ * e `otherUid`. Faz **quatro** queries — todas filtradas por `fromUserId == callerUid`
+ * OU `toUserId == callerUid` — para respeitar as regras de segurança do Firestore
+ * (`friendRequests` só permite leitura quando o caller é from/to). Cobre status
+ * `pending` e `accepted` em ambas as direções.
+ *
+ * Importante: queries do tipo `where('fromUserId','==', otherUid)` violam as
+ * regras quando o resultado contém docs que não envolvem o caller — gerava
+ * `PERMISSION_DENIED` intermitente e era a causa principal de falhas silenciosas
+ * em "Adicionar amigos".
+ */
+async function findDuplicateEdgeForCaller(
   db: Firestore,
-  fromUserId: string,
-  toUserId: string,
+  callerUid: string,
+  otherUid: string,
 ): Promise<boolean> {
+  // (1) Pedidos onde eu sou o emissor (pending/accepted) e o destinatário é `otherUid`.
   for (const status of ['pending', 'accepted'] as const) {
     const q = query(
       collection(db, REQUESTS),
-      where('fromUserId', '==', fromUserId),
+      where('fromUserId', '==', callerUid),
       where('status', '==', status),
     )
     const snap = await getDocs(q)
     for (const d of snap.docs) {
       const data = d.data() as { toUserId?: string }
-      if (data.toUserId === toUserId) return true
+      if (data.toUserId === otherUid) return true
     }
   }
-  return false
-}
-
-async function findBlockingFriendEdge(
-  db: Firestore,
-  fromUserId: string,
-  toUserId: string,
-): Promise<boolean> {
-  if (await hasBlockingDirectedEdge(db, fromUserId, toUserId)) return true
-  if (await hasBlockingDirectedEdge(db, toUserId, fromUserId)) return true
+  // (2) Pedidos onde eu sou o destinatário (pending/accepted) e o emissor é `otherUid`.
+  for (const status of ['pending', 'accepted'] as const) {
+    const q = query(
+      collection(db, REQUESTS),
+      where('toUserId', '==', callerUid),
+      where('status', '==', status),
+    )
+    const snap = await getDocs(q)
+    for (const d of snap.docs) {
+      const data = d.data() as { fromUserId?: string }
+      if (data.fromUserId === otherUid) return true
+    }
+  }
   return false
 }
 
@@ -158,7 +183,10 @@ export async function sendFriendRequest(
   if (!isFirebaseConfigured()) return
   if (fromUserId === toUserId) throw new Error('Não pode adicionar a si mesmo.')
   const db = getFirestoreDb()
-  const duplicate = await findBlockingFriendEdge(db, fromUserId, toUserId)
+  // `fromUserId` aqui é sempre o caller autenticado (passado pela UI como `uid`
+  // do `useAuthStore`). A função abaixo só executa queries autorizadas pelas
+  // rules (filtradas por callerUid em from/to).
+  const duplicate = await findDuplicateEdgeForCaller(db, fromUserId, toUserId)
   if (duplicate) {
     throw new Error('DUPLICATE_REQUEST')
   }
