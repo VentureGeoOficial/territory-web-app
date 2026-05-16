@@ -53,7 +53,7 @@ export default function TrofeusPage() {
 
   return (
     <AuthenticatedShell>
-      <div className="space-y-6 max-w-2xl pb-16 lg:pb-0">
+      <div className="space-y-6 max-w-2xl pb-16">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Troféus</h1>
           <p className="text-muted-foreground text-sm mt-1">

@@ -29,7 +29,7 @@ export default function CompeticaoPage() {
 
   return (
     <AuthenticatedShell>
-      <div className="space-y-6 pb-16 lg:pb-0">
+      <div className="space-y-6 pb-16">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Competição</h1>
           <p className="text-muted-foreground text-sm mt-1">

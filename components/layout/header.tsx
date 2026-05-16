@@ -20,6 +20,7 @@ import {
 import { formatArea } from '@/lib/territory/geo'
 import { LogOut, Map, Settings, Trophy, User, Users, Medal, Menu, CircleHelp } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { zHeader } from '@/lib/layout/z-index'
 
 const navItems = [
   { href: '/mapa', label: 'Mapa', icon: Map },
@@ -50,7 +51,12 @@ export function Header() {
   }, [logout, router])
 
   return (
-    <header className="h-14 bg-card border-b border-border px-4 flex items-center justify-between shrink-0">
+    <header
+      className={cn(
+        'relative h-14 bg-card border-b border-border px-4 flex items-center justify-between shrink-0',
+        zHeader,
+      )}
+    >
       {/* Mobile Menu Button */}
       <div className="lg:hidden">
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -169,27 +175,6 @@ export function Header() {
           </p>
         </div>
       </div>
-
-      {/* Desktop Navigation */}
-      <nav className="hidden lg:flex items-center gap-1 text-sm">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = pathname === item.href
-          return (
-            <Button
-              key={item.href}
-              variant={isActive ? 'secondary' : 'ghost'}
-              size="sm"
-              asChild
-            >
-              <Link href={item.href} className="gap-1.5">
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            </Button>
-          )
-        })}
-      </nav>
 
       {/* Quick stats */}
       <div className="hidden md:flex items-center gap-6">

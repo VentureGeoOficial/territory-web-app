@@ -17,8 +17,8 @@ export function MobileBottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-[1100] border-t border-border bg-background/95 backdrop-blur lg:hidden">
-      <div className="mx-auto flex h-14 max-w-md items-center justify-between px-4">
+    <nav className="fixed bottom-0 inset-x-0 z-[1100] border-t border-border bg-background/95 backdrop-blur">
+      <div className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-4">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
