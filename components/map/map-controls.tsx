@@ -1,11 +1,12 @@
 'use client'
 
-import { memo, useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useContext, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useTerritoryStore } from '@/lib/store/territory-store'
 import { useRunStore } from '@/lib/store/run-store'
 import { useAuthStore } from '@/lib/store/auth-store'
+import { AuthReadyContext } from '@/components/auth/auth-provider'
 import { getFirebaseAuth } from '@/lib/firebase/client'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
 import { createTerritoryFromRunTrack } from '@/lib/territory/run-territory'
@@ -35,11 +36,13 @@ const BRAND = {
 }
 
 export const MapControlsOverlay = memo(function MapControlsOverlay() {
+  const { firebaseAuthReady } = useContext(AuthReadyContext)
   const user = useAuthStore((s) => s.user)
   const currentUserId = useTerritoryStore((s) => s.currentUserId)
   const territories = useTerritoryStore((s) => s.territories)
   const getCurrentUser = useTerritoryStore((s) => s.getCurrentUser)
   const setMapMode = useTerritoryStore((s) => s.setMapMode)
+  const selectTerritory = useTerritoryStore((s) => s.selectTerritory)
 
   const isRunning = useRunStore((s) => s.isRunning)
   const points = useRunStore((s) => s.points)
@@ -67,6 +70,18 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     durationSeconds: number
   } | null>(null)
   const [captureLoading, setCaptureLoading] = useState(false)
+
+  const ensureReadyForApiSave = useCallback((): boolean => {
+    if (!firebaseAuthReady) {
+      toast.error('A restaurar sessão… Tente novamente em instantes.')
+      return false
+    }
+    if (!getFirebaseAuth().currentUser) {
+      toast.error('Inicie sessão novamente.')
+      return false
+    }
+    return true
+  }, [firebaseAuthReady])
 
   useEffect(() => {
     if (!isRunning || !startedAt) {
@@ -133,26 +148,23 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       toast.error('Dados da corrida em falta.')
       return
     }
+    if (!ensureReadyForApiSave()) return
+
     setCaptureLoading(true)
     try {
       const routeJson = JSON.stringify({
         type: 'LineString',
         coordinates: trackPointsToPositions(pts),
       })
-      const auth = getFirebaseAuth()
-      const idToken = await auth.currentUser?.getIdToken()
-      if (!idToken) {
-        throw new Error('Inicie sessão novamente.')
-      }
-      await submitTerritoryCaptureViaApi({
+      const { territoryId } = await submitTerritoryCaptureViaApi({
         points: pts,
         startedAt: captureDraft.startedAt,
         endedAt: captureDraft.endedAt,
         distanceMeters: captureDraft.distanceMeters,
         durationSeconds: captureDraft.durationSeconds,
         routeJson,
-        idToken,
       })
+      selectTerritory(territoryId)
       setCaptureDraft(null)
       resetRunState()
       setMapMode('view')
@@ -163,7 +175,13 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     } finally {
       setCaptureLoading(false)
     }
-  }, [captureDraft, resetRunState, setMapMode])
+  }, [
+    captureDraft,
+    ensureReadyForApiSave,
+    resetRunState,
+    selectTerritory,
+    setMapMode,
+  ])
 
   const handleFinish = useCallback(async () => {
     if (points.length < 2 || !startedAt) {
@@ -247,22 +265,21 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         coordinates: trackPointsToPositions(points),
       })
 
-      const authClient = getFirebaseAuth()
-      const idToken = await authClient.currentUser?.getIdToken()
-      if (!idToken) {
-        throw new Error('Inicie sessão novamente.')
+      if (!ensureReadyForApiSave()) {
+        setFinishing(false)
+        return
       }
 
-      await submitCompletedRunViaApi({
+      const { territoryId } = await submitCompletedRunViaApi({
         points,
         startedAt,
         endedAt,
         distanceMeters,
         durationSeconds,
         routeJson,
-        idToken,
       })
 
+      selectTerritory(territoryId)
       resetRunState()
       setMapMode('view')
       toast.success('Corrida concluída! Território conquistado.')
@@ -278,9 +295,11 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
   }, [
     currentUserId,
     distanceMeters,
+    ensureReadyForApiSave,
     getCurrentUser,
     points,
     resetRunState,
+    selectTerritory,
     setMapMode,
     startedAt,
     stopWatching,
