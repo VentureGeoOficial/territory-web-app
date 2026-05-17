@@ -28,16 +28,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    let unsub: (() => void) | undefined
+    let unsubAuth: (() => void) | undefined
+    let unsubToken: (() => void) | undefined
 
     void (async () => {
-      const { onAuthStateChanged } = await import('firebase/auth')
+      const { onAuthStateChanged, onIdTokenChanged } = await import('firebase/auth')
       const { getFirebaseAuth } = await import('@/lib/firebase/client')
       const { firebaseUserToSession } = await import('@/lib/auth/firebase-session')
       const { ensureUserProfile } = await import('@/lib/firebase/user-profile')
 
       const auth = getFirebaseAuth()
-      unsub = onAuthStateChanged(auth, async (user) => {
+
+      const applyUser = async (user: import('firebase/auth').User | null) => {
         setFirebaseAuthReady(true)
         if (user) {
           const session = await firebaseUserToSession(user)
@@ -62,11 +64,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           logout()
           setCurrentUserId('')
         }
+      }
+
+      unsubAuth = onAuthStateChanged(auth, (user) => {
+        void applyUser(user)
+      })
+
+      unsubToken = onIdTokenChanged(auth, (user) => {
+        if (!user) return
+        void firebaseUserToSession(user).then((session) => {
+          setSession(session)
+        })
       })
     })()
 
     return () => {
-      unsub?.()
+      unsubAuth?.()
+      unsubToken?.()
     }
   }, [setSession, logout, setCurrentUserId])
 

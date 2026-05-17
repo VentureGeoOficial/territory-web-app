@@ -8,10 +8,12 @@ import { Header } from '@/components/layout/header'
 import { MapWrapper } from '@/components/map/map-wrapper'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { useFriendIds } from '@/hooks/use-friend-ids'
+import { useAdminHealthCheck } from '@/hooks/use-admin-health-check'
 
 export default function MapaPage() {
   const uid = useAuthStore((s) => s.user?.id)
   const friendIds = useFriendIds()
+  useAdminHealthCheck()
   useFirestoreTerritorySync()
   useCurrentUserPublicProfile(uid)
   useUserPositionTracking()

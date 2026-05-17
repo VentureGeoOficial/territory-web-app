@@ -1,3 +1,4 @@
+import { ApiAuthError, getApiAuthHeaders } from '@/lib/auth/api-auth'
 import { isFirebaseConfigured } from './config'
 import type { TrackPoint } from '@/lib/territory/types'
 
@@ -8,12 +9,26 @@ export interface SubmitRunCompleteParams {
   distanceMeters: number
   durationSeconds: number
   routeJson: string
-  idToken: string
+}
+
+function buildApiErrorMessage(status: number, serverError?: string): string {
+  if (status === 401) {
+    return 'Não foi possível validar a sessão. Tente sair e entrar novamente.'
+  }
+  if (status === 503) {
+    return 'Servidor não configurado. Adicione FIREBASE_SERVICE_ACCOUNT_JSON no .env.local.'
+  }
+  if (typeof serverError === 'string' && serverError.length > 0) {
+    if (serverError === 'Token inválido.' || serverError === 'Token em falta.') {
+      return 'Não foi possível validar a sessão. Tente sair e entrar novamente.'
+    }
+    return serverError
+  }
+  return 'Não foi possível concluir a operação.'
 }
 
 /**
  * Persistência de corrida + território + stats no servidor (`POST /api/runs/complete`).
- * O cliente não grava mais `territories` / `runs` / agregados diretamente no Firestore.
  */
 export async function submitCompletedRunViaApi(
   params: SubmitRunCompleteParams,
@@ -22,12 +37,17 @@ export async function submitCompletedRunViaApi(
     throw new Error('Firebase não configurado.')
   }
 
+  let headers: HeadersInit
+  try {
+    headers = await getApiAuthHeaders()
+  } catch (e) {
+    if (e instanceof ApiAuthError) throw e
+    throw new Error('Não foi possível obter credenciais de sessão.')
+  }
+
   const res = await fetch('/api/runs/complete', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${params.idToken}`,
-    },
+    headers,
     body: JSON.stringify({
       points: params.points,
       startedAt: params.startedAt,
@@ -46,11 +66,7 @@ export async function submitCompletedRunViaApi(
   }
 
   if (!res.ok) {
-    const msg =
-      typeof data.error === 'string'
-        ? data.error
-        : 'Não foi possível guardar a corrida.'
-    throw new Error(msg)
+    throw new Error(buildApiErrorMessage(res.status, data.error))
   }
 
   if (!data.territoryId || !data.runId) {
@@ -67,25 +83,29 @@ export interface SubmitTerritoryCaptureParams {
   distanceMeters: number
   durationSeconds: number
   routeJson: string
-  idToken: string
 }
 
 /**
- * Conquista sobre território inimigo (`POST /api/territories/capture`) — Admin SDK no servidor.
+ * Conquista sobre território inimigo (`POST /api/territories/capture`).
  */
 export async function submitTerritoryCaptureViaApi(
   params: SubmitTerritoryCaptureParams,
-): Promise<void> {
+): Promise<{ territoryId: string; runId: string }> {
   if (!isFirebaseConfigured()) {
     throw new Error('Firebase não configurado.')
   }
 
+  let headers: HeadersInit
+  try {
+    headers = await getApiAuthHeaders()
+  } catch (e) {
+    if (e instanceof ApiAuthError) throw e
+    throw new Error('Não foi possível obter credenciais de sessão.')
+  }
+
   const res = await fetch('/api/territories/capture', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${params.idToken}`,
-    },
+    headers,
     body: JSON.stringify({
       points: params.points,
       startedAt: params.startedAt,
@@ -96,13 +116,19 @@ export async function submitTerritoryCaptureViaApi(
     }),
   })
 
-  const data = (await res.json().catch(() => ({}))) as { error?: string }
+  const data = (await res.json().catch(() => ({}))) as {
+    error?: string
+    territoryId?: string
+    runId?: string
+  }
 
   if (!res.ok) {
-    const msg =
-      typeof data.error === 'string'
-        ? data.error
-        : 'Não foi possível concluir a conquista.'
-    throw new Error(msg)
+    throw new Error(buildApiErrorMessage(res.status, data.error))
   }
+
+  if (!data.territoryId || !data.runId) {
+    throw new Error('Resposta inválida do servidor.')
+  }
+
+  return { territoryId: data.territoryId, runId: data.runId }
 }
