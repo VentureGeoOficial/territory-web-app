@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Map, Medal, Store, Users, Settings } from 'lucide-react'
+import { Map, Medal, Trophy, Users, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/mapa', label: 'Mapa', icon: Map },
   { href: '/competicao', label: 'Competição', icon: Medal },
   { href: '/amigos', label: 'Amigos', icon: Users },
-  { href: '/loja', label: 'Loja', icon: Store },
+  { href: '/trofeus', label: 'Troféus', icon: Trophy },
   { href: '/conta', label: 'Conta', icon: Settings },
 ]
 
