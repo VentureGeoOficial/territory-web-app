@@ -4,7 +4,6 @@ import {
   useEffect,
   useRef,
   useCallback,
-  useId,
   useMemo,
   memo,
 } from 'react'
@@ -27,6 +26,7 @@ import { formatArea } from '@/lib/territory/geo'
 import { Button } from '@/components/ui/button'
 import { Crosshair, MapPin, Shield, Swords } from 'lucide-react'
 import { getSuzanoMaxBounds } from '@/lib/territory/regions'
+import { filterTerritoriesByViewport } from '@/lib/firebase/territories'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { generateStableUserColor } from '@/lib/territory/geo'
 
@@ -434,15 +434,18 @@ const UserPositionMarker = memo(function UserPositionMarker() {
 })
 
 export function TerritoryMap({ friendIds = [] }: { friendIds?: string[] }) {
-  const mapId = useId()
-  const mapRef = useRef<LeafletMap | null>(null)
-
-  const territories = useTerritoryStore((s) => s.territories)
+  const allTerritories = useTerritoryStore((s) => s.territories)
+  const mapViewportBounds = useTerritoryStore((s) => s.mapViewportBounds)
   const currentUserId = useTerritoryStore((s) => s.currentUserId)
   const selectedTerritoryId = useTerritoryStore((s) => s.selectedTerritoryId)
   const selectTerritory = useTerritoryStore((s) => s.selectTerritory)
   const mapCenter = useTerritoryStore((s) => s.mapCenter)
   const mapZoom = useTerritoryStore((s) => s.mapZoom)
+
+  const territories = useMemo(
+    () => filterTerritoriesByViewport(allTerritories, mapViewportBounds),
+    [allTerritories, mapViewportBounds],
+  )
 
   const handleTerritoryClick = useCallback(
     (id: string) => {
@@ -463,19 +466,8 @@ export function TerritoryMap({ friendIds = [] }: { friendIds?: string[] }) {
 
   const friendIdSet = useMemo(() => new Set(friendIds), [friendIds])
 
-  useEffect(() => {
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove()
-        mapRef.current = null
-      }
-    }
-  }, [])
-
   return (
     <MapContainer
-      key={mapId}
-      ref={mapRef}
       center={[mapCenter[1], mapCenter[0]]}
       zoom={mapZoom}
       className="h-full w-full"

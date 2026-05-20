@@ -11,6 +11,7 @@ import type {
   SignupFormValues,
 } from './schemas'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
+import { log } from '@/lib/logging/logger'
 
 export async function login(
   credentials: LoginFormValues,
@@ -23,69 +24,39 @@ export async function login(
   const { signInWithEmailAndPassword } = await import('firebase/auth')
   const { getFirebaseAuth } = await import('@/lib/firebase/client')
   const { firebaseUserToSession } = await import('./firebase-session')
+
+  const email = credentials.email.trim().toLowerCase()
+
+  log.info({
+    scope: 'auth',
+    event: 'auth_login_started',
+    emailDomain: email.split('@')[1] ?? 'unknown',
+  })
+
   try {
     const auth = getFirebaseAuth()
-    // Login apenas com e-mail (resolve-identifier não é usado — username é só para amigos).
-    const email = credentials.email.trim().toLowerCase()
-    // 1ª tentativa com senha literal (compatível com senhas que incluem espaços intencionais).
-    let cred
-    try {
-      cred = await signInWithEmailAndPassword(
-        auth,
-        email,
-        credentials.password,
-      )
-    } catch (firstErr: unknown) {
-      const firstCode =
-        firstErr && typeof firstErr === 'object' && 'code' in firstErr
-          ? String((firstErr as { code: string }).code)
-          : ''
-      const trimmedPwd = credentials.password.trim()
-      // Re-tenta só em falhas típicas de credencial e quando há espaços extra (autofill / paste).
-      if (
-        (firstCode === 'auth/invalid-credential' ||
-          firstCode === 'auth/wrong-password' ||
-          firstCode === 'auth/user-not-found') &&
-        trimmedPwd !== credentials.password &&
-        trimmedPwd.length > 0
-      ) {
-        cred = await signInWithEmailAndPassword(
-          auth,
-          email,
-          trimmedPwd,
-        )
-        const ts = new Date().toISOString()
-        console.warn(
-          `[${ts}] [WARN] [login] Login recuperado após trim da senha`,
-          JSON.stringify({
-            component: 'AuthService',
-            source: 'lib/auth/auth-service.ts',
-            functionality: 'login',
-            recovered_with: 'password_trim',
-          }),
-        )
-      } else {
-        throw firstErr
-      }
-    }
+    const cred = await signInWithEmailAndPassword(
+      auth,
+      email,
+      credentials.password,
+    )
+    log.info({
+      scope: 'auth',
+      event: 'auth_login_succeeded',
+      uid: cred.user.uid,
+    })
     return firebaseUserToSession(cred.user)
   } catch (e: unknown) {
-    // Propaga erros de validação/resolução sem sobrescrever a mensagem.
     if (e instanceof AuthError) throw e
     const code =
       e && typeof e === 'object' && 'code' in e
         ? String((e as { code: string }).code)
         : ''
-    const ts = new Date().toISOString()
-    console.error(
-      `[${ts}] [ERROR] [login] Falha na autenticação`,
-      JSON.stringify({
-        component: 'AuthService',
-        source: 'lib/auth/auth-service.ts',
-        functionality: 'login',
-        code: code || 'unknown',
-      }),
-    )
+    log.error({
+      scope: 'auth',
+      event: 'auth_login_failed',
+      code: code || 'unknown',
+    })
     if (
       code === 'auth/invalid-credential' ||
       code === 'auth/wrong-password' ||
@@ -115,22 +86,24 @@ export async function loginWithGoogle(): Promise<AuthSession> {
     const provider = new GoogleAuthProvider()
     const auth = getFirebaseAuth()
     const cred = await signInWithPopup(auth, provider)
+    log.info({
+      scope: 'auth',
+      event: 'auth_login_succeeded',
+      uid: cred.user.uid,
+      provider: 'google',
+    })
     return firebaseUserToSession(cred.user)
   } catch (e: unknown) {
     const code =
       e && typeof e === 'object' && 'code' in e
         ? String((e as { code: string }).code)
         : ''
-    const ts = new Date().toISOString()
-    console.error(
-      `[${ts}] [ERROR] [loginWithGoogle] Falha no login social`,
-      JSON.stringify({
-        component: 'AuthService',
-        source: 'lib/auth/auth-service.ts',
-        functionality: 'loginWithGoogle',
-        code: code || 'unknown',
-      }),
-    )
+    log.error({
+      scope: 'auth',
+      event: 'auth_login_failed',
+      code: code || 'unknown',
+      provider: 'google',
+    })
     throw new AuthError('Não foi possível entrar com Google. Tente novamente.')
   }
 }
@@ -145,10 +118,59 @@ export async function requestPasswordReset(
   }
   const { sendPasswordResetEmail } = await import('firebase/auth')
   const { getFirebaseAuth } = await import('@/lib/firebase/client')
+  const email = data.email.trim().toLowerCase()
+
+  log.info({
+    scope: 'auth',
+    event: 'auth_password_reset_requested',
+    emailDomain: email.split('@')[1] ?? 'unknown',
+  })
+
   try {
-    await sendPasswordResetEmail(getFirebaseAuth(), data.email.trim())
-  } catch {
+    await sendPasswordResetEmail(getFirebaseAuth(), email)
+  } catch (e) {
+    log.error({
+      scope: 'auth',
+      event: 'auth_password_reset_failed',
+      message: e instanceof Error ? e.message : 'unknown',
+    })
     throw new AuthError('Não foi possível enviar o e-mail. Tente novamente.')
+  }
+}
+
+/**
+ * Reenvia e-mail de verificação para o utilizador autenticado.
+ */
+export async function resendEmailVerification(): Promise<void> {
+  if (!isFirebaseConfigured()) {
+    throw new AuthError('Firebase não configurado.')
+  }
+  const { sendEmailVerification } = await import('firebase/auth')
+  const { getFirebaseAuth } = await import('@/lib/firebase/client')
+  const user = getFirebaseAuth().currentUser
+  if (!user) {
+    throw new AuthError('Sessão inválida. Entre novamente.')
+  }
+  if (user.emailVerified) return
+
+  try {
+    await sendEmailVerification(user)
+    log.info({
+      scope: 'auth',
+      event: 'auth_email_verification_sent',
+      uid: user.uid,
+      resend: true,
+    })
+  } catch (e) {
+    log.warn({
+      scope: 'auth',
+      event: 'auth_email_verification_failed',
+      uid: user.uid,
+      message: e instanceof Error ? e.message : 'unknown',
+    })
+    throw new AuthError(
+      'Não foi possível reenviar o e-mail. Tente novamente em instantes.',
+    )
   }
 }
 
@@ -169,6 +191,7 @@ export async function registerWithFirebase(
     createUserWithEmailAndPassword,
     updateProfile,
     deleteUser,
+    sendEmailVerification,
   } = await import('firebase/auth')
   const { getFirebaseAuth } = await import('@/lib/firebase/client')
   const { firebaseUserToSession } = await import('./firebase-session')
@@ -179,10 +202,12 @@ export async function registerWithFirebase(
   const auth = getFirebaseAuth()
   const email = values.email.trim().toLowerCase()
   const { confirmPassword: _, ...profile } = values
-  // Remove espaços acidentais na senha só quando o trim mantém regra mínima (Zod min 6).
-  const pwdTrimmed = values.password.trim()
-  const passwordForAuth =
-    pwdTrimmed.length >= 6 ? pwdTrimmed : values.password
+
+  log.info({
+    scope: 'auth',
+    event: 'auth_signup_started',
+    emailDomain: email.split('@')[1] ?? 'unknown',
+  })
 
   let created: import('firebase/auth').User | null = null
 
@@ -190,9 +215,26 @@ export async function registerWithFirebase(
     const cred = await createUserWithEmailAndPassword(
       auth,
       email,
-      passwordForAuth,
+      values.password,
     )
     created = cred.user
+
+    try {
+      await sendEmailVerification(cred.user)
+      log.info({
+        scope: 'auth',
+        event: 'auth_email_verification_sent',
+        uid: cred.user.uid,
+      })
+    } catch (e) {
+      log.warn({
+        scope: 'auth',
+        event: 'auth_email_verification_failed',
+        uid: cred.user.uid,
+        message: e instanceof Error ? e.message : 'unknown',
+      })
+    }
+
     await updateProfile(cred.user, {
       displayName: profile.nomeCompleto,
     })
@@ -204,6 +246,13 @@ export async function registerWithFirebase(
       peso: profile.peso,
       altura: profile.altura,
     })
+
+    log.info({
+      scope: 'auth',
+      event: 'auth_signup_succeeded',
+      uid: cred.user.uid,
+    })
+
     return firebaseUserToSession(cred.user)
   } catch (e: unknown) {
     if (created) {
@@ -217,18 +266,11 @@ export async function registerWithFirebase(
       e && typeof e === 'object' && 'code' in e
         ? String((e as { code: string }).code)
         : ''
-    const ts = new Date().toISOString()
-    if (code) {
-      console.error(
-        `[${ts}] [ERROR] [registerWithFirebase] Falha no cadastro`,
-        { source: 'lib/auth/auth-service.ts', code },
-      )
-    } else {
-      console.error(
-        `[${ts}] [ERROR] [registerWithFirebase] Falha no cadastro (sem código)`,
-        { source: 'lib/auth/auth-service.ts' },
-      )
-    }
+    log.error({
+      scope: 'auth',
+      event: 'auth_signup_failed',
+      code: code || 'unknown',
+    })
     if (code === 'auth/email-already-in-use') {
       throw new AuthError('Este e-mail já está registado.')
     }
@@ -279,6 +321,7 @@ export async function signOutRemote(): Promise<void> {
   const { signOut } = await import('firebase/auth')
   const { getFirebaseAuth } = await import('@/lib/firebase/client')
   await signOut(getFirebaseAuth())
+  log.info({ scope: 'auth', event: 'auth_logout' })
 }
 
 export async function changePassword(

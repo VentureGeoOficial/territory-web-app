@@ -170,11 +170,24 @@ export interface MapState {
   selectedTerritoryId?: string
 }
 
+/** Raio do buffer em km (default 30 m). Configurável via `NEXT_PUBLIC_TERRITORY_BUFFER_M`. */
+export function getTerritoryBufferKm(): number {
+  const raw =
+    typeof process !== 'undefined'
+      ? process.env.NEXT_PUBLIC_TERRITORY_BUFFER_M
+      : undefined
+  const meters =
+    raw != null && raw !== '' ? Number.parseFloat(raw) : 30
+  const safe =
+    Number.isFinite(meters) && meters > 0 && meters <= 500 ? meters : 30
+  return safe / 1000
+}
+
 /**
- * Config para corrida → território (buffer 20 m, validação de rota aberta)
+ * Config para corrida → território (buffer ~30 m de raio, validação de rota aberta)
  */
 export const RUN_TERRITORY_CONFIG: TerritoryConfig = {
-  bufferKm: 0.02,
+  bufferKm: getTerritoryBufferKm(),
   minPoints: 8,
   maxLoopGapMeters: 0,
   minDurationSeconds: 90,

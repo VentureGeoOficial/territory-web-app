@@ -2,7 +2,19 @@ import { ApiAuthError, getApiAuthHeaders } from '@/lib/auth/api-auth'
 import { isFirebaseConfigured } from './config'
 import type { TrackPoint } from '@/lib/territory/types'
 
+export class RunApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code?: string,
+  ) {
+    super(message)
+    this.name = 'RunApiError'
+  }
+}
+
 export interface SubmitRunCompleteParams {
+  runId: string
   points: TrackPoint[]
   startedAt: number
   endedAt: number
@@ -18,6 +30,9 @@ function buildApiErrorMessage(status: number, serverError?: string): string {
   if (status === 503) {
     return 'Servidor não configurado. Adicione FIREBASE_SERVICE_ACCOUNT_JSON no .env.local.'
   }
+  if (status === 429) {
+    return 'Aguarde um momento antes de finalizar outra corrida.'
+  }
   if (typeof serverError === 'string' && serverError.length > 0) {
     if (serverError === 'Token inválido.' || serverError === 'Token em falta.') {
       return 'Não foi possível validar a sessão. Tente sair e entrar novamente.'
@@ -25,6 +40,20 @@ function buildApiErrorMessage(status: number, serverError?: string): string {
     return serverError
   }
   return 'Não foi possível concluir a operação.'
+}
+
+async function parseApiResponse(res: Response): Promise<{
+  error?: string
+  territoryId?: string
+  runId?: string
+  code?: string
+}> {
+  return (await res.json().catch(() => ({}))) as {
+    error?: string
+    territoryId?: string
+    runId?: string
+    code?: string
+  }
 }
 
 /**
@@ -47,8 +76,12 @@ export async function submitCompletedRunViaApi(
 
   const res = await fetch('/api/runs/complete', {
     method: 'POST',
-    headers,
+    headers: {
+      ...headers,
+      'Idempotency-Key': params.runId,
+    },
     body: JSON.stringify({
+      runId: params.runId,
       points: params.points,
       startedAt: params.startedAt,
       endedAt: params.endedAt,
@@ -58,15 +91,14 @@ export async function submitCompletedRunViaApi(
     }),
   })
 
-  const data = (await res.json().catch(() => ({}))) as {
-    error?: string
-    territoryId?: string
-    runId?: string
-    code?: string
-  }
+  const data = await parseApiResponse(res)
 
   if (!res.ok) {
-    throw new Error(buildApiErrorMessage(res.status, data.error))
+    throw new RunApiError(
+      buildApiErrorMessage(res.status, data.error),
+      res.status,
+      data.code,
+    )
   }
 
   if (!data.territoryId || !data.runId) {
@@ -77,6 +109,7 @@ export async function submitCompletedRunViaApi(
 }
 
 export interface SubmitTerritoryCaptureParams {
+  runId: string
   points: TrackPoint[]
   startedAt: number
   endedAt: number
@@ -105,8 +138,12 @@ export async function submitTerritoryCaptureViaApi(
 
   const res = await fetch('/api/territories/capture', {
     method: 'POST',
-    headers,
+    headers: {
+      ...headers,
+      'Idempotency-Key': params.runId,
+    },
     body: JSON.stringify({
+      runId: params.runId,
       points: params.points,
       startedAt: params.startedAt,
       endedAt: params.endedAt,
@@ -116,14 +153,14 @@ export async function submitTerritoryCaptureViaApi(
     }),
   })
 
-  const data = (await res.json().catch(() => ({}))) as {
-    error?: string
-    territoryId?: string
-    runId?: string
-  }
+  const data = await parseApiResponse(res)
 
   if (!res.ok) {
-    throw new Error(buildApiErrorMessage(res.status, data.error))
+    throw new RunApiError(
+      buildApiErrorMessage(res.status, data.error),
+      res.status,
+      data.code,
+    )
   }
 
   if (!data.territoryId || !data.runId) {

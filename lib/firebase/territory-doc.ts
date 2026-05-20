@@ -1,6 +1,7 @@
 import type { Feature, Polygon } from 'geojson'
 import type { Position } from 'geojson'
 import type { DominanceLevel, Territory, TerritoryStatus } from '@/lib/territory/types'
+import { encodeGeohash } from '@/lib/territory/geohash'
 
 /** Forma persistida em `territories/{id}` (sem dependência do SDK cliente). */
 export interface TerritoryFirestoreDoc {
@@ -17,10 +18,21 @@ export interface TerritoryFirestoreDoc {
   conquestCount: number
   centerLng: number
   centerLat: number
+  geohash?: string
+  geohashPrefix?: string
+}
+
+export function geohashFieldsFromCenter(
+  centerLat: number,
+  centerLng: number,
+): { geohash: string; geohashPrefix: string } {
+  const geohash = encodeGeohash(centerLat, centerLng, 7)
+  return { geohash, geohashPrefix: geohash.slice(0, 5) }
 }
 
 export function territoryToFirestoreDoc(t: Territory): TerritoryFirestoreDoc {
   const [lng, lat] = t.center
+  const { geohash, geohashPrefix } = geohashFieldsFromCenter(lat, lng)
   return {
     userId: t.userId,
     userName: t.userName ?? 'Corredor',
@@ -35,6 +47,8 @@ export function territoryToFirestoreDoc(t: Territory): TerritoryFirestoreDoc {
     conquestCount: t.conquestCount,
     centerLng: lng,
     centerLat: lat,
+    geohash,
+    geohashPrefix,
   }
 }
 

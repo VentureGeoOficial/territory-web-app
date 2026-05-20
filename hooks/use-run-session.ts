@@ -37,22 +37,20 @@ export function useRunSession() {
   const setSpeedPaused = useRunStore((s) => s.setSpeedPaused)
 
   const startRun = useCallback(() => {
-    const gate = new SpeedGate({ maxAccuracyM: 65 })
+    const gate = new SpeedGate({ maxAccuracyM: 35 })
     speedGateRef.current = gate
     startRunStore()
     setMapMode('run')
     watchIdRef.current = watchRunTrack({
       minIntervalMs: 1500,
-      minDistanceM: 6,
-      maxAccuracyM: 65,
+      minDistanceM: 8,
+      maxAccuracyM: 35,
       gate,
       onSpeedPauseChange: (paused) => {
         setSpeedPaused(paused)
       },
       onPoint: (tp) => {
         appendTrackPoint(tp)
-        setLivePosition(tp.latitude, tp.longitude)
-        setCurrentUserPosition(tp.latitude, tp.longitude)
       },
       onLivePosition: (lat, lng) => {
         setLivePosition(lat, lng)

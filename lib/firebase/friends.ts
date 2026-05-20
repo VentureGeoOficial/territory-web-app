@@ -35,7 +35,7 @@ const USERNAMES = 'usernames'
  * Slug username permitido. Alinhado com:
  *  - `firestore.rules` (collection `usernames` → `slug.matches('^[a-z0-9_]{3,30}$')`)
  *  - `lib/auth/schemas.ts` (signup)
- *  - `app/api/auth/create-profile`, `app/api/auth/resolve-identifier`
+ *  - `app/api/auth/resolve-identifier` (pré-login; rate-limited)
  *  - `app/api/friends/lookup`
  *
  * Histórico: este pattern usava `{3,20}` e não combinava com o resto do sistema —

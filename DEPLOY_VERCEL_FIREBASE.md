@@ -72,7 +72,7 @@ Regras de Storage baseline (negam todo o acesso) em [`storage.rules`](storage.ru
 
 1. **Primeiro:** deploy na **Vercel** que já inclua as rotas API servidoras (`POST /api/runs/complete`, `POST /api/friends/lookup`, `POST /api/auth/resolve-identifier`). O cliente deixa de escrever `territories`, `runs` e agregados diretamente — sem estas rotas ativas, utilizadores não conseguem concluir corridas após publicar regras mais restritivas.
 2. **Depois:** `firebase deploy --only firestore:rules,firestore:indexes,storage`.
-3. Smoke tests: finalizar corrida sem overlap inimigo; conquista hostil (`/api/territories/capture`); pedido de amigo por email; login com username.
+3. Smoke tests: finalizar corrida sem overlap inimigo; conquista hostil (`/api/territories/capture`); pedido de amigo por email; login com **e-mail** (não username).
 
 ### 3.4 Verificar o deploy
 

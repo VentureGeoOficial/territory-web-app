@@ -5,6 +5,7 @@
 import type { TrackPoint } from '@/lib/territory/types'
 import { haversineDistance } from '@/lib/territory/geo'
 import type { SpeedGate } from '@/lib/services/speed-gate'
+import { log } from '@/lib/logging/logger'
 
 /** Rejeitar emissão de ponto de percurso acima disto (m/s) — salto GPS */
 const MAX_EMIT_INSTANT_SPEED_MPS = 45
@@ -73,6 +74,10 @@ export interface WatchRunTrackOptions {
 /** Mínimo entre actualizações do marcador enquanto `isPausedDueToSpeed` */
 const PAUSED_LIVE_MIN_MS = 4000
 
+/** Janela anti-jitter: exige deslocamento líquido mínimo antes de aceitar micro-movimentos */
+const JITTER_WINDOW_MS = 10_000
+const JITTER_NET_MOVE_M = 10
+
 /**
  * Rastreio durante corrida: média móvel de velocidade ({@link SpeedGate}) com histerese;
  * quando pausado, não regista pontos nem distância — apenas posição ao vivo espaçada.
@@ -92,6 +97,22 @@ export function watchRunTrack(opts: WatchRunTrackOptions): number {
   let lastEmit = 0
   let lastTrackPoint: TrackPoint | null = null
   let lastLiveUpdate = 0
+  let jitterAnchor: TrackPoint | null = null
+  let jitterAnchorAt = 0
+
+  const rejectsJitter = (tp: TrackPoint): boolean => {
+    if (!lastTrackPoint) return false
+    const dist = haversineDistance(lastTrackPoint, tp)
+    if (dist >= minDistanceM) return false
+
+    const now = tp.timestamp
+    if (!jitterAnchor || now - jitterAnchorAt > JITTER_WINDOW_MS) {
+      jitterAnchor = lastTrackPoint
+      jitterAnchorAt = now
+    }
+    const netMove = haversineDistance(jitterAnchor, tp)
+    return netMove < JITTER_NET_MOVE_M
+  }
 
   const id = navigator.geolocation.watchPosition(
     (pos) => {
@@ -110,11 +131,10 @@ export function watchRunTrack(opts: WatchRunTrackOptions): number {
 
       const { transition } = gate.evaluate(tp)
       if (transition === 'enter' || transition === 'exit') {
-        const ts = new Date().toISOString()
-        console.info(`[${ts}] [INFO] [SpeedGate]`, {
-          functionality: 'watchRunTrack',
+        log.info({
+          scope: 'SpeedGate',
+          event: transition === 'enter' ? 'pause_enter' : 'pause_exit',
           source: 'lib/services/location-service.ts',
-          transition,
           paused: gate.paused,
         })
         if (transition === 'enter') onSpeedPauseChange?.(true)
@@ -135,12 +155,13 @@ export function watchRunTrack(opts: WatchRunTrackOptions): number {
         const dt = (tp.timestamp - lastTrackPoint.timestamp) / 1000
         const dist = haversineDistance(lastTrackPoint, tp)
         if (dt > 0.5 && dist / dt > MAX_EMIT_INSTANT_SPEED_MPS) return
-        if (dist < minDistanceM && now - lastEmit < minIntervalMs * 2)
-          return
+        if (rejectsJitter(tp)) return
       }
 
       lastEmit = now
       lastTrackPoint = tp
+      jitterAnchor = tp
+      jitterAnchorAt = tp.timestamp
       onPoint(tp)
       onLivePosition(latitude, longitude)
       lastLiveUpdate = now

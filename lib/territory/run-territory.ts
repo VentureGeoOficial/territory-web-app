@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf'
-import type { Feature, Polygon } from 'geojson'
+import type { Feature, MultiPolygon, Polygon } from 'geojson'
 import type { Position } from 'geojson'
 import type {
   Territory,
@@ -81,6 +81,27 @@ export function validateRunTrack(
   }
 }
 
+function largestPolygonFromBuffered(
+  buffered: Feature<Polygon | MultiPolygon>,
+): Feature<Polygon> {
+  if (buffered.geometry.type === 'Polygon') {
+    return buffered as Feature<Polygon>
+  }
+
+  let best: Feature<Polygon> | null = null
+  let bestArea = 0
+  for (const rings of buffered.geometry.coordinates) {
+    const poly = turf.polygon(rings)
+    const a = turf.area(poly)
+    if (a > bestArea) {
+      bestArea = a
+      best = poly as Feature<Polygon>
+    }
+  }
+  if (!best) throw new Error('Buffer vazio')
+  return best
+}
+
 function bufferLineToPolygon(
   positions: Position[],
   bufferKm: number,
@@ -90,36 +111,59 @@ function bufferLineToPolygon(
   }
 
   const line = turf.lineString(positions)
-  const simplified = turf.simplify(line, {
+  const cleaned = turf.cleanCoords(line)
+  const simplified = turf.simplify(cleaned, {
     tolerance: RUN_LINE_SIMPLIFY_TOLERANCE,
     highQuality: true,
   })
+
+  const simplifiedCoords = simplified.geometry.coordinates
+  if (simplifiedCoords.length < 2) {
+    throw new Error(
+      'Percurso muito curto ou insuficiente após simplificação. Percorra mais distância.',
+    )
+  }
 
   const buffered = turf.buffer(simplified, bufferKm, { units: 'kilometers' })
   if (!buffered) {
     throw new Error('Falha ao calcular buffer do percurso')
   }
 
-  if (buffered.geometry.type === 'Polygon') {
-    return buffered as Feature<Polygon>
+  if (
+    buffered.geometry.type !== 'Polygon' &&
+    buffered.geometry.type !== 'MultiPolygon'
+  ) {
+    throw new Error('Geometria de buffer inesperada')
   }
 
-  if (buffered.geometry.type === 'MultiPolygon') {
-    let best: Feature<Polygon> | null = null
-    let bestArea = 0
-    for (const rings of buffered.geometry.coordinates) {
-      const poly = turf.polygon(rings)
-      const a = turf.area(poly)
-      if (a > bestArea) {
-        bestArea = a
-        best = poly as Feature<Polygon>
-      }
+  const unkinked = turf.unkinkPolygon(
+    buffered as Feature<Polygon | MultiPolygon>,
+  )
+  let best: Feature<Polygon> | null = null
+  let bestArea = 0
+  for (const feature of unkinked.features) {
+    if (feature.geometry.type !== 'Polygon') continue
+    const a = turf.area(feature)
+    if (a > bestArea) {
+      bestArea = a
+      best = feature as Feature<Polygon>
     }
-    if (!best) throw new Error('Buffer vazio')
-    return best
   }
 
-  throw new Error('Geometria de buffer inesperada')
+  if (!best) {
+    return largestPolygonFromBuffered(
+      buffered as Feature<Polygon | MultiPolygon>,
+    )
+  }
+
+  const kinks = turf.kinks(best)
+  if (kinks.features.length > 0) {
+    console.warn('[run-territory] Polígono com auto-interseção residual após unkink', {
+      kinkCount: kinks.features.length,
+    })
+  }
+
+  return best
 }
 
 export interface CreateTerritoryFromRunParams {
@@ -133,12 +177,11 @@ export interface CreateTerritoryFromRunParams {
 }
 
 export interface CreateTerritoryFromRunResult {
-  territories: Territory[]
   newTerritory: Territory
 }
 
 /**
- * Gera polígono de domínio: simplificação DP na linha → buffer 20 m (apenas ao finalizar).
+ * Gera polígono de domínio: cleanCoords → simplify → buffer (raio configurável) → unkink.
  */
 export function createTerritoryFromRunTrack(
   params: CreateTerritoryFromRunParams,
@@ -171,17 +214,12 @@ export function createTerritoryFromRunTrack(
 
   const now = nowMs ?? Date.now()
   let status: TerritoryStatus = 'active'
-
-  const updatedTerritories = existingTerritories.map((existing) => {
+  for (const existing of existingTerritories) {
     if (checkTerritoryIntersection(polygon, existing.polygon)) {
       status = 'disputed'
-      return {
-        ...existing,
-        status: 'disputed' as TerritoryStatus,
-      }
+      break
     }
-    return existing
-  })
+  }
 
   const displayName =
     currentUser?.displayName || authDisplayName || 'Corredor'
@@ -203,8 +241,5 @@ export function createTerritoryFromRunTrack(
     center,
   }
 
-  return {
-    territories: [...updatedTerritories, newTerritory],
-    newTerritory,
-  }
+  return { newTerritory }
 }

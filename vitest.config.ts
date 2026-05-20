@@ -1,10 +1,25 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
+
+const root = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['__tests__/firestore-rules/**/*.test.ts'],
+    include: [
+      '__tests__/firestore-rules/**/*.test.ts',
+      '__tests__/territory-buffer.test.ts',
+      '__tests__/territory-visibility.test.ts',
+      '__tests__/auth-password-no-trim.test.ts',
+      '__tests__/auth-rate-limit-logic.test.ts',
+    ],
     testTimeout: 30_000,
     hookTimeout: 30_000,
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(root, '.'),
+    },
   },
 })

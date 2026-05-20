@@ -19,4 +19,14 @@
 | [`lib/firebase/client.ts`](../../lib/firebase/client.ts) | `error` / `warn` | Init app / fallback Firestore — ver [DOC_firebase-client.md](../Services/DOC_firebase-client.md) |
 | [`components/home/marketing-landing.tsx`](../../components/home/marketing-landing.tsx) | `info` | Eventos `landing_cta_click` via Vercel Analytics — ver [DOC_marketing-landing.tsx.md](DOC_marketing-landing.tsx.md) |
 
-**Não existe** logger estruturado centralizado; padrão atual = `console.*`.
+**Logger centralizado:** [`lib/logging/logger.ts`](../../lib/logging/logger.ts) — JSON estruturado.
+
+| DOC | Módulo |
+|-----|--------|
+| [DOC_run-territory.md](DOC_run-territory.md) | Polígono / buffer |
+| [DOC_run-complete-api.md](DOC_run-complete-api.md) | API corrida |
+| [DOC_capture-api.md](DOC_capture-api.md) | API conquista |
+| [DOC_use-firestore-territory-sync.md](DOC_use-firestore-territory-sync.md) | Sync Firestore |
+| [DOC_territory_visibility.md](DOC_territory_visibility.md) | Mapa só amigos (queries + CF) |
+| [DOC_auth.md](DOC_auth.md) | Signup, login, sessão, phantom user |
+| [DOC_speed-gate.md](DOC_speed-gate.md) | Anti-cheat velocidade |
