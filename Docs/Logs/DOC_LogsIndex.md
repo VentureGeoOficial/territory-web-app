@@ -29,5 +29,4 @@
 | [DOC_use-firestore-territory-sync.md](DOC_use-firestore-territory-sync.md) | Sync Firestore |
 | [DOC_territory_visibility.md](DOC_territory_visibility.md) | Mapa só amigos (queries + CF) |
 | [DOC_auth.md](DOC_auth.md) | Signup, login, sessão, phantom user |
-| [DOC_sponsors.md](DOC_sponsors.md) | Loja / patrocinadores Firestore |
 | [DOC_speed-gate.md](DOC_speed-gate.md) | Anti-cheat velocidade |

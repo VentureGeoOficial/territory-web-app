@@ -123,43 +123,6 @@ describe('Firestore rules v2', () => {
     )
   })
 
-  it('permite leitura pública de sponsors', async () => {
-    await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), 'sponsors', 's1'), {
-        name: 'Test',
-        category: 'Cat',
-        description: 'Desc',
-        status: 'active',
-        order: 1,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      })
-    })
-    const anonDb = testEnv.unauthenticatedContext().firestore()
-    await assertSucceeds(
-      (async () => {
-        const { getDoc } = await import('firebase/firestore')
-        return getDoc(doc(anonDb, 'sponsors', 's1'))
-      })(),
-    )
-  })
-
-  it('nega escrita cliente em sponsors', async () => {
-    const ctx = testEnv.authenticatedContext('u1')
-    const db = ctx.firestore()
-    await assertFails(
-      setDoc(doc(db, 'sponsors', 'hack'), {
-        name: 'Hack',
-        category: 'X',
-        description: 'Y',
-        status: 'active',
-        order: 1,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      }),
-    )
-  })
-
   it('usernames só permite uid e createdAt', async () => {
     const ctx = testEnv.authenticatedContext('u1')
     const db = ctx.firestore()

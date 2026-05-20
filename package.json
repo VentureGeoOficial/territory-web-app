@@ -12,9 +12,7 @@
     "test:territory": "vitest run __tests__/territory-buffer.test.ts",
     "test:visibility": "vitest run __tests__/territory-visibility.test.ts",
     "test:auth": "vitest run __tests__/auth-password-no-trim.test.ts __tests__/auth-rate-limit-logic.test.ts",
-    "backfill:friendships": "tsx scripts/backfill-friendships.ts",
-    "seed:sponsors": "tsx scripts/seed-sponsors.ts",
-    "test:sponsors": "vitest run __tests__/sponsor-card.test.ts"
+    "backfill:friendships": "tsx scripts/backfill-friendships.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
