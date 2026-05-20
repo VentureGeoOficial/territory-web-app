@@ -26,6 +26,7 @@ import {
   saveNotificationPreferences,
 } from '@/lib/services/account-settings-service'
 import Link from 'next/link'
+import { Trophy } from 'lucide-react'
 
 export default function ContaPage() {
   const uid = useAuthStore((s) => s.user?.id)
@@ -233,6 +234,23 @@ export default function ContaPage() {
                 Salvar notificações
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Os meus troféus</CardTitle>
+            <CardDescription>
+              Conquistas baseadas no seu domínio territorial.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" asChild>
+              <Link href="/trofeus">
+                <Trophy className="mr-2 size-4" aria-hidden />
+                Ver troféus
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 

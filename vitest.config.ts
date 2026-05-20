@@ -13,6 +13,7 @@ export default defineConfig({
       '__tests__/territory-visibility.test.ts',
       '__tests__/auth-password-no-trim.test.ts',
       '__tests__/auth-rate-limit-logic.test.ts',
+      '__tests__/sponsor-card.test.ts',
     ],
     testTimeout: 30_000,
     hookTimeout: 30_000,
