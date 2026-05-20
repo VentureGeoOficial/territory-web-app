@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
+import { assertRunRateLimit, RunRateLimitError } from '@/lib/api/run-rate-limit'
 import { ApiAuthError, verifyAuthOrFail } from '@/lib/firebase/admin-auth'
+import { getIdempotentRunResult } from '@/lib/firebase/idempotent-run'
 import { queryTerritoriesForGameplay } from '@/lib/firebase/admin-territories-query'
 import { firestoreUserDocToDomainUser } from '@/lib/firebase/admin-user-map'
 import { getAdminFirestore } from '@/lib/firebase/admin-app'
@@ -17,6 +19,7 @@ import {
 import { createTerritoryFromRunTrack } from '@/lib/territory/run-territory'
 import type { Territory, TrackPoint } from '@/lib/territory/types'
 import { isPositionInsideBox, SUZANO_BOUNDING_BOX } from '@/lib/territory/regions'
+import { log } from '@/lib/logging/logger'
 
 const MAX_AREA_M2 = 10_000_000
 
@@ -30,6 +33,7 @@ const trackPointSchema = z.object({
 })
 
 const bodySchema = z.object({
+  runId: z.string().uuid(),
   points: z.array(trackPointSchema).min(2),
   startedAt: z.number(),
   endedAt: z.number(),
@@ -37,6 +41,11 @@ const bodySchema = z.object({
   durationSeconds: z.number().nonnegative(),
   routeJson: z.string().max(400_000),
 })
+
+function resolveRunId(req: Request, bodyRunId: string): string {
+  const header = req.headers.get('idempotency-key')?.trim()
+  return header && header.length > 0 ? header : bodyRunId
+}
 
 export async function POST(req: Request) {
   try {
@@ -58,6 +67,22 @@ export async function POST(req: Request) {
     }
 
     const body = parsed.data
+    const runId = resolveRunId(req, body.runId)
+
+    log.info({
+      scope: 'TerritoryCaptureApi',
+      event: 'request_start',
+      uid,
+      runIdPrefix: runId.slice(0, 8),
+    })
+
+    const existing = await getIdempotentRunResult(runId)
+    if (existing) {
+      return NextResponse.json(existing)
+    }
+
+    await assertRunRateLimit(uid)
+
     const points = body.points as TrackPoint[]
     const db = getAdminFirestore()
 
@@ -132,7 +157,6 @@ export async function POST(req: Request) {
     }
 
     const xpGain = computeXpFromRun(body.distanceMeters, territoryForCapture.areaM2)
-    const runId = crypto.randomUUID()
 
     await executeCaptureTransaction({
       attackerUid: uid,
@@ -150,6 +174,13 @@ export async function POST(req: Request) {
       },
     })
 
+    log.info({
+      scope: 'TerritoryCaptureApi',
+      event: 'success',
+      uid,
+      territoryId: territoryForCapture.id,
+    })
+
     return NextResponse.json({
       territoryId: territoryForCapture.id,
       runId,
@@ -160,6 +191,9 @@ export async function POST(req: Request) {
   } catch (e) {
     if (e instanceof ApiAuthError) {
       return NextResponse.json({ error: e.message }, { status: e.status })
+    }
+    if (e instanceof RunRateLimitError) {
+      return NextResponse.json({ error: e.message, code: 'RATE_LIMIT' }, { status: 429 })
     }
     if (e instanceof CaptureTransactionError) {
       const status =
@@ -179,7 +213,7 @@ export async function POST(req: Request) {
       )
     }
     const message = e instanceof Error ? e.message : 'Erro interno.'
-    console.error('[api/territories/capture]', e)
+    log.error({ scope: 'TerritoryCaptureApi', event: 'failure', message })
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

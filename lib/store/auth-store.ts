@@ -39,14 +39,16 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
         expiresAt: state.expiresAt,
       }),
     },
   ),
 )
 
+/**
+ * Autenticação baseada no utilizador persistido; o token vivo é reposto pelo
+ * AuthProvider via onAuthStateChanged. APIs usam getFreshIdToken() no Firebase SDK.
+ */
 export function selectIsAuthenticated(state: AuthState): boolean {
-  return Boolean(state.user && state.accessToken)
+  return Boolean(state.user)
 }

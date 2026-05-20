@@ -1,12 +1,27 @@
 import { NextResponse } from 'next/server'
 
+import { assertAuthRateLimit, AuthRateLimitError } from '@/lib/api/auth-rate-limit'
 import { getAdminFirestore } from '@/lib/firebase/admin-app'
+import { log } from '@/lib/logging/logger'
 
 /**
  * Pré-login: resolve username → email via Admin SDK (o cliente não pode ler `users` por email alheio).
  * Não regista o email em logs (enumeramento).
  */
 export async function POST(req: Request) {
+  try {
+    await assertAuthRateLimit(req)
+  } catch (e) {
+    if (e instanceof AuthRateLimitError) {
+      log.warn({
+        scope: 'auth_resolve_identifier',
+        event: 'auth_resolve_identifier_rate_limited',
+      })
+      return NextResponse.json({ error: e.message }, { status: 429 })
+    }
+    throw e
+  }
+
   try {
     let json: unknown
     try {
@@ -18,7 +33,6 @@ export async function POST(req: Request) {
     const body = json as { username?: string }
     const raw = typeof body.username === 'string' ? body.username.trim().toLowerCase() : ''
     const slug = raw.replace(/^@/, '')
-    // Alinhado a signupSchema (`lib/auth/schemas.ts`): slug até 30 caracteres.
     if (!slug || !/^[a-z0-9_]{3,30}$/.test(slug)) {
       return NextResponse.json({ error: 'Username inválido.' }, { status: 400 })
     }
@@ -36,6 +50,11 @@ export async function POST(req: Request) {
         userSnap.exists && typeof (userSnap.data() as { email?: string }).email === 'string'
           ? String((userSnap.data() as { email: string }).email).trim().toLowerCase()
           : null
+      log.info({
+        scope: 'auth_resolve_identifier',
+        event: 'auth_resolve_identifier_ok',
+        lookupSource: 'usernames',
+      })
       return NextResponse.json({ email: emailRaw })
     }
 
@@ -45,15 +64,20 @@ export async function POST(req: Request) {
       .limit(1)
       .get()
     if (userBySlug.empty) {
+      log.info({
+        scope: 'auth_resolve_identifier',
+        event: 'auth_resolve_identifier_not_found',
+      })
       return NextResponse.json({ email: null })
     }
 
     const doc = userBySlug.docs[0]!
     const data = doc.data() as { email?: string }
-    console.info(
-      '[api/auth/resolve-identifier]',
-      JSON.stringify({ lookup_source: 'users_username_fallback' }),
-    )
+    log.info({
+      scope: 'auth_resolve_identifier',
+      event: 'auth_resolve_identifier_ok',
+      lookupSource: 'users_username_fallback',
+    })
     const emailRaw =
       typeof data.email === 'string' ? data.email.trim().toLowerCase() : null
 
@@ -65,7 +89,11 @@ export async function POST(req: Request) {
         { status: 503 },
       )
     }
-    console.error('[api/auth/resolve-identifier]', e)
+    log.error({
+      scope: 'auth_resolve_identifier',
+      event: 'auth_resolve_identifier_error',
+      message: e instanceof Error ? e.message : 'unknown',
+    })
     return NextResponse.json({ error: 'Erro interno.' }, { status: 500 })
   }
 }

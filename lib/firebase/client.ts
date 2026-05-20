@@ -1,7 +1,14 @@
 'use client'
 
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
-import { getAuth, type Auth } from 'firebase/auth'
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  inMemoryPersistence,
+  type Auth,
+} from 'firebase/auth'
+import { log } from '@/lib/logging/logger'
 import {
   getFirestore,
   initializeFirestore,
@@ -41,6 +48,17 @@ export function getFirebaseApp(): FirebaseApp {
 export function getFirebaseAuth(): Auth {
   if (!auth) {
     auth = getAuth(getFirebaseApp())
+    void setPersistence(auth, browserLocalPersistence).catch(async () => {
+      log.warn({
+        scope: 'firebase_client',
+        event: 'auth_persistence_local_failed',
+      })
+      try {
+        await setPersistence(auth!, inMemoryPersistence)
+      } catch {
+        /* ignore */
+      }
+    })
   }
   return auth
 }

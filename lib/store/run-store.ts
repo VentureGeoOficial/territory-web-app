@@ -32,6 +32,8 @@ interface RunState {
   resetRunState: () => void
   startRun: () => void
   cancelRun: () => void
+  /** Para GPS/corrida mas mantém pontos (ex.: falha ao salvar — permite retry). */
+  pauseRunKeepTrack: () => void
   appendTrackPoint: (p: TrackPoint) => void
   setLivePosition: (lat: number, lng: number) => void
   setCurrentUserPosition: (lat: number, lng: number) => void
@@ -80,6 +82,13 @@ export const useRunStore = create<RunState>((set, get) => ({
     }),
 
   cancelRun: () => get().resetRunState(),
+
+  pauseRunKeepTrack: () =>
+    set({
+      isRunning: false,
+      isPausedDueToSpeed: false,
+      speedPauseSegmentStartedAt: null,
+    }),
 
   appendTrackPoint: (p) =>
     set((state) => {

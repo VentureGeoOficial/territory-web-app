@@ -115,7 +115,7 @@ export async function POST(req: Request) {
 
     const slug = usernameRaw.replace(/^@/, '')
     // Alinhado com firestore.rules (usernames), lib/auth/schemas.ts,
-    // app/api/auth/create-profile e app/api/auth/resolve-identifier.
+    // app/api/auth/resolve-identifier (pré-login; rate-limited).
     // Antes estava `{3,20}` — bloqueava lookup de utilizadores com username 21–30 chars.
     if (!/^[a-z0-9_]{3,30}$/.test(slug)) {
       return NextResponse.json({ error: 'Username inválido.' }, { status: 400 })

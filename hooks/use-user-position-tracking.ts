@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useCallback } from 'react'
 import { useRunStore } from '@/lib/store/run-store'
-import { probeGeolocationPermission } from '@/lib/services/location-service'
 
 /** Intervalo mínimo entre actualizações da posição “idle” (reduz re-renders / CPU). */
 const IDLE_POSITION_MIN_MS = 2500
@@ -64,30 +63,12 @@ export function useUserPositionTracking() {
     }
   }, [setIsTrackingPosition])
 
-  // Verifica permissão e inicia tracking quando possível
+  // Permissão é definida por useRunSession (probe único); aqui só reage ao estado.
   useEffect(() => {
-    void (async () => {
-      const p = await probeGeolocationPermission()
-      if (p === 'unsupported') {
-        setPermission('unsupported')
-        return
-      }
-      if (p === 'denied') {
-        setPermission('denied')
-        return
-      }
-      if (p === 'granted') {
-        setPermission('granted')
-        startTracking()
-      } else {
-        setPermission('prompt')
-      }
-    })()
-
     return () => {
       stopTracking()
     }
-  }, [setPermission, startTracking, stopTracking])
+  }, [stopTracking])
 
   // Reinicia tracking quando permissão é concedida
   useEffect(() => {

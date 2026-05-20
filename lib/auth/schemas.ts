@@ -10,13 +10,21 @@ function ageFromIsoDate(iso: string): number {
   return age
 }
 
+/** Senha literal — sem espaços nas pontas (alinhado com Firebase Auth). */
+const passwordNoEdgeSpaces = z
+  .string()
+  .min(1, 'Informe a senha')
+  .refine((v) => v === v.trim(), {
+    message: 'Remova espaços antes ou depois da senha',
+  })
+
 export const loginSchema = z.object({
   email: z
     .string()
     .trim()
     .min(1, 'Informe seu e-mail')
     .email('E-mail inválido'),
-  password: z.string().min(1, 'Informe a senha'),
+  password: passwordNoEdgeSpaces,
 })
 
 export type LoginFormValues = z.infer<typeof loginSchema>
@@ -24,6 +32,7 @@ export type LoginFormValues = z.infer<typeof loginSchema>
 export const forgotPasswordSchema = z.object({
   email: z
     .string()
+    .trim()
     .min(1, 'Informe o e-mail')
     .email('E-mail inválido'),
 })
@@ -68,7 +77,10 @@ export const signupSchema = z
       .email('E-mail inválido'),
     password: z
       .string()
-      .min(6, 'A senha deve ter pelo menos 6 caracteres'),
+      .min(6, 'A senha deve ter pelo menos 6 caracteres')
+      .refine((v) => v === v.trim(), {
+        message: 'Remova espaços antes ou depois da senha',
+      }),
     confirmPassword: z.string().min(1, 'Confirme a senha'),
     dataNascimento: z
       .string()

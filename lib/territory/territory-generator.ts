@@ -137,54 +137,6 @@ export function calculateTerritoryFromPoints(
 }
 
 /**
- * Cria um territorio a partir de positions ja convertidas (para simulador)
- */
-export function calculateTerritoryFromPositions(
-  positions: Position[],
-  bufferKm: number = 0.03
-): TerritoryCalculation {
-  if (positions.length < 3) {
-    throw new Error('Precisa de pelo menos 3 pontos para criar um territorio')
-  }
-
-  // Fechar o loop se necessario
-  const closedPositions = [...positions]
-  if (
-    positions[0][0] !== positions[positions.length - 1][0] ||
-    positions[0][1] !== positions[positions.length - 1][1]
-  ) {
-    closedPositions.push(positions[0])
-  }
-
-  // Criar LineString
-  const line = turf.lineString(closedPositions)
-
-  // Criar buffer ao redor da linha
-  const buffered = turf.buffer(line, bufferKm, { units: 'kilometers' })
-
-  if (!buffered || buffered.geometry.type !== 'Polygon') {
-    throw new Error('Falha ao criar buffer do territorio')
-  }
-
-  // Calcular area
-  const areaM2 = turf.area(buffered)
-
-  // Calcular centro
-  const centroid = turf.centroid(buffered)
-  const center: Position = centroid.geometry.coordinates
-
-  // Calcular bounding box
-  const bbox = turf.bbox(buffered)
-
-  return {
-    polygon: buffered as Feature<Polygon>,
-    areaM2,
-    center,
-    boundingBox: [bbox[0], bbox[1], bbox[2], bbox[3]],
-  }
-}
-
-/**
  * Verifica se dois territorios se intersectam
  */
 export function checkTerritoryIntersection(
@@ -206,12 +158,27 @@ export function calculateIntersectionArea(
       turf.featureCollection([territory1, territory2])
     )
 
-    if (!intersection || intersection.geometry.type !== 'Polygon') {
+    if (!intersection) {
       return { intersectionPolygon: null, areaM2: 0 }
     }
 
-    const areaM2 = turf.area(intersection)
-    return { intersectionPolygon: intersection as Feature<Polygon>, areaM2 }
+    if (intersection.geometry.type === 'Polygon') {
+      const areaM2 = turf.area(intersection)
+      return {
+        intersectionPolygon: intersection as Feature<Polygon>,
+        areaM2,
+      }
+    }
+
+    if (intersection.geometry.type === 'MultiPolygon') {
+      let areaM2 = 0
+      for (const rings of intersection.geometry.coordinates) {
+        areaM2 += turf.area(turf.polygon(rings))
+      }
+      return { intersectionPolygon: null, areaM2 }
+    }
+
+    return { intersectionPolygon: null, areaM2: 0 }
   } catch {
     return { intersectionPolygon: null, areaM2: 0 }
   }

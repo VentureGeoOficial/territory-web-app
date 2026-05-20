@@ -15,12 +15,9 @@ export class ApiAuthError extends Error {
 /**
  * Verifica Bearer Id Token.
  *
- * `checkRevoked` é OPCIONAL (default `false`). Em rotas críticas (mudar senha,
- * apagar conta) passe `true`; em rotas de leitura/escrita normais (lookup de
- * amigos, etc.) o default é suficiente — `verifyIdToken` já valida assinatura
- * e expiração contra as chaves públicas da Google. Manter `checkRevoked: true`
- * em todo o lado provocava 401s espúrios após mudanças de claim/sessão e
- * resultava no toast "Sessão expirada" em fluxos como Adicionar Amigos.
+ * `checkRevoked` default `true` — tokens revogados após logout noutro dispositivo
+ * são rejeitados. Passe `checkRevoked: false` apenas se necessário (ex.: rotas
+ * de leitura tolerantes a latência de revogação).
  */
 export async function verifyAuthOrFail(
   req: Request,
@@ -33,7 +30,7 @@ export async function verifyAuthOrFail(
   if (!token) {
     throw new ApiAuthError('Token em falta.', 401)
   }
-  const checkRevoked = options.checkRevoked === true
+  const checkRevoked = options.checkRevoked !== false
   try {
     const decoded = await getAdminAuth().verifyIdToken(token, checkRevoked)
     return { uid: decoded.uid }

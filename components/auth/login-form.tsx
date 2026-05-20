@@ -36,6 +36,7 @@ export function LoginForm({ className }: { className?: string }) {
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
   const [showPassword, setShowPassword] = React.useState(false)
   const [googleLoading, setGoogleLoading] = React.useState(false)
+  const [failedAttempts, setFailedAttempts] = React.useState(0)
   
   // Rate limiting: max 5 tentativas por minuto, intervalo minimo de 1s
   const { canExecute, recordExecution, isLimited } = useRateLimit({
@@ -67,9 +68,11 @@ export function LoginForm({ className }: { className?: string }) {
     
     try {
       const session = await login(data)
+      setFailedAttempts(0)
       setSession(session)
       router.replace('/mapa')
     } catch (err) {
+      setFailedAttempts((n) => n + 1)
       const message =
         err instanceof AuthError
           ? err.message
@@ -117,6 +120,18 @@ export function LoginForm({ className }: { className?: string }) {
           <Alert variant="destructive">
             <AlertDescription>
               {form.formState.errors.root.message}
+              {failedAttempts >= 2 && (
+                <p className="mt-2 text-sm">
+                  Está com dificuldades?{' '}
+                  <Link
+                    href="/esqueci-senha"
+                    className="font-medium underline"
+                  >
+                    Recupere a sua senha
+                  </Link>
+                  .
+                </p>
+              )}
             </AlertDescription>
           </Alert>
         )}

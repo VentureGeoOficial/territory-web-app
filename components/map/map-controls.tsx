@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useCallback, useContext, useEffect, useState } from 'react'
+import { memo, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useTerritoryStore } from '@/lib/store/territory-store'
@@ -17,6 +17,7 @@ import {
 import type { CaptureImpactOk } from '@/lib/territory/geoLogic'
 import { trackPointsToPositions } from '@/lib/territory/geo'
 import {
+  RunApiError,
   submitCompletedRunViaApi,
   submitTerritoryCaptureViaApi,
 } from '@/lib/firebase/run-completion'
@@ -49,6 +50,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
   const distanceMeters = useRunStore((s) => s.distanceMeters)
   const startedAt = useRunStore((s) => s.startedAt)
   const resetRunState = useRunStore((s) => s.resetRunState)
+  const pauseRunKeepTrack = useRunStore((s) => s.pauseRunKeepTrack)
   const isPausedDueToSpeed = useRunStore((s) => s.isPausedDueToSpeed)
 
   const {
@@ -70,6 +72,11 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     durationSeconds: number
   } | null>(null)
   const [captureLoading, setCaptureLoading] = useState(false)
+  const [lastFailedRun, setLastFailedRun] = useState<{
+    message: string
+    canRetry: boolean
+  } | null>(null)
+  const pendingRunIdRef = useRef<string | null>(null)
 
   const ensureReadyForApiSave = useCallback((): boolean => {
     if (!firebaseAuthReady) {
@@ -138,6 +145,8 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         return
       }
     }
+    setLastFailedRun(null)
+    pendingRunIdRef.current = null
     startRun()
   }, [permission, setPermission, startRun])
 
@@ -156,7 +165,12 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         type: 'LineString',
         coordinates: trackPointsToPositions(pts),
       })
+      const runId =
+        pendingRunIdRef.current ?? crypto.randomUUID()
+      pendingRunIdRef.current = runId
+
       const { territoryId } = await submitTerritoryCaptureViaApi({
+        runId,
         points: pts,
         startedAt: captureDraft.startedAt,
         endedAt: captureDraft.endedAt,
@@ -166,6 +180,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       })
       selectTerritory(territoryId)
       setCaptureDraft(null)
+      pendingRunIdRef.current = null
       resetRunState()
       setMapMode('view')
       toast.success('Conquista inimiga concluída!')
@@ -201,6 +216,10 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       0,
       (endedAt - startedAt - totalPauseMs) / 1000,
     )
+
+    const runId =
+      pendingRunIdRef.current ?? crypto.randomUUID()
+    pendingRunIdRef.current = runId
 
     try {
       let currentUser = getCurrentUser()
@@ -245,8 +264,9 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       if (enemyOverlap) {
         if (!impact.ok) {
           toast.error(impact.message)
-          resetRunState()
-          setMapMode('view')
+          pauseRunKeepTrack()
+          setLastFailedRun({ message: impact.message, canRetry: true })
+          setFinishing(false)
           return
         }
         setCaptureDraft({
@@ -271,6 +291,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       }
 
       const { territoryId } = await submitCompletedRunViaApi({
+        runId,
         points,
         startedAt,
         endedAt,
@@ -280,15 +301,72 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       })
 
       selectTerritory(territoryId)
+      setLastFailedRun(null)
+      pendingRunIdRef.current = null
       resetRunState()
       setMapMode('view')
       toast.success('Corrida concluída! Território conquistado.')
     } catch (e) {
       console.error(e)
+      if (
+        e instanceof RunApiError &&
+        e.code === 'ENEMY_OVERLAP_USE_CAPTURE'
+      ) {
+        try {
+          let currentUser = getCurrentUser()
+          if (user?.id && (!currentUser?.color || currentUser.id !== user.id)) {
+            const prof = await getUserProfile(user.id)
+            if (prof) {
+              currentUser = {
+                id: user.id,
+                displayName: prof.displayName,
+                email: prof.email,
+                color: prof.color,
+                totalAreaM2: prof.totalAreaM2,
+                territoriesCount: prof.territoriesCount,
+                totalDistanceM: 0,
+                totalDurationSeconds: 0,
+                createdAt: Date.now(),
+                lastActiveAt: Date.now(),
+              }
+            }
+          }
+          const { newTerritory } = createTerritoryFromRunTrack({
+            points,
+            currentUserId,
+            currentUser,
+            authDisplayName: user?.displayName,
+            existingTerritories: territories,
+          })
+          const impact = calculateCaptureImpact(
+            newTerritory.polygon,
+            territories,
+            currentUserId,
+          )
+          if (impact.ok) {
+            pauseRunKeepTrack()
+            setCaptureDraft({
+              impact,
+              newTerritoryAreaM2: newTerritory.areaM2,
+              startedAt,
+              endedAt,
+              distanceMeters,
+              durationSeconds,
+            })
+            toast.info('Sobreposição inimiga detectada — confirme a conquista.')
+            return
+          }
+          toast.error(impact.message)
+        } catch (inner) {
+          const msg =
+            inner instanceof Error ? inner.message : 'Erro ao preparar conquista.'
+          toast.error(msg)
+        }
+      }
       const msg = e instanceof Error ? e.message : 'Não foi possível salvar.'
       toast.error(msg)
-      resetRunState()
-      setMapMode('view')
+      pauseRunKeepTrack()
+      setLastFailedRun({ message: msg, canRetry: true })
     } finally {
       setFinishing(false)
     }
@@ -298,6 +376,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     ensureReadyForApiSave,
     getCurrentUser,
     points,
+    pauseRunKeepTrack,
     resetRunState,
     selectTerritory,
     setMapMode,
@@ -390,6 +469,31 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
               <MapPin className="h-4 w-4" />
               Permitir localização
             </Button>
+          </div>
+        )}
+
+        {lastFailedRun && !isRunning && points.length >= 2 && (
+          <div className="flex flex-col items-center gap-2 mb-2 w-full max-w-sm">
+            <p className="text-center text-xs text-amber-400 px-2">
+              {lastFailedRun.message}
+            </p>
+            {lastFailedRun.canRetry && (
+              <Button
+                type="button"
+                size="sm"
+                className="gap-2"
+                style={{ background: BRAND.lime, color: '#19305A' }}
+                onClick={() => void handleFinish()}
+                disabled={finishing}
+              >
+                {finishing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Square className="h-4 w-4 fill-current" />
+                )}
+                Tentar novamente
+              </Button>
+            )}
           </div>
         )}
 
