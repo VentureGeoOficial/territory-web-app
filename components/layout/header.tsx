@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { formatArea } from '@/lib/territory/geo'
-import { LogOut, Map, Settings, Trophy, User, Users, Medal, Menu, CircleHelp } from 'lucide-react'
+import { LogOut, Map, Settings, Store, User, Users, Medal, Menu, CircleHelp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { zHeader } from '@/lib/layout/z-index'
 
@@ -26,7 +26,7 @@ const navItems = [
   { href: '/mapa', label: 'Mapa', icon: Map },
   { href: '/competicao', label: 'Competição', icon: Medal },
   { href: '/amigos', label: 'Amigos', icon: Users },
-  { href: '/trofeus', label: 'Troféus', icon: Trophy },
+  { href: '/loja', label: 'Loja', icon: Store },
   { href: '/conta', label: 'Conta', icon: Settings },
   { href: '/ajuda', label: 'Ajuda', icon: CircleHelp },
 ]
