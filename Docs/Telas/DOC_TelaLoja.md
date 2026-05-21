@@ -28,8 +28,8 @@
 
 ## Navegação
 
-- Barra inferior: item **Loja** (`Store` icon) — ver [`lib/navigation/nav-config.ts`](../../lib/navigation/nav-config.ts)
-- **Troféus** movido para menu do perfil (dropdown + sheet mobile)
+- Barra inferior e sheet mobile (Header): item **Loja** (`Store` icon) — ver [`lib/navigation/nav-config.ts`](../../lib/navigation/nav-config.ts)
+- **Troféus** no menu do perfil (dropdown + seção secundária do sheet)
 
 ## Observabilidade
 

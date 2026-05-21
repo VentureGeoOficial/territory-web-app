@@ -24,11 +24,12 @@ export const bottomNavItems: NavItem[] = [
   { href: '/conta', label: 'Conta', icon: Settings },
 ]
 
-/** Sheet mobile — sem Loja e sem Troféus */
+/** Sheet mobile — com Loja; Troféus fica no menu do perfil */
 export const mobileSheetNavItems: NavItem[] = [
   { href: '/mapa', label: 'Mapa', icon: Map },
   { href: '/competicao', label: 'Competição', icon: Medal },
   { href: '/amigos', label: 'Amigos', icon: Users },
+  { href: '/loja', label: 'Loja', icon: Store },
   { href: '/conta', label: 'Conta', icon: Settings },
   { href: '/ajuda', label: 'Ajuda', icon: CircleHelp },
 ]
