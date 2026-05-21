@@ -12,6 +12,7 @@
 | `/mapa` | [DOC_TelaMapa.md](DOC_TelaMapa.md) | [`app/(authenticated)/mapa/page.tsx`](../../app/(authenticated)/mapa/page.tsx) |
 | `/competicao` | [DOC_TelaCompeticao.md](DOC_TelaCompeticao.md) | [`app/(authenticated)/competicao/page.tsx`](../../app/(authenticated)/competicao/page.tsx) |
 | `/amigos` | [DOC_TelaAmigos.md](DOC_TelaAmigos.md) | [`app/(authenticated)/amigos/page.tsx`](../../app/(authenticated)/amigos/page.tsx) |
+| `/loja` | [DOC_TelaLoja.md](DOC_TelaLoja.md) | [`app/(authenticated)/loja/page.tsx`](../../app/(authenticated)/loja/page.tsx) |
 | `/trofeus` | [DOC_TelaTrofeus.md](DOC_TelaTrofeus.md) | [`app/(authenticated)/trofeus/page.tsx`](../../app/(authenticated)/trofeus/page.tsx) |
 | `/conta` | [DOC_TelaConta.md](DOC_TelaConta.md) | [`app/(authenticated)/conta/page.tsx`](../../app/(authenticated)/conta/page.tsx) |
 | `/conta/excluir` | [DOC_TelaContaExcluir.md](DOC_TelaContaExcluir.md) | [`app/(authenticated)/conta/excluir/page.tsx`](../../app/(authenticated)/conta/excluir/page.tsx) |

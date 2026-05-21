@@ -1,0 +1,41 @@
+import type { LucideIcon } from 'lucide-react'
+import {
+  CircleHelp,
+  Map,
+  Medal,
+  Settings,
+  Store,
+  Trophy,
+  Users,
+} from 'lucide-react'
+
+export interface NavItem {
+  href: string
+  label: string
+  icon: LucideIcon
+}
+
+/** Barra inferior fixa — Loja no lugar de Troféus */
+export const bottomNavItems: NavItem[] = [
+  { href: '/mapa', label: 'Mapa', icon: Map },
+  { href: '/competicao', label: 'Competição', icon: Medal },
+  { href: '/amigos', label: 'Amigos', icon: Users },
+  { href: '/loja', label: 'Loja', icon: Store },
+  { href: '/conta', label: 'Conta', icon: Settings },
+]
+
+/** Sheet mobile — sem Loja e sem Troféus */
+export const mobileSheetNavItems: NavItem[] = [
+  { href: '/mapa', label: 'Mapa', icon: Map },
+  { href: '/competicao', label: 'Competição', icon: Medal },
+  { href: '/amigos', label: 'Amigos', icon: Users },
+  { href: '/conta', label: 'Conta', icon: Settings },
+  { href: '/ajuda', label: 'Ajuda', icon: CircleHelp },
+]
+
+/** Menu do perfil (dropdown desktop + links secundários no sheet) */
+export const profileMenuItems: NavItem[] = [
+  { href: '/conta', label: 'Minha conta', icon: Settings },
+  { href: '/trofeus', label: 'Troféus', icon: Trophy },
+  { href: '/ajuda', label: 'Ajuda', icon: CircleHelp },
+]

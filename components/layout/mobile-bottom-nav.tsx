@@ -2,16 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Map, Medal, Trophy, Users, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const navItems = [
-  { href: '/mapa', label: 'Mapa', icon: Map },
-  { href: '/competicao', label: 'Competição', icon: Medal },
-  { href: '/amigos', label: 'Amigos', icon: Users },
-  { href: '/trofeus', label: 'Troféus', icon: Trophy },
-  { href: '/conta', label: 'Conta', icon: Settings },
-]
+import { bottomNavItems } from '@/lib/navigation/nav-config'
 
 export function MobileBottomNav() {
   const pathname = usePathname()
@@ -19,7 +11,7 @@ export function MobileBottomNav() {
   return (
     <nav className="fixed bottom-0 inset-x-0 z-[1100] border-t border-border bg-background/95 backdrop-blur">
       <div className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between px-4">
-        {navItems.map((item) => {
+        {bottomNavItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
           return (
@@ -32,6 +24,7 @@ export function MobileBottomNav() {
                 isActive ? 'text-primary' : 'text-muted-foreground',
               )}
               aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
             >
               <Icon
                 className={cn(
@@ -47,4 +40,3 @@ export function MobileBottomNav() {
     </nav>
   )
 }
-
