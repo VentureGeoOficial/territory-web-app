@@ -18,6 +18,8 @@
 | [`hooks/use-public-profile-sync.ts`](../../hooks/use-public-profile-sync.ts) | `error` | Snapshot `publicProfiles` falhou (`message`, `userId`; sem segredos) |
 | [`lib/firebase/client.ts`](../../lib/firebase/client.ts) | `error` / `warn` | Init app / fallback Firestore — ver [DOC_firebase-client.md](../Services/DOC_firebase-client.md) |
 | [`components/home/marketing-landing.tsx`](../../components/home/marketing-landing.tsx) | `info` | Eventos `landing_cta_click` via Vercel Analytics — ver [DOC_marketing-landing.tsx.md](DOC_marketing-landing.tsx.md) |
+| [`app/(authenticated)/loja/page.tsx`](../../app/(authenticated)/loja/page.tsx) | `info` | `page_view` via `lib/logging/logger` — ver [DOC_loja_page.md](DOC_loja_page.md) |
+| [`components/loja/track-loja-cta.ts`](../../components/loja/track-loja-cta.ts) | `info` | `loja_cta_click` via Vercel Analytics — ver [DOC_loja_page.md](DOC_loja_page.md) |
 
 **Logger centralizado:** [`lib/logging/logger.ts`](../../lib/logging/logger.ts) — JSON estruturado.
 

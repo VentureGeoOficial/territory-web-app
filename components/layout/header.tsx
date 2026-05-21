@@ -18,18 +18,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { formatArea } from '@/lib/territory/geo'
-import { LogOut, Map, Settings, Trophy, User, Users, Medal, Menu, CircleHelp } from 'lucide-react'
+import { mobileSheetNavItems, profileMenuItems } from '@/lib/navigation/nav-config'
+import { LogOut, Map, Trophy, User, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { zHeader } from '@/lib/layout/z-index'
-
-const navItems = [
-  { href: '/mapa', label: 'Mapa', icon: Map },
-  { href: '/competicao', label: 'Competição', icon: Medal },
-  { href: '/amigos', label: 'Amigos', icon: Users },
-  { href: '/trofeus', label: 'Troféus', icon: Trophy },
-  { href: '/conta', label: 'Conta', icon: Settings },
-  { href: '/ajuda', label: 'Ajuda', icon: CircleHelp },
-]
 
 export function Header() {
   const router = useRouter()
@@ -49,6 +41,8 @@ export function Header() {
       router.replace('/')
     })
   }, [logout, router])
+
+  const closeSheet = React.useCallback(() => setMobileMenuOpen(false), [])
 
   return (
     <header
@@ -70,7 +64,7 @@ export function Header() {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0">
+          <SheetContent side="left" className="w-72 flex flex-col p-0">
             <SheetHeader className="border-b border-border p-4">
               <div className="flex items-center gap-3">
                 <VentureGeoBrandLogo height={36} />
@@ -82,7 +76,7 @@ export function Header() {
                 </div>
               </div>
             </SheetHeader>
-            
+
             {/* Mobile Stats */}
             <div className="p-4 border-b border-border">
               <div className="flex items-center gap-4">
@@ -108,22 +102,22 @@ export function Header() {
                 </div>
               </div>
             </div>
-            
+
             {/* Navigation Links */}
-            <nav className="flex flex-col p-2">
-              {navItems.map((item) => {
+            <nav className="flex flex-col p-2 flex-1 overflow-y-auto pb-32">
+              {mobileSheetNavItems.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={closeSheet}
                     className={cn(
                       'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
                       isActive
                         ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                        : 'text-muted-foreground hover:bg-accent hover:text-foreground',
                     )}
                   >
                     <Icon className="h-5 w-5" />
@@ -131,10 +125,35 @@ export function Header() {
                   </Link>
                 )
               })}
+
+              <div className="my-2 border-t border-border" />
+
+              {profileMenuItems
+                .filter((item) => !mobileSheetNavItems.some((n) => n.href === item.href))
+                .map((item) => {
+                  const Icon = item.icon
+                  const isActive = pathname === item.href
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={closeSheet}
+                      className={cn(
+                        'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
+                        isActive
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {item.label}
+                    </Link>
+                  )
+                })}
             </nav>
-            
+
             {/* User Section */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
+            <div className="mt-auto border-t border-border p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
@@ -149,7 +168,7 @@ export function Header() {
                   size="icon"
                   className="h-9 w-9 text-muted-foreground hover:text-destructive"
                   onClick={() => {
-                    setMobileMenuOpen(false)
+                    closeSheet()
                     handleLogout()
                   }}
                   aria-label="Sair"
@@ -219,14 +238,15 @@ export function Header() {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{currentUser?.displayName || 'Conta'}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push('/conta')}>
-              <Settings className="h-4 w-4" />
-              Minha conta
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push('/ajuda')}>
-              <CircleHelp className="h-4 w-4" />
-              Ajuda
-            </DropdownMenuItem>
+            {profileMenuItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <DropdownMenuItem key={item.href} onClick={() => router.push(item.href)}>
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </DropdownMenuItem>
+              )
+            })}
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
