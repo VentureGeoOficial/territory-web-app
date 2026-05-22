@@ -67,7 +67,12 @@ export function PerformanceChart({ metrics }: PerformanceChartProps) {
               <ChartTooltip
                 content={
                   <ChartTooltipContent
-                    formatter={(value) => formatDistance(Number(value))}
+                    nameKey="distanceM"
+                    formatter={(value) => (
+                      <span className="font-mono font-medium text-foreground">
+                        {formatDistance(Number(value))}
+                      </span>
+                    )}
                   />
                 }
               />
