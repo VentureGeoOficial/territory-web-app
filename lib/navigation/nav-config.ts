@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import {
   CircleHelp,
+  LayoutDashboard,
   Map,
   Medal,
   Settings,
@@ -24,8 +25,9 @@ export const bottomNavItems: NavItem[] = [
   { href: '/conta', label: 'Conta', icon: Settings },
 ]
 
-/** Sheet mobile — com Loja; Troféus fica no menu do perfil */
+/** Sheet mobile — Dashboard no topo; Troféus fica no menu do perfil */
 export const mobileSheetNavItems: NavItem[] = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/mapa', label: 'Mapa', icon: Map },
   { href: '/competicao', label: 'Competição', icon: Medal },
   { href: '/amigos', label: 'Amigos', icon: Users },
