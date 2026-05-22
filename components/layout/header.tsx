@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { formatArea } from '@/lib/territory/geo'
 import { mobileSheetNavItems, profileMenuItems } from '@/lib/navigation/nav-config'
-import { LogOut, Map, Trophy, User, Menu } from 'lucide-react'
+import { LayoutDashboard, LogOut, Map, Trophy, User, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { zHeader } from '@/lib/layout/z-index'
 
@@ -222,8 +222,25 @@ export function Header() {
         </div>
       </div>
 
-      {/* User menu - Desktop */}
+      {/* Acesso rápido + menu do usuário */}
       <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            'h-9 w-9 shrink-0',
+            pathname === '/dashboard' && 'bg-primary/10 text-primary',
+          )}
+          asChild
+        >
+          <Link
+            href="/dashboard"
+            aria-label="Abrir Dashboard"
+            aria-current={pathname === '/dashboard' ? 'page' : undefined}
+          >
+            <LayoutDashboard className="h-5 w-5" />
+          </Link>
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-9 gap-2 px-2" aria-label="Abrir menu do usuário">

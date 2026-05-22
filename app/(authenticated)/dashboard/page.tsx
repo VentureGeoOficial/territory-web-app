@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import dynamic from 'next/dynamic'
 import { AuthenticatedShell } from '@/components/layout/authenticated-shell'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { ActivityTimeline } from '@/components/dashboard/activity-timeline'
@@ -8,11 +9,19 @@ import { DashboardEmptyState } from '@/components/dashboard/dashboard-empty-stat
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { DistanceWidget } from '@/components/dashboard/distance-widget'
 import { MovementMetricsSection } from '@/components/dashboard/movement-metrics-section'
-import { PerformanceChart } from '@/components/dashboard/performance-chart'
 import { RouteStatsSection } from '@/components/dashboard/route-stats-section'
 import { SpeedWidget } from '@/components/dashboard/speed-widget'
 import { StatsOverview } from '@/components/dashboard/stats-overview'
-import { StatsGridSkeleton } from '@/components/ui/skeletons'
+import { CardSkeleton, StatsGridSkeleton } from '@/components/ui/skeletons'
+
+const PerformanceChart = dynamic(
+  () =>
+    import('@/components/dashboard/performance-chart').then((mod) => mod.PerformanceChart),
+  {
+    ssr: false,
+    loading: () => <CardSkeleton />,
+  },
+)
 import { useCurrentUserPublicProfile } from '@/hooks/use-public-profile-sync'
 import { useDashboardMetrics } from '@/hooks/use-dashboard-metrics'
 import { useAuthStore } from '@/lib/store/auth-store'

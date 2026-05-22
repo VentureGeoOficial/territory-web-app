@@ -1,8 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { Badge } from '@/components/ui/badge'
 import { formatDistance, formatDuration } from '@/lib/territory/geo'
 import type { RunRecord } from '@/lib/dashboard/types'
@@ -13,8 +11,18 @@ interface ActivityCardProps {
   className?: string
 }
 
+function formatRunDate(ts: number): string {
+  return new Date(ts).toLocaleString('pt-BR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 function ActivityCardComponent({ run, className }: ActivityCardProps) {
-  const dateLabel = format(new Date(run.endedAt), "d MMM yyyy, HH:mm", { locale: ptBR })
+  const dateLabel = formatRunDate(run.endedAt)
   const speed =
     run.durationSeconds > 0 ? (run.distanceMeters / run.durationSeconds) * 3.6 : 0
 

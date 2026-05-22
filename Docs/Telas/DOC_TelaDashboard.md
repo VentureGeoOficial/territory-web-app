@@ -10,7 +10,13 @@ Dashboard esportivo com estatísticas agregadas, histórico de percursos e gráf
 ## Navegação
 
 - **Menu lateral (sheet):** primeiro item — `Dashboard` (`LayoutDashboard`) em [`lib/navigation/nav-config.ts`](../../lib/navigation/nav-config.ts).
+- **Header:** botão de acesso rápido `LayoutDashboard` → `/dashboard` (à esquerda do menu do utilizador).
 - **Barra inferior:** sem entrada Dashboard (inalterada).
+
+## Compatibilidade mobile
+
+- Gráfico (`PerformanceChart`): carregado com `next/dynamic` e `ssr: false` em [`dashboard/page.tsx`](../../app/(authenticated)/dashboard/page.tsx).
+- Datas na timeline: `toLocaleString('pt-BR')` em [`activity-card.tsx`](../../components/dashboard/activity-card.tsx) (sem `date-fns/locale`).
 
 ## Fontes de dados
 
