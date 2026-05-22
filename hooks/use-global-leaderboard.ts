@@ -8,13 +8,13 @@ import { getLeaderboardRepository } from '@/lib/data/territory-repository'
 function buildFromStore(): RankingEntry[] {
   const { users } = useTerritoryStore.getState()
   const sorted = [...users].sort(
-    (a, b) => b.totalAreaM2 - a.totalAreaM2 || b.territoriesCount - a.territoriesCount,
+    (a, b) => b.territoriesCount - a.territoriesCount || a.displayName.localeCompare(b.displayName, 'pt-BR'),
   )
   return sorted.map((u, i) => ({
     userId: u.id,
     userName: u.displayName,
     userColor: u.color,
-    totalAreaM2: u.totalAreaM2,
+    xp: 0,
     territoriesCount: u.territoriesCount,
     rank: i + 1,
   }))

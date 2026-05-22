@@ -8,9 +8,24 @@ import {
 } from 'firebase/firestore'
 import { getFirestoreDb } from './client'
 import { isFirebaseConfigured } from './config'
+import { log } from '@/lib/logging/logger'
 import type { RankingEntry } from '@/lib/territory/types'
 
 const PUBLIC_PROFILES = 'publicProfiles'
+
+function normalizeXp(raw: unknown, userId: string): number {
+  const n = Number(raw ?? 0)
+  if (!Number.isFinite(n) || Number.isNaN(n)) {
+    log.warn({
+      scope: 'RankingService',
+      event: 'leaderboard_invalid_xp',
+      userId,
+      raw: typeof raw,
+    })
+    return 0
+  }
+  return Math.max(0, Math.floor(n))
+}
 
 export function subscribeGlobalLeaderboard(
   onUpdate: (entries: RankingEntry[]) => void,
@@ -20,28 +35,51 @@ export function subscribeGlobalLeaderboard(
   const db = getFirestoreDb()
   const q = query(
     collection(db, PUBLIC_PROFILES),
-    orderBy('totalAreaM2', 'desc'),
+    orderBy('xp', 'desc'),
     limit(max),
   )
-  return onSnapshot(q, (snap) => {
-    const entries: RankingEntry[] = []
-    let rank = 1
-    snap.forEach((d) => {
-      const data = d.data() as {
-        displayName?: string
-        color?: string
-        totalAreaM2?: number
-        territoriesCount?: number
-      }
-      entries.push({
-        userId: d.id,
-        userName: data.displayName ?? 'Corredor',
-        userColor: data.color ?? '#CCFF00',
-        totalAreaM2: Number(data.totalAreaM2 ?? 0),
-        territoriesCount: Number(data.territoriesCount ?? 0),
-        rank: rank++,
+  let loggedFirstUpdate = false
+
+  return onSnapshot(
+    q,
+    (snap) => {
+      const entries: RankingEntry[] = []
+      let rank = 1
+      snap.forEach((d) => {
+        const data = d.data() as {
+          displayName?: string
+          color?: string
+          xp?: number
+          territoriesCount?: number
+        }
+        entries.push({
+          userId: d.id,
+          userName: data.displayName ?? 'Corredor',
+          userColor: data.color ?? '#CCFF00',
+          xp: normalizeXp(data.xp, d.id),
+          territoriesCount: Number(data.territoriesCount ?? 0),
+          rank: rank++,
+        })
       })
-    })
-    onUpdate(entries)
-  })
+      if (!loggedFirstUpdate) {
+        loggedFirstUpdate = true
+        log.info({
+          scope: 'RankingService',
+          event: 'leaderboard_updated',
+          count: entries.length,
+          source: 'lib/firebase/ranking.ts',
+        })
+      }
+      onUpdate(entries)
+    },
+    (err) => {
+      log.error({
+        scope: 'RankingService',
+        event: 'leaderboard_subscribe_failed',
+        message: err.message,
+        source: 'lib/firebase/ranking.ts',
+      })
+      onUpdate([])
+    },
+  )
 }

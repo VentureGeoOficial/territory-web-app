@@ -4,7 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { useTerritoryStore } from '@/lib/store/territory-store'
-import { formatArea } from '@/lib/territory/geo'
+import { formatArea, formatXp } from '@/lib/territory/geo'
 import { useLeaderboardPreview } from '@/hooks/use-leaderboard-preview'
 import { useFriendsCount } from '@/hooks/use-friends-count'
 import { Button } from '@/components/ui/button'
@@ -123,7 +123,7 @@ export function AuthenticatedDashboard() {
               <div>
                 <CardTitle>Ranking (prévia)</CardTitle>
                 <CardDescription>
-                  Ordenado por área total dominada
+                  Ordenado por XP total acumulado
                 </CardDescription>
               </div>
               <Button variant="ghost" size="sm" asChild>
@@ -165,8 +165,8 @@ export function AuthenticatedDashboard() {
                           {row.userName}
                         </span>
                       </span>
-                      <span className="font-mono text-muted-foreground">
-                        {formatArea(row.totalAreaM2)}
+                      <span className="font-mono text-muted-foreground tabular-nums">
+                        {formatXp(row.xp)}
                       </span>
                     </li>
                   ))}

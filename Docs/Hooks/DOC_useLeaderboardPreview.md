@@ -9,7 +9,7 @@
 ## Comportamento
 
 - Se `!isFirebaseConfigured()`, lista vazia.
-- Caso contrário chama **diretamente** [`subscribeGlobalLeaderboard`](../../lib/firebase/ranking.ts) (não passa pelo repositório).
+- Caso contrário chama **diretamente** [`subscribeGlobalLeaderboard`](../../lib/firebase/ranking.ts) (ranking por **XP**; não passa pelo repositório).
 
 ## Diferença vs useGlobalLeaderboard
 
