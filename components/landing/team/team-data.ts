@@ -10,27 +10,27 @@ import type { TeamMember } from './types'
  */
 export const teamMembers: TeamMember[] = [
   {
+    id: 'marcelo',
+    name: 'Marcelo',
+    role: 'Documentação & Análise de Projeto',
+    badge: 'Core Team',
+    bio: 'Dá forma e credibilidade ao TerritoryRun por trás do código. Estrutura a documentação técnica do repositório, conduz análises de arquitetura e fluxos, consolida projeções de negócio e assegura rastreabilidade entre produto, segurança e entrega.',
+    image: marceloPhoto,
+  },
+  {
     id: 'henrique',
     name: 'Henrique',
     role: 'Full Stack Developer',
     badge: 'Core Team',
-    bio: 'Desenvolve a arquitetura do produto, integrações e experiências que conectam mapa, dados e performance em tempo real.',
+    bio: 'Impulsiona o produto de ponta a ponta no TerritoryRun. Desenvolve a experiência web — landing, PWA, mapa com GPS, autenticação e gamificação — conectando interface, APIs e performance para transformar cada corrida em conquista territorial.',
     image: henriquePhoto,
   },
   {
     id: 'leonardo',
     name: 'Leonardo',
-    role: 'Frontend Developer',
+    role: 'Backend & Banco de Dados',
     badge: 'Core Team',
-    bio: 'Responsável pela interface, responsividade e microinterações que tornam o TerritoryRun rápido e envolvente no dia a dia.',
+    bio: 'Sustenta a espinha dorsal de dados do TerritoryRun. Modela o Firestore, define regras e transações críticas e implementa APIs e integrações que garantem territórios, corridas, ranking e autenticação com consistência e segurança.',
     image: leonardoPhoto,
-  },
-  {
-    id: 'marcelo',
-    name: 'Marcelo',
-    role: 'Backend Engineer',
-    badge: 'Core Team',
-    bio: 'Atua na camada de serviços, regras de negócio e confiabilidade dos fluxos críticos de território e autenticação.',
-    image: marceloPhoto,
   },
 ]
