@@ -148,6 +148,17 @@ export function formatArea(areaM2: number): string {
 }
 
 /**
+ * Formata XP total para exibição no ranking (pt-BR).
+ */
+export function formatXp(xp: number): string {
+  const value = Math.max(
+    0,
+    Math.floor(Number.isFinite(xp) && !Number.isNaN(xp) ? xp : 0),
+  )
+  return `${value.toLocaleString('pt-BR')} XP`
+}
+
+/**
  * Formata distancia em metros para exibicao
  */
 export function formatDistance(distanceM: number): string {

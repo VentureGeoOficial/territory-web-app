@@ -150,7 +150,8 @@ export interface RankingEntry {
   userId: string
   userName: string
   userColor: string
-  totalAreaM2: number
+  /** XP total acumulado (corridas e conquistas) — métrica do ranking. */
+  xp: number
   territoriesCount: number
   rank: number
 }

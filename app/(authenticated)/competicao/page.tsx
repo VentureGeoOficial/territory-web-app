@@ -9,9 +9,18 @@ import { AuthenticatedShell } from '@/components/layout/authenticated-shell'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Badge } from '@/components/ui/badge'
 import { RankingListSkeleton } from '@/components/ui/skeletons'
-import { formatArea } from '@/lib/territory/geo'
+import { formatXp } from '@/lib/territory/geo'
 import type { RankingEntry } from '@/lib/territory/types'
+
+function compareRankingEntries(a: RankingEntry, b: RankingEntry): number {
+  return (
+    b.xp - a.xp ||
+    b.territoriesCount - a.territoriesCount ||
+    a.userName.localeCompare(b.userName, 'pt-BR')
+  )
+}
 
 export default function CompeticaoPage() {
   const uid = useAuthStore((s) => s.user?.id)
@@ -22,9 +31,7 @@ export default function CompeticaoPage() {
     if (!uid) return [] as RankingEntry[]
     const allow = new Set([uid, ...friendIds])
     const filtered = global.filter((e) => allow.has(e.userId))
-    return filtered
-      .sort((a, b) => b.totalAreaM2 - a.totalAreaM2)
-      .map((e, i) => ({ ...e, rank: i + 1 }))
+    return filtered.sort(compareRankingEntries).map((e, i) => ({ ...e, rank: i + 1 }))
   }, [global, friendIds, uid])
 
   return (
@@ -33,7 +40,7 @@ export default function CompeticaoPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Competição</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Compare a área dominada com os seus amigos em Suzano.
+            Compare seu XP total com os seus amigos em Suzano.
           </p>
         </div>
 
@@ -91,7 +98,9 @@ const LeaderboardCard = React.memo(function LeaderboardCard({
     <Card>
       <CardHeader>
         <CardTitle>Ranking</CardTitle>
-        <CardDescription>Quanto maior a área acumulada, melhor a posição.</CardDescription>
+        <CardDescription>
+          Quanto maior o XP acumulado (corridas e conquistas), melhor a posição.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -102,30 +111,49 @@ const LeaderboardCard = React.memo(function LeaderboardCard({
           </p>
         ) : (
           <ul className="divide-y divide-border rounded-lg border border-border">
-            {entries.map((row) => (
-              <li
-                key={row.userId}
-                className="flex items-center justify-between px-4 py-3 text-sm first:rounded-t-lg last:rounded-b-lg"
-              >
-                <span className="flex items-center gap-3 min-w-0">
-                  <span className="font-mono text-muted-foreground w-8 shrink-0">
-                    #{row.rank}
+            {entries.map((row) => {
+              const isMe = row.userId === currentUserId
+              return (
+                <li
+                  key={row.userId}
+                  className={`flex items-center justify-between px-4 py-3 text-sm first:rounded-t-lg last:rounded-b-lg ${
+                    isMe ? 'bg-primary/5' : ''
+                  }`}
+                >
+                  <span className="flex items-center gap-3 min-w-0">
+                    <span className="font-mono text-muted-foreground w-8 shrink-0">
+                      #{row.rank}
+                    </span>
+                    <span
+                      className="h-2.5 w-2.5 rounded-full shrink-0"
+                      style={{ background: row.userColor }}
+                    />
+                    <span
+                      className={`truncate flex items-center gap-2 min-w-0 ${
+                        isMe ? 'font-semibold text-primary' : ''
+                      }`}
+                    >
+                      <span className="truncate">{row.userName}</span>
+                      {isMe && (
+                        <Badge
+                          variant="secondary"
+                          className="shrink-0 text-[10px] px-1.5 py-0 h-4"
+                        >
+                          Você
+                        </Badge>
+                      )}
+                    </span>
                   </span>
                   <span
-                    className="h-2.5 w-2.5 rounded-full shrink-0"
-                    style={{ background: row.userColor }}
-                  />
-                  <span
-                    className={`truncate ${row.userId === currentUserId ? 'font-semibold text-primary' : ''}`}
+                    className={`font-mono shrink-0 ml-2 tabular-nums ${
+                      isMe ? 'text-primary font-semibold' : 'text-muted-foreground'
+                    }`}
                   >
-                    {row.userName}
+                    {formatXp(row.xp)}
                   </span>
-                </span>
-                <span className="font-mono text-muted-foreground shrink-0 ml-2">
-                  {formatArea(row.totalAreaM2)}
-                </span>
-              </li>
-            ))}
+                </li>
+              )
+            })}
           </ul>
         )}
       </CardContent>

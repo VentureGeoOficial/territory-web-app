@@ -9,7 +9,7 @@
 ## Comportamento
 
 - `getLeaderboardRepository()` — se null, `entries` fica `[]`.
-- Caso contrário `subscribeGlobalLeaderboard(setEntries, limit)`.
+- Caso contrário `subscribeGlobalLeaderboard(setEntries, limit)` — entradas ordenadas por **XP** (`publicProfiles.xp`).
 
 ## Nota
 
