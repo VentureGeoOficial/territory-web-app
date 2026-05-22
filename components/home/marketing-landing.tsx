@@ -31,6 +31,7 @@ import {
   Zap,
 } from 'lucide-react'
 import speedMascot from '@/IMG/speed-mascote.png'
+import { TeamSection } from '@/components/landing/team/team-section'
 import { useInstallPrompt } from '@/lib/pwa/use-install-prompt'
 
 const appHighlights = [
@@ -682,6 +683,8 @@ export function MarketingLanding() {
             </Card>
           </div>
         </section>
+
+        <TeamSection />
       </main>
 
       <footer className="border-t border-border/60 bg-card/30 px-4 py-12">

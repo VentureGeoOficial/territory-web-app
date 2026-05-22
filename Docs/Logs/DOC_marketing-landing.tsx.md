@@ -8,9 +8,9 @@ A landing page não utiliza `console.log`, `console.warn` ou `console.error`, po
 
 Para rastrear conversão sem gerar ruído operacional, foram adicionados eventos estruturados por meio do `@vercel/analytics`.
 
-## Evento Adicionado
+## Eventos (Vercel Analytics)
 
-- **Nome:** `landing_cta_click`
+### `landing_cta_click`
 - **Nível equivalente:** `INFO`
 - **Objetivo:** medir interação com CTAs de cadastro, login, instalação PWA, saiba mais, patrocínio e seção do Speed.
 - **Origem:** `MarketingLanding`
@@ -21,6 +21,15 @@ Para rastrear conversão sem gerar ruído operacional, foram adicionados eventos
 - `action`: ação do CTA, como `criar_conta`, `comecar_agora`, `ja_tenho_conta`, `saiba_mais`, `instalar_app`, `anunciar`.
 - `section`: local de origem do clique, como `nav`, `hero`, `cta_final`, `patrocinios`, `mascote_speed`.
 - `feature`: valor fixo `MarketingLanding`.
+
+### `landing_team_social_click`
+
+- **Nível equivalente:** `INFO`
+- **Objetivo:** medir cliques em ícones sociais da seção "Desenvolvido por".
+- **Origem:** `components/landing/team/social-links.tsx`
+- **Documentação detalhada:** [`DOC_team-section.md`](./DOC_team-section.md)
+
+**Campos:** `platform` (`github` | `linkedin` | `instagram`), `memberId`, `feature` (`TeamSection`).
 
 ## Segurança dos Logs
 
