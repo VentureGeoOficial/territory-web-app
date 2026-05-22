@@ -9,6 +9,7 @@
 | `/termos` | [DOC_TelaTermos.md](DOC_TelaTermos.md) | [`app/termos/page.tsx`](../../app/termos/page.tsx) |
 | `/privacidade` | [DOC_TelaPrivacidade.md](DOC_TelaPrivacidade.md) | [`app/privacidade/page.tsx`](../../app/privacidade/page.tsx) |
 | Layout auth | [DOC_AuthenticatedLayout.md](DOC_AuthenticatedLayout.md) | [`app/(authenticated)/layout.tsx`](../../app/(authenticated)/layout.tsx) |
+| `/dashboard` | [DOC_TelaDashboard.md](DOC_TelaDashboard.md) | [`app/(authenticated)/dashboard/page.tsx`](../../app/(authenticated)/dashboard/page.tsx) |
 | `/mapa` | [DOC_TelaMapa.md](DOC_TelaMapa.md) | [`app/(authenticated)/mapa/page.tsx`](../../app/(authenticated)/mapa/page.tsx) |
 | `/competicao` | [DOC_TelaCompeticao.md](DOC_TelaCompeticao.md) | [`app/(authenticated)/competicao/page.tsx`](../../app/(authenticated)/competicao/page.tsx) |
 | `/amigos` | [DOC_TelaAmigos.md](DOC_TelaAmigos.md) | [`app/(authenticated)/amigos/page.tsx`](../../app/(authenticated)/amigos/page.tsx) |

@@ -20,6 +20,8 @@
 | [`components/home/marketing-landing.tsx`](../../components/home/marketing-landing.tsx) | `info` | Eventos `landing_cta_click` via Vercel Analytics — ver [DOC_marketing-landing.tsx.md](DOC_marketing-landing.tsx.md) |
 | [`app/(authenticated)/loja/page.tsx`](../../app/(authenticated)/loja/page.tsx) | `info` | `page_view` via `lib/logging/logger` — ver [DOC_loja_page.md](DOC_loja_page.md) |
 | [`components/loja/track-loja-cta.ts`](../../components/loja/track-loja-cta.ts) | `info` | `loja_cta_click` via Vercel Analytics — ver [DOC_loja_page.md](DOC_loja_page.md) |
+| [`app/(authenticated)/dashboard/page.tsx`](../../app/(authenticated)/dashboard/page.tsx) | `info` | `page_view` — ver [DOC_dashboard_page.md](DOC_dashboard_page.md) |
+| [`lib/firebase/dashboard-runs.ts`](../../lib/firebase/dashboard-runs.ts) | `error` | `subscribe_error` em falha Firestore — ver [DOC_dashboard_page.md](DOC_dashboard_page.md) |
 
 **Logger centralizado:** [`lib/logging/logger.ts`](../../lib/logging/logger.ts) — JSON estruturado.
 
