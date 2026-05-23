@@ -158,7 +158,7 @@ export async function POST(req: Request) {
 
     const xpGain = computeXpFromRun(body.distanceMeters, territoryForCapture.areaM2)
 
-    await executeCaptureTransaction({
+    const victimOutcomes = await executeCaptureTransaction({
       attackerUid: uid,
       newTerritory: territoryForCapture,
       xpCost: impact.xpCost,
@@ -179,6 +179,8 @@ export async function POST(req: Request) {
       event: 'success',
       uid,
       territoryId: territoryForCapture.id,
+      victimOutcomeCount: victimOutcomes.length,
+      partialShrinkCount: victimOutcomes.filter((o) => o.mode === 'partial_shrink').length,
     })
 
     return NextResponse.json({
