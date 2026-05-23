@@ -650,11 +650,6 @@ export function MarketingLanding() {
               <div className="absolute left-0 top-0 h-32 w-32 rounded-full bg-primary/10 blur-[60px]" />
               <div className="absolute bottom-0 right-0 h-40 w-40 rounded-full bg-accent/10 blur-[80px]" />
 
-              <div className="relative z-10">
-                <div className="mb-6 flex justify-center">
-                  <SpeedImage height={96} className="h-auto w-24 opacity-90" />
-                </div>
-
                 <h2 className="mb-4 text-balance text-3xl font-bold text-foreground md:text-5xl">
                   Pronto para <span className="text-primary">conquistar</span>?
                 </h2>
