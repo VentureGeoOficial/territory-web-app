@@ -1,5 +1,5 @@
 import * as turf from '@turf/turf'
-import type { Feature, Polygon, Position } from 'geojson'
+import type { Feature, MultiPolygon, Polygon, Position } from 'geojson'
 import type {
   TrackPoint,
   TerritoryConfig,
@@ -181,6 +181,87 @@ export function calculateIntersectionArea(
     return { intersectionPolygon: null, areaM2: 0 }
   } catch {
     return { intersectionPolygon: null, areaM2: 0 }
+  }
+}
+
+/** Área mínima (m²) para manter território da vítima após invasão parcial. */
+export const MIN_REMAINDER_AREA_M2 = 50
+
+export interface SubtractPolygonOverlapResult {
+  remainder: Feature<Polygon> | null
+  remainderAreaM2: number
+  lostAreaM2: number
+  intersectionAreaM2: number
+  fullCapture: boolean
+}
+
+function largestPolygonFromGeometries(
+  geometry: Polygon | MultiPolygon | null | undefined,
+): Feature<Polygon> | null {
+  if (!geometry) return null
+  if (geometry.type === 'Polygon') {
+    return turf.polygon(geometry.coordinates) as Feature<Polygon>
+  }
+  let best: Feature<Polygon> | null = null
+  let bestArea = 0
+  for (const rings of geometry.coordinates) {
+    const poly = turf.polygon(rings) as Feature<Polygon>
+    const a = turf.area(poly)
+    if (a > bestArea) {
+      bestArea = a
+      best = poly
+    }
+  }
+  return best
+}
+
+/**
+ * Subtrai a área do atacante do polígono da vítima (invasão parcial).
+ * Se o restante for menor que MIN_REMAINDER_AREA_M2, indica conquista total.
+ */
+export function subtractPolygonOverlap(
+  victim: Feature<Polygon>,
+  attacker: Feature<Polygon>,
+): SubtractPolygonOverlapResult {
+  const { areaM2: intersectionAreaM2 } = calculateIntersectionArea(victim, attacker)
+
+  if (intersectionAreaM2 <= 0) {
+    const remainderAreaM2 = turf.area(victim)
+    return {
+      remainder: victim,
+      remainderAreaM2,
+      lostAreaM2: 0,
+      intersectionAreaM2: 0,
+      fullCapture: false,
+    }
+  }
+
+  try {
+    const diffFeature = turf.difference(
+      turf.featureCollection([victim, attacker]),
+    ) as Feature<Polygon | MultiPolygon> | null
+
+    const remainder = largestPolygonFromGeometries(diffFeature?.geometry ?? null)
+    const remainderAreaM2 = remainder ? turf.area(remainder) : 0
+    const lostAreaM2 = Math.min(intersectionAreaM2, turf.area(victim))
+    const fullCapture =
+      !remainder || remainderAreaM2 < MIN_REMAINDER_AREA_M2
+
+    return {
+      remainder: fullCapture ? null : remainder,
+      remainderAreaM2,
+      lostAreaM2,
+      intersectionAreaM2,
+      fullCapture,
+    }
+  } catch {
+    return {
+      remainder: null,
+      remainderAreaM2: 0,
+      lostAreaM2: intersectionAreaM2,
+      intersectionAreaM2,
+      fullCapture: true,
+    }
   }
 }
 

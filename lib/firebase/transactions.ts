@@ -1,12 +1,17 @@
 import 'server-only'
 
 import { FieldValue } from 'firebase-admin/firestore'
+import type { Feature, Polygon } from 'geojson'
 import type { Territory } from '@/lib/territory/types'
 import {
+  geohashFieldsFromCenter,
   territoryToFirestoreDoc,
   type TerritoryFirestoreDoc,
 } from '@/lib/firebase/territory-doc'
 import { getAdminFirestore } from '@/lib/firebase/admin-app'
+import { log } from '@/lib/logging/logger'
+import { subtractPolygonOverlap } from '@/lib/territory/territory-generator'
+import * as turf from '@turf/turf'
 
 const TERRITORIES = 'territories'
 const USERS = 'users'
@@ -33,6 +38,19 @@ export interface ExecuteCaptureTransactionInput {
   run: CaptureRunPayload
 }
 
+export type CaptureVictimOutcomeMode =
+  | 'partial_shrink'
+  | 'full_expire'
+  | 'difference_failed'
+
+export interface CaptureVictimOutcome {
+  territoryId: string
+  victimUid: string
+  mode: CaptureVictimOutcomeMode
+  lostAreaM2: number
+  remainderAreaM2?: number
+}
+
 export class CaptureTransactionError extends Error {
   constructor(
     message: string,
@@ -49,13 +67,12 @@ export class CaptureTransactionError extends Error {
 }
 
 /**
- * Transação atómica (Admin SDK): debita XP de conquista, expira territórios inimigos,
- * cria o novo território em `protected` e regista a corrida.
- * Regra de XP: `novoXp = xpAtual + xpGain - xpCost` (exige xpAtual + xpGain >= xpCost).
+ * Transação atómica (Admin SDK): debita XP de conquista, reduz ou expira territórios
+ * inimigos conforme área invadida, cria o novo território em `protected` e regista a corrida.
  */
 export async function executeCaptureTransaction(
   input: ExecuteCaptureTransactionInput,
-): Promise<void> {
+): Promise<CaptureVictimOutcome[]> {
   const {
     attackerUid,
     newTerritory,
@@ -67,8 +84,10 @@ export async function executeCaptureTransaction(
 
   const db = getAdminFirestore()
   const now = Date.now()
+  const attackerPolygon = newTerritory.polygon
 
-  await db.runTransaction(async (trx) => {
+  const outcomes = await db.runTransaction(async (trx) => {
+    const txOutcomes: CaptureVictimOutcome[] = []
     const attackerRef = db.collection(USERS).doc(attackerUid)
     const attackerPublicRef = db.collection(PUBLIC_PROFILES).doc(attackerUid)
     const territoryRef = db.collection(TERRITORIES).doc(newTerritory.id)
@@ -107,6 +126,7 @@ export async function executeCaptureTransaction(
 
     for (let i = 0; i < overlapSnaps.length; i++) {
       const snap = overlapSnaps[i]!
+      const ref = overlapRefs[i]!
       const expectedId = overlappedTerritoryIds[i]!
       if (!snap.exists) {
         throw new CaptureTransactionError(
@@ -135,19 +155,56 @@ export async function executeCaptureTransaction(
         )
       }
 
+      const victimPoly = JSON.parse(data.polygonJson) as Feature<Polygon>
+
+      const subtraction = subtractPolygonOverlap(victimPoly, attackerPolygon)
       const victimId = data.userId
       const prev = victimAdjustments.get(victimId) ?? { area: 0, count: 0 }
-      victimAdjustments.set(victimId, {
-        area: prev.area + data.areaM2,
-        count: prev.count + 1,
-      })
-    }
 
-    for (const ref of overlapRefs) {
-      trx.update(ref, {
-        status: 'expired',
-        updatedAt: now,
-      })
+      if (subtraction.fullCapture || !subtraction.remainder) {
+        trx.update(ref, {
+          status: 'expired',
+          updatedAt: now,
+        })
+        victimAdjustments.set(victimId, {
+          area: prev.area + data.areaM2,
+          count: prev.count + 1,
+        })
+        txOutcomes.push({
+          territoryId: expectedId,
+          victimUid: victimId,
+          mode: subtraction.intersectionAreaM2 > 0 ? 'full_expire' : 'difference_failed',
+          lostAreaM2: data.areaM2,
+        })
+      } else {
+        const centroid = turf.centroid(subtraction.remainder)
+        const [centerLng, centerLat] = centroid.geometry.coordinates
+        const { geohash, geohashPrefix } = geohashFieldsFromCenter(centerLat, centerLng)
+        const nextStatus: Territory['status'] =
+          data.status === 'active' ? 'disputed' : data.status
+
+        trx.update(ref, {
+          polygonJson: JSON.stringify(subtraction.remainder),
+          areaM2: subtraction.remainderAreaM2,
+          centerLng,
+          centerLat,
+          geohash,
+          geohashPrefix,
+          status: nextStatus,
+          updatedAt: now,
+        })
+        victimAdjustments.set(victimId, {
+          area: prev.area + subtraction.lostAreaM2,
+          count: prev.count,
+        })
+        txOutcomes.push({
+          territoryId: expectedId,
+          victimUid: victimId,
+          mode: 'partial_shrink',
+          lostAreaM2: subtraction.lostAreaM2,
+          remainderAreaM2: subtraction.remainderAreaM2,
+        })
+      }
     }
 
     for (const [victimUid, delta] of victimAdjustments) {
@@ -204,5 +261,37 @@ export async function executeCaptureTransaction(
 
     trx.set(attackerRef, mergedStats, { merge: true })
     trx.set(attackerPublicRef, mergedStats, { merge: true })
+
+    return txOutcomes
   })
+
+  for (const outcome of outcomes) {
+    if (outcome.mode === 'partial_shrink') {
+      log.info({
+        scope: 'TerritoryCaptureTransaction',
+        event: 'capture_victim_partial_shrink',
+        territoryId: outcome.territoryId,
+        victimUidPrefix: outcome.victimUid.slice(0, 8),
+        lostAreaM2: Math.round(outcome.lostAreaM2),
+        remainderAreaM2: Math.round(outcome.remainderAreaM2 ?? 0),
+      })
+    } else if (outcome.mode === 'full_expire') {
+      log.info({
+        scope: 'TerritoryCaptureTransaction',
+        event: 'capture_victim_full_expire',
+        territoryId: outcome.territoryId,
+        victimUidPrefix: outcome.victimUid.slice(0, 8),
+        lostAreaM2: Math.round(outcome.lostAreaM2),
+      })
+    } else {
+      log.warn({
+        scope: 'TerritoryCaptureTransaction',
+        event: 'capture_difference_failed',
+        territoryId: outcome.territoryId,
+        victimUidPrefix: outcome.victimUid.slice(0, 8),
+      })
+    }
+  }
+
+  return outcomes
 }
