@@ -13,6 +13,10 @@ import {
 } from 'firebase/firestore'
 import { getFirestoreDb } from './client'
 import { isFirebaseConfigured } from './config'
+import {
+  FRIENDSHIPS_COLLECTION,
+  FRIENDSHIPS_LIST_SUBCOLLECTION,
+} from './friends-graph'
 
 export type FriendRequestStatus =
   | 'pending'
@@ -292,63 +296,33 @@ export async function cancelFriendRequest(requestId: string): Promise<void> {
   )
 }
 
-/** Amigos: pedidos aceites envolvendo o utilizador (duas queries indexadas). */
+/**
+ * Amigos diretos via grafo `friendships/{userId}/list/{friendUid}`.
+ * Alinhado com Firestore rules, APIs de território e Admin SDK.
+ */
 export function subscribeAcceptedFriends(
   userId: string,
   onUpdate: (friendIds: string[]) => void,
 ): Unsubscribe | null {
   if (!isFirebaseConfigured()) return null
   const db = getFirestoreDb()
-  const q1 = query(
-    collection(db, REQUESTS),
-    where('fromUserId', '==', userId),
-    where('status', '==', 'accepted'),
-  )
-  const q2 = query(
-    collection(db, REQUESTS),
-    where('toUserId', '==', userId),
-    where('status', '==', 'accepted'),
+  const listRef = collection(
+    db,
+    FRIENDSHIPS_COLLECTION,
+    userId,
+    FRIENDSHIPS_LIST_SUBCOLLECTION,
   )
 
-  let a: string[] = []
-  let b: string[] = []
-
-  const merge = () => {
-    const ids = new Set<string>()
-    a.forEach((id) => ids.add(id))
-    b.forEach((id) => ids.add(id))
-    onUpdate(Array.from(ids))
-  }
-
-  const onListenErr = (scope: string) => (e: Error) => {
-    console.warn('[subscribeAcceptedFriends]', scope, { message: e.message })
-  }
-
-  const u1 = onSnapshot(
-    q1,
+  return onSnapshot(
+    listRef,
     (snap) => {
-      a = snap.docs.map((d) => {
-        const data = d.data() as { toUserId: string }
-        return data.toUserId
-      })
-      merge()
+      onUpdate(snap.docs.map((d) => d.id))
     },
-    onListenErr('from_user_accepted'),
-  )
-  const u2 = onSnapshot(
-    q2,
-    (snap) => {
-      b = snap.docs.map((d) => {
-        const data = d.data() as { fromUserId: string }
-        return data.fromUserId
+    (e) => {
+      console.warn('[subscribeAcceptedFriends]', 'friendships_graph', {
+        message: e.message,
       })
-      merge()
+      onUpdate([])
     },
-    onListenErr('to_user_accepted'),
   )
-
-  return () => {
-    u1()
-    u2()
-  }
 }

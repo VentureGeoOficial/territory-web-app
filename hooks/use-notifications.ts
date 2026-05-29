@@ -55,6 +55,10 @@ export function useNotificationsListener(): void {
       },
       (err) => {
         console.error('[useNotificationsListener]', err)
+        toast.error(
+          'Não foi possível carregar notificações. Verifique se as regras e índices do Firebase estão publicados.',
+          { duration: 6000 },
+        )
       },
     )
 

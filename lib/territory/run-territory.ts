@@ -216,10 +216,11 @@ export function createTerritoryFromRunTrack(
   }
 
   const now = nowMs ?? Date.now()
+  const socialFriends = friendOwnerIds ?? new Set<string>()
   let status: TerritoryStatus = 'active'
   for (const existing of existingTerritories) {
     if (existing.userId === currentUserId) continue
-    if (friendOwnerIds && !friendOwnerIds.has(existing.userId)) continue
+    if (!socialFriends.has(existing.userId)) continue
     if (checkTerritoryIntersection(polygon, existing.polygon)) {
       status = 'disputed'
       break
