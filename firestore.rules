@@ -156,6 +156,11 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /users/{userId}/notifications/{notificationId} {
+      allow read: if isOwner(userId);
+      allow create, update, delete: if false;
+    }
+
     match /appRatings/{userId} {
       allow read: if isOwner(userId);
       allow create, update, delete: if false;

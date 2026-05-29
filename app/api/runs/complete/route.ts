@@ -7,9 +7,10 @@ import { executeNormalRunCompleteTransaction } from '@/lib/firebase/admin-normal
 import { getIdempotentRunResult } from '@/lib/firebase/idempotent-run'
 import { queryTerritoriesForGameplay } from '@/lib/firebase/admin-territories-query'
 import { firestoreUserDocToDomainUser } from '@/lib/firebase/admin-user-map'
+import { getFriendOwnerIds } from '@/lib/firebase/admin-friendship'
 import { getAdminFirestore } from '@/lib/firebase/admin-app'
 import { createTerritoryFromRunTrack } from '@/lib/territory/run-territory'
-import { hasEnemyCaptureOverlap } from '@/lib/territory/geoLogic'
+import { hasFriendCaptureOverlap } from '@/lib/territory/geoLogic'
 import type { TrackPoint } from '@/lib/territory/types'
 import { isPositionInsideBox, SUZANO_BOUNDING_BOX } from '@/lib/territory/regions'
 import { log } from '@/lib/logging/logger'
@@ -89,14 +90,17 @@ export async function POST(req: Request) {
 
     const points = body.points as TrackPoint[]
     const db = getAdminFirestore()
-    const userSnap = await db.collection('users').doc(uid).get()
+    const [userSnap, existingTerritories, friendOwnerIds] = await Promise.all([
+      db.collection('users').doc(uid).get(),
+      queryTerritoriesForGameplay(),
+      getFriendOwnerIds(uid),
+    ])
 
     if (!userSnap.exists) {
       return NextResponse.json({ error: 'Perfil não encontrado.' }, { status: 400 })
     }
 
     const currentUser = firestoreUserDocToDomainUser(uid, userSnap.data() ?? {})
-    const existingTerritories = await queryTerritoriesForGameplay()
 
     let newTerritory
     try {
@@ -105,6 +109,7 @@ export async function POST(req: Request) {
         currentUserId: uid,
         currentUser,
         existingTerritories,
+        friendOwnerIds,
         nowMs: Date.now(),
       })
       newTerritory = result.newTerritory
@@ -131,16 +136,17 @@ export async function POST(req: Request) {
     }
 
     if (
-      hasEnemyCaptureOverlap(
+      hasFriendCaptureOverlap(
         newTerritory.polygon,
         existingTerritories,
         uid,
+        friendOwnerIds,
       )
     ) {
       return NextResponse.json(
         {
           error:
-            'Sobreposição com território inimigo: use o fluxo de conquista no mapa.',
+            'Sobreposição com território de amigo: use o fluxo de conquista no mapa.',
           code: 'ENEMY_OVERLAP_USE_CAPTURE',
         },
         { status: 409 },

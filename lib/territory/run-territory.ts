@@ -172,6 +172,8 @@ export interface CreateTerritoryFromRunParams {
   currentUser?: User
   authDisplayName?: string | null
   existingTerritories: Territory[]
+  /** Amigos diretos — disputed só se intersecta amigo (não self, não estranho). */
+  friendOwnerIds?: Set<string>
   config?: TerritoryConfig
   nowMs?: number
 }
@@ -192,6 +194,7 @@ export function createTerritoryFromRunTrack(
     currentUser,
     authDisplayName,
     existingTerritories,
+    friendOwnerIds,
     config: cfgIn,
     nowMs,
   } = params
@@ -215,6 +218,8 @@ export function createTerritoryFromRunTrack(
   const now = nowMs ?? Date.now()
   let status: TerritoryStatus = 'active'
   for (const existing of existingTerritories) {
+    if (existing.userId === currentUserId) continue
+    if (friendOwnerIds && !friendOwnerIds.has(existing.userId)) continue
     if (checkTerritoryIntersection(polygon, existing.polygon)) {
       status = 'disputed'
       break

@@ -1,5 +1,6 @@
 import { ApiAuthError, getApiAuthHeaders } from '@/lib/auth/api-auth'
 import { isFirebaseConfigured } from './config'
+import type { CaptureReactionEmoji } from '@/lib/territory/capture-reactions'
 import type { TrackPoint } from '@/lib/territory/types'
 
 export class RunApiError extends Error {
@@ -116,6 +117,7 @@ export interface SubmitTerritoryCaptureParams {
   distanceMeters: number
   durationSeconds: number
   routeJson: string
+  reactionEmoji: CaptureReactionEmoji
 }
 
 /**
@@ -150,6 +152,7 @@ export async function submitTerritoryCaptureViaApi(
       distanceMeters: params.distanceMeters,
       durationSeconds: params.durationSeconds,
       routeJson: params.routeJson,
+      reactionEmoji: params.reactionEmoji,
     }),
   })
 

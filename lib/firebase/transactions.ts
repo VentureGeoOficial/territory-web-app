@@ -11,6 +11,16 @@ import {
 import { getAdminFirestore } from '@/lib/firebase/admin-app'
 import { log } from '@/lib/logging/logger'
 import { subtractPolygonOverlap } from '@/lib/territory/territory-generator'
+import type { CaptureReactionEmoji } from '@/lib/territory/capture-reactions'
+import {
+  TERRITORY_EVENTS_SUBCOLLECTION,
+  type TerritoryEventDoc,
+} from '@/lib/firebase/territory-events'
+import {
+  territoryCapturedMessage,
+  USER_NOTIFICATIONS_SUBCOLLECTION,
+  type TerritoryCapturedNotificationDoc,
+} from '@/lib/firebase/notifications'
 import * as turf from '@turf/turf'
 
 const TERRITORIES = 'territories'
@@ -31,10 +41,13 @@ export interface CaptureRunPayload {
 
 export interface ExecuteCaptureTransactionInput {
   attackerUid: string
+  attackerName: string
   newTerritory: Territory
   xpCost: number
   xpGain: number
   overlappedTerritoryIds: string[]
+  friendOwnerIds: Set<string>
+  reactionEmoji: CaptureReactionEmoji
   run: CaptureRunPayload
 }
 
@@ -59,7 +72,8 @@ export class CaptureTransactionError extends Error {
       | 'NOT_FOUND'
       | 'PROTECTED'
       | 'INVALID_OWNER'
-      | 'INSUFFICIENT_XP',
+      | 'INSUFFICIENT_XP'
+      | 'NOT_FRIEND',
   ) {
     super(message)
     this.name = 'CaptureTransactionError'
@@ -75,10 +89,13 @@ export async function executeCaptureTransaction(
 ): Promise<CaptureVictimOutcome[]> {
   const {
     attackerUid,
+    attackerName,
     newTerritory,
     xpCost,
     xpGain,
     overlappedTerritoryIds,
+    friendOwnerIds,
+    reactionEmoji,
     run,
   } = input
 
@@ -141,6 +158,12 @@ export async function executeCaptureTransaction(
           'INVALID_OWNER',
         )
       }
+      if (!friendOwnerIds.has(data.userId)) {
+        throw new CaptureTransactionError(
+          'Só é possível conquistar territórios de amigos.',
+          'NOT_FRIEND',
+        )
+      }
       if (!CAPTURABLE.includes(data.status)) {
         throw new CaptureTransactionError(
           'Território já não está disponível para conquista.',
@@ -170,12 +193,25 @@ export async function executeCaptureTransaction(
           area: prev.area + data.areaM2,
           count: prev.count + 1,
         })
+        const mode = subtraction.intersectionAreaM2 > 0 ? 'full_expire' : 'difference_failed'
         txOutcomes.push({
           territoryId: expectedId,
           victimUid: victimId,
-          mode: subtraction.intersectionAreaM2 > 0 ? 'full_expire' : 'difference_failed',
+          mode,
           lostAreaM2: data.areaM2,
         })
+        if (mode === 'full_expire') {
+          const eventRef = ref.collection(TERRITORY_EVENTS_SUBCOLLECTION).doc()
+          const event: TerritoryEventDoc = {
+            type: 'capture_full',
+            at: now,
+            actorUid: attackerUid,
+            runId: run.runId,
+            lostAreaM2: data.areaM2,
+            reactionEmoji,
+          }
+          trx.set(eventRef, event)
+        }
       } else {
         const centroid = turf.centroid(subtraction.remainder)
         const [centerLng, centerLat] = centroid.geometry.coordinates
@@ -204,6 +240,56 @@ export async function executeCaptureTransaction(
           lostAreaM2: subtraction.lostAreaM2,
           remainderAreaM2: subtraction.remainderAreaM2,
         })
+        const eventRef = ref.collection(TERRITORY_EVENTS_SUBCOLLECTION).doc()
+        const event: TerritoryEventDoc = {
+          type: 'capture_partial',
+          at: now,
+          actorUid: attackerUid,
+          runId: run.runId,
+          lostAreaM2: subtraction.lostAreaM2,
+          remainderAreaM2: subtraction.remainderAreaM2,
+          reactionEmoji,
+        }
+        trx.set(eventRef, event)
+      }
+
+      const outcomeMode =
+        subtraction.fullCapture || !subtraction.remainder
+          ? subtraction.intersectionAreaM2 > 0
+            ? 'full_expire'
+            : null
+          : 'partial_shrink'
+
+      if (outcomeMode === 'partial_shrink' || outcomeMode === 'full_expire') {
+        const victimUserSnap = await trx.get(db.collection(USERS).doc(victimId))
+        const prefs = victimUserSnap.data()?.notificationPreferences as
+          | { app?: boolean }
+          | undefined
+        const appEnabled = prefs?.app !== false
+
+        if (appEnabled) {
+          const notifRef = db
+            .collection(USERS)
+            .doc(victimId)
+            .collection(USER_NOTIFICATIONS_SUBCOLLECTION)
+            .doc()
+          const notif: TerritoryCapturedNotificationDoc = {
+            type: 'territory_captured',
+            createdAt: now,
+            actorUid: attackerUid,
+            actorName: attackerName,
+            attackerTerritoryId: newTerritory.id,
+            victimTerritoryId: expectedId,
+            mode: outcomeMode,
+            lostAreaM2:
+              outcomeMode === 'full_expire'
+                ? data.areaM2
+                : subtraction.lostAreaM2,
+            reactionEmoji,
+            message: territoryCapturedMessage(outcomeMode),
+          }
+          trx.set(notifRef, notif)
+        }
       }
     }
 
