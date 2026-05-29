@@ -6,7 +6,12 @@ Publicar no projeto Firebase de testes **antes** da demo com captura entre amigo
 
 O fluxo social de **convite e aceite** (`friendRequests`) já está operacional: enviar pedido, o outro utilizador recebe e aceita na app. Isso **não precisa ser refeito**.
 
-O mapa e a captura territorial usam outra coleção — o grafo `friendships/{uid}/list/{friendUid}` — que normalmente é preenchido **automaticamente** quando alguém aceita um pedido (Cloud Function). Se amigos já se veem no mapa e a captura funciona, este passo provavelmente já está ok.
+O mapa e a captura territorial usam outra coleção — o grafo `friendships/{uid}/list/{friendUid}` — que é preenchido **automaticamente** quando alguém aceita um pedido:
+
+- **API Next.js** `POST /api/friends/accept` (Admin SDK) — caminho principal do protótipo
+- **Cloud Function** `onFriendRequestStatusChange` — rede de segurança opcional (idempotente)
+
+Se amigos já se veem no mapa e a captura funciona, este passo provavelmente já está ok.
 
 O **backfill** abaixo só é necessário para amizades aceites **antes** da Cloud Function existir, ou se captura retornar `403 NOT_FRIEND` com amizade visível na lista.
 
