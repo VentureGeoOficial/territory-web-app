@@ -10,6 +10,8 @@
     "lint": "eslint .",
     "test:rules": "vitest run __tests__/firestore-rules",
     "test:territory": "vitest run __tests__/territory-buffer.test.ts",
+    "test:territory-social": "vitest run __tests__/geoLogic-friends.test.ts __tests__/run-territory-social-layer.test.ts __tests__/capture-emoji-validation.test.ts __tests__/territory-capture-partial.test.ts",
+    "test:territory-all": "vitest run __tests__/territory-buffer.test.ts __tests__/geoLogic-friends.test.ts __tests__/run-territory-social-layer.test.ts __tests__/capture-emoji-validation.test.ts __tests__/territory-capture-partial.test.ts __tests__/territory-visibility.test.ts",
     "test:visibility": "vitest run __tests__/territory-visibility.test.ts",
     "test:auth": "vitest run __tests__/auth-password-no-trim.test.ts __tests__/auth-rate-limit-logic.test.ts",
     "backfill:friendships": "tsx scripts/backfill-friendships.ts"

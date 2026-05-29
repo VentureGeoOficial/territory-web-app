@@ -1,6 +1,9 @@
 import { ApiAuthError, getApiAuthHeaders } from '@/lib/auth/api-auth'
 import { isFirebaseConfigured } from './config'
-import type { CaptureReactionEmoji } from '@/lib/territory/capture-reactions'
+import {
+  isCaptureReactionEmoji,
+  type CaptureReactionEmoji,
+} from '@/lib/territory/capture-reactions'
 import type { TrackPoint } from '@/lib/territory/types'
 
 export class RunApiError extends Error {
@@ -24,7 +27,17 @@ export interface SubmitRunCompleteParams {
   routeJson: string
 }
 
-function buildApiErrorMessage(status: number, serverError?: string): string {
+function buildApiErrorMessage(
+  status: number,
+  serverError?: string,
+  code?: string,
+): string {
+  if (code === 'NOT_FRIEND') {
+    return 'Só é possível conquistar territórios de amigos. Confirme que a amizade foi aceite e sincronizada.'
+  }
+  if (code === 'NO_FRIEND_OVERLAP') {
+    return 'Sem sobreposição com território de amigo. Use o fluxo normal de finalizar corrida.'
+  }
   if (status === 401) {
     return 'Não foi possível validar a sessão. Tente sair e entrar novamente.'
   }
@@ -96,7 +109,7 @@ export async function submitCompletedRunViaApi(
 
   if (!res.ok) {
     throw new RunApiError(
-      buildApiErrorMessage(res.status, data.error),
+      buildApiErrorMessage(res.status, data.error, data.code),
       res.status,
       data.code,
     )
@@ -129,6 +142,9 @@ export async function submitTerritoryCaptureViaApi(
   if (!isFirebaseConfigured()) {
     throw new Error('Firebase não configurado.')
   }
+  if (!isCaptureReactionEmoji(params.reactionEmoji)) {
+    throw new Error('Emoji de reação inválido.')
+  }
 
   let headers: HeadersInit
   try {
@@ -160,7 +176,7 @@ export async function submitTerritoryCaptureViaApi(
 
   if (!res.ok) {
     throw new RunApiError(
-      buildApiErrorMessage(res.status, data.error),
+      buildApiErrorMessage(res.status, data.error, data.code),
       res.status,
       data.code,
     )

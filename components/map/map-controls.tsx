@@ -215,6 +215,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
   ])
 
   const handleXpConfirmed = useCallback(() => {
+    setSelectedReactionEmoji((prev) => prev ?? '😀')
     setCaptureStep('emoji')
   }, [])
 
@@ -485,9 +486,9 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
             />
             Amigo (contorno tracejado no mapa)
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-sm shrink-0 bg-muted border border-border" />
-            Outros jogadores
+          <div className="flex items-center gap-2 text-muted-foreground/80">
+            <span className="w-3 h-3 rounded-sm shrink-0 border border-dashed border-border/60" />
+            Outros jogadores não aparecem no mapa
           </div>
         </div>
       </div>

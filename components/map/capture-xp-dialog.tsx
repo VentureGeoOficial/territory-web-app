@@ -97,7 +97,7 @@ export function CaptureXpDialog({
             onClick={() => void onConfirm()}
             className="bg-[#CCFF00] text-[#19305A] hover:bg-[#CCFF00]/90"
           >
-            {loading ? 'A processar…' : 'Confirmar conquista'}
+            {loading ? 'A processar…' : 'Continuar'}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
