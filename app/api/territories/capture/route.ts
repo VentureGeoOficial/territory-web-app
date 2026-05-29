@@ -5,6 +5,7 @@ import { assertRunRateLimit, RunRateLimitError } from '@/lib/api/run-rate-limit'
 import { ApiAuthError, verifyAuthOrFail } from '@/lib/firebase/admin-auth'
 import { getIdempotentRunResult } from '@/lib/firebase/idempotent-run'
 import { queryTerritoriesForGameplay } from '@/lib/firebase/admin-territories-query'
+import { getFriendOwnerIds } from '@/lib/firebase/admin-friendship'
 import { firestoreUserDocToDomainUser } from '@/lib/firebase/admin-user-map'
 import { getAdminFirestore } from '@/lib/firebase/admin-app'
 import {
@@ -17,6 +18,7 @@ import {
   CAPTURE_PROTECTION_MS,
 } from '@/lib/territory/geoLogic'
 import { createTerritoryFromRunTrack } from '@/lib/territory/run-territory'
+import { CAPTURE_REACTION_EMOJIS } from '@/lib/territory/capture-reactions'
 import type { Territory, TrackPoint } from '@/lib/territory/types'
 import { isPositionInsideBox, SUZANO_BOUNDING_BOX } from '@/lib/territory/regions'
 import { log } from '@/lib/logging/logger'
@@ -40,6 +42,7 @@ const bodySchema = z.object({
   distanceMeters: z.number().nonnegative(),
   durationSeconds: z.number().nonnegative(),
   routeJson: z.string().max(400_000),
+  reactionEmoji: z.enum(CAPTURE_REACTION_EMOJIS),
 })
 
 function resolveRunId(req: Request, bodyRunId: string): string {
@@ -86,9 +89,10 @@ export async function POST(req: Request) {
     const points = body.points as TrackPoint[]
     const db = getAdminFirestore()
 
-    const [userSnap, existingTerritories] = await Promise.all([
+    const [userSnap, existingTerritories, friendOwnerIds] = await Promise.all([
       db.collection('users').doc(uid).get(),
       queryTerritoriesForGameplay(),
+      getFriendOwnerIds(uid),
     ])
 
     if (!userSnap.exists) {
@@ -104,6 +108,7 @@ export async function POST(req: Request) {
         currentUserId: uid,
         currentUser,
         existingTerritories,
+        friendOwnerIds,
         nowMs: Date.now(),
       })
       newTerritory = result.newTerritory
@@ -135,6 +140,7 @@ export async function POST(req: Request) {
       territoryForCapture.polygon,
       existingTerritories,
       uid,
+      friendOwnerIds,
       now,
     )
 
@@ -149,8 +155,8 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            'Sem sobreposição inimiga. Use o fluxo normal de finalizar corrida.',
-          code: 'NO_ENEMY_OVERLAP',
+            'Sem sobreposição com território de amigo. Use o fluxo normal de finalizar corrida.',
+          code: 'NO_FRIEND_OVERLAP',
         },
         { status: 400 },
       )
@@ -160,10 +166,13 @@ export async function POST(req: Request) {
 
     const victimOutcomes = await executeCaptureTransaction({
       attackerUid: uid,
+      attackerName: currentUser.displayName,
       newTerritory: territoryForCapture,
       xpCost: impact.xpCost,
       xpGain,
       overlappedTerritoryIds: impact.overlappedTerritoryIds,
+      friendOwnerIds,
+      reactionEmoji: body.reactionEmoji,
       run: {
         runId,
         startedAt: body.startedAt,
@@ -201,7 +210,7 @@ export async function POST(req: Request) {
       const status =
         e.code === 'INSUFFICIENT_XP'
           ? 402
-          : e.code === 'PROTECTED'
+          : e.code === 'PROTECTED' || e.code === 'NOT_FRIEND'
             ? 403
             : e.code === 'NOT_FOUND'
               ? 409

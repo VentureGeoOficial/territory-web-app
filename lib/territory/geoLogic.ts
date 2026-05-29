@@ -32,6 +32,20 @@ export interface CaptureImpactBlockedProtection {
 export type CaptureImpactResult = CaptureImpactOk | CaptureImpactBlockedProtection
 
 /**
+ * Inimigo social = amigo direto (não self).
+ * Estranhos e territórios próprios ficam em camadas paralelas sem interferência.
+ */
+export function isSocialEnemy(
+  territory: Territory,
+  attackerId: string,
+  friendOwnerIds: Set<string>,
+): boolean {
+  return (
+    territory.userId !== attackerId && friendOwnerIds.has(territory.userId)
+  )
+}
+
+/**
  * Custo de conquista: 10 XP fixos + 1 XP por cada 10 m² sobrepostos a territórios inimigos.
  */
 export function xpCostFromOverlappingAreaM2(totalOverlappingAreaM2: number): number {
@@ -40,19 +54,20 @@ export function xpCostFromOverlappingAreaM2(totalOverlappingAreaM2: number): num
 
 /**
  * Calcula impacto de uma nova geometria sobre territórios existentes.
- * Só conta interseções com inimigos (userId !== attackerId) e ignora `expired`.
+ * Só conta interseções com amigos diretos (camada social do atacante).
  * Se algum alvo intersectado estiver protegido (`protectedUntil > now`), retorna erro bloqueante.
  */
 export function calculateCaptureImpact(
   newPoly: Feature<Polygon>,
   existingTerritories: Territory[],
   attackerId: string,
+  friendOwnerIds: Set<string>,
   nowMs: number = Date.now(),
 ): CaptureImpactResult {
   const intersectingEnemy: Territory[] = []
 
   for (const t of existingTerritories) {
-    if (t.userId === attackerId) continue
+    if (!isSocialEnemy(t, attackerId, friendOwnerIds)) continue
     if (!CAPTURABLE_STATUSES.has(t.status)) continue
     if (!checkTerritoryIntersection(newPoly, t.polygon)) continue
     intersectingEnemy.push(t)
@@ -92,17 +107,33 @@ export function calculateCaptureImpact(
 }
 
 /**
- * Indica se há conquista inimiga (interseção com pelo menos um território inimigo capturável).
+ * Indica se há overlap capturável com amigos diretos.
  */
-export function hasEnemyCaptureOverlap(
+export function hasFriendCaptureOverlap(
   newPoly: Feature<Polygon>,
   existingTerritories: Territory[],
   attackerId: string,
+  friendOwnerIds: Set<string>,
 ): boolean {
   for (const t of existingTerritories) {
-    if (t.userId === attackerId) continue
+    if (!isSocialEnemy(t, attackerId, friendOwnerIds)) continue
     if (!CAPTURABLE_STATUSES.has(t.status)) continue
     if (checkTerritoryIntersection(newPoly, t.polygon)) return true
   }
   return false
+}
+
+/** @deprecated Use hasFriendCaptureOverlap com friendOwnerIds. */
+export function hasEnemyCaptureOverlap(
+  newPoly: Feature<Polygon>,
+  existingTerritories: Territory[],
+  attackerId: string,
+  friendOwnerIds: Set<string>,
+): boolean {
+  return hasFriendCaptureOverlap(
+    newPoly,
+    existingTerritories,
+    attackerId,
+    friendOwnerIds,
+  )
 }

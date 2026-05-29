@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useTerritoryStore } from '@/lib/store/territory-store'
@@ -12,9 +12,10 @@ import { isFirebaseConfigured } from '@/lib/firebase/config'
 import { createTerritoryFromRunTrack } from '@/lib/territory/run-territory'
 import {
   calculateCaptureImpact,
-  hasEnemyCaptureOverlap,
+  hasFriendCaptureOverlap,
 } from '@/lib/territory/geoLogic'
 import type { CaptureImpactOk } from '@/lib/territory/geoLogic'
+import type { CaptureReactionEmoji } from '@/lib/territory/capture-reactions'
 import { trackPointsToPositions } from '@/lib/territory/geo'
 import {
   RunApiError,
@@ -22,8 +23,10 @@ import {
   submitTerritoryCaptureViaApi,
 } from '@/lib/firebase/run-completion'
 import { CaptureXpDialog } from '@/components/map/capture-xp-dialog'
+import { CaptureEmojiDialog } from '@/components/map/capture-emoji-dialog'
 import { CaptureTransactionSkeleton } from '@/components/ui/skeletons'
 import { useRunSession } from '@/hooks/use-run-session'
+import { useFriendIds } from '@/hooks/use-friend-ids'
 import { getCurrentPositionOnce } from '@/lib/services/location-service'
 import { getUserProfile } from '@/lib/services/account-settings-service'
 import { Play, Square, X, MapPin, Loader2 } from 'lucide-react'
@@ -61,6 +64,12 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     stopWatching,
   } = useRunSession()
 
+  const friendIds = useFriendIds()
+  const friendOwnerIds = useMemo(
+    () => new Set(friendIds),
+    [friendIds],
+  )
+
   const [finishing, setFinishing] = useState(false)
   const [liveSeconds, setLiveSeconds] = useState(0)
   const [captureDraft, setCaptureDraft] = useState<{
@@ -71,6 +80,9 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     distanceMeters: number
     durationSeconds: number
   } | null>(null)
+  const [captureStep, setCaptureStep] = useState<'xp' | 'emoji' | null>(null)
+  const [selectedReactionEmoji, setSelectedReactionEmoji] =
+    useState<CaptureReactionEmoji | null>(null)
   const [captureLoading, setCaptureLoading] = useState(false)
   const [lastFailedRun, setLastFailedRun] = useState<{
     message: string
@@ -151,7 +163,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
   }, [permission, setPermission, startRun])
 
   const handleConfirmCapture = useCallback(async () => {
-    if (!captureDraft) return
+    if (!captureDraft || !selectedReactionEmoji) return
     const pts = useRunStore.getState().points
     if (pts.length < 2) {
       toast.error('Dados da corrida em falta.')
@@ -177,9 +189,12 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         distanceMeters: captureDraft.distanceMeters,
         durationSeconds: captureDraft.durationSeconds,
         routeJson,
+        reactionEmoji: selectedReactionEmoji,
       })
       selectTerritory(territoryId)
       setCaptureDraft(null)
+      setCaptureStep(null)
+      setSelectedReactionEmoji(null)
       pendingRunIdRef.current = null
       resetRunState()
       setMapMode('view')
@@ -195,8 +210,21 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     ensureReadyForApiSave,
     resetRunState,
     selectTerritory,
+    selectedReactionEmoji,
     setMapMode,
   ])
+
+  const handleXpConfirmed = useCallback(() => {
+    setCaptureStep('emoji')
+  }, [])
+
+  const resetCaptureFlow = useCallback(() => {
+    setCaptureDraft(null)
+    setCaptureStep(null)
+    setSelectedReactionEmoji(null)
+    resetRunState()
+    setMapMode('view')
+  }, [resetRunState, setMapMode])
 
   const handleFinish = useCallback(async () => {
     if (points.length < 2 || !startedAt) {
@@ -247,21 +275,24 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         currentUser,
         authDisplayName: user?.displayName,
         existingTerritories: territories,
+        friendOwnerIds,
       })
 
       const impact = calculateCaptureImpact(
         newTerritory.polygon,
         territories,
         currentUserId,
+        friendOwnerIds,
       )
 
-      const enemyOverlap = hasEnemyCaptureOverlap(
+      const friendOverlap = hasFriendCaptureOverlap(
         newTerritory.polygon,
         territories,
         currentUserId,
+        friendOwnerIds,
       )
 
-      if (enemyOverlap) {
+      if (friendOverlap) {
         if (!impact.ok) {
           toast.error(impact.message)
           pauseRunKeepTrack()
@@ -277,6 +308,8 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
           distanceMeters,
           durationSeconds,
         })
+        setCaptureStep('xp')
+        setFinishing(false)
         return
       }
 
@@ -337,11 +370,13 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
             currentUser,
             authDisplayName: user?.displayName,
             existingTerritories: territories,
+            friendOwnerIds,
           })
           const impact = calculateCaptureImpact(
             newTerritory.polygon,
             territories,
             currentUserId,
+            friendOwnerIds,
           )
           if (impact.ok) {
             pauseRunKeepTrack()
@@ -353,7 +388,8 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
               distanceMeters,
               durationSeconds,
             })
-            toast.info('Sobreposição inimiga detectada — confirme a conquista.')
+            setCaptureStep('xp')
+            toast.info('Sobreposição com amigo detectada — confirme a conquista.')
             return
           }
           toast.error(impact.message)
@@ -382,6 +418,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     setMapMode,
     startedAt,
     stopWatching,
+    friendOwnerIds,
     territories,
     user,
   ])
@@ -396,17 +433,28 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
   return (
     <>
       <CaptureXpDialog
-        open={captureDraft !== null}
+        open={captureDraft !== null && captureStep === 'xp'}
         onOpenChange={(open) => {
           if (!open && !captureLoading) {
-            setCaptureDraft(null)
-            resetRunState()
-            setMapMode('view')
+            resetCaptureFlow()
           }
         }}
         impact={captureDraft?.impact ?? null}
         distanceMeters={captureDraft?.distanceMeters ?? 0}
         newTerritoryAreaM2={captureDraft?.newTerritoryAreaM2 ?? 0}
+        onConfirm={handleXpConfirmed}
+        loading={false}
+      />
+
+      <CaptureEmojiDialog
+        open={captureDraft !== null && captureStep === 'emoji'}
+        onOpenChange={(open) => {
+          if (!open && !captureLoading) {
+            resetCaptureFlow()
+          }
+        }}
+        selectedEmoji={selectedReactionEmoji}
+        onSelectEmoji={setSelectedReactionEmoji}
         onConfirm={handleConfirmCapture}
         loading={captureLoading}
       />
