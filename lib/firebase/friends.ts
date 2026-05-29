@@ -256,9 +256,28 @@ export function subscribeFriendRequests(
 
 export async function acceptFriendRequest(requestId: string): Promise<void> {
   if (!isFirebaseConfigured()) return
-  await updateDoc(doc(getFirestoreDb(), REQUESTS, requestId), {
-    status: 'accepted',
+
+  const { getApiAuthHeaders } = await import('@/lib/auth/api-auth')
+  const headers = await getApiAuthHeaders()
+  const res = await fetch('/api/friends/accept', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ requestId }),
   })
+
+  if (!res.ok) {
+    let message = 'Falha ao aceitar pedido.'
+    try {
+      const body = (await res.json()) as { error?: string }
+      if (typeof body.error === 'string' && body.error.length > 0) {
+        message = body.error
+      }
+    } catch {
+      // ignore parse error
+    }
+    throw new Error(message)
+  }
+
   console.info(
     '[friends]',
     JSON.stringify({

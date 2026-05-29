@@ -243,9 +243,15 @@ export default function AmigosPage() {
                           <Button
                             size="sm"
                             onClick={() => {
-                              void acceptFriendRequest(r.id).then(() =>
-                                toast.success('Pedido aceite.'),
-                              )
+                              void acceptFriendRequest(r.id)
+                                .then(() => toast.success('Pedido aceite.'))
+                                .catch((e: unknown) => {
+                                  const msg =
+                                    e instanceof Error
+                                      ? e.message
+                                      : 'Não foi possível aceitar o pedido.'
+                                  toast.error(msg)
+                                })
                             }}
                           >
                             Aceitar
