@@ -131,22 +131,26 @@ export async function acceptFriendRequestWithGraph(
   const since = Date.now()
   const edge: FriendshipEdgeDoc = { since, requestId }
 
+  const refA = friendshipEdgeRef(db, fromUserId, toUserId)
+  const refB = friendshipEdgeRef(db, toUserId, fromUserId)
+
   await db.runTransaction(async (tx) => {
-    const fresh = await tx.get(reqRef)
+    // Firestore exige TODAS as leituras antes de qualquer escrita.
+    const [fresh, snapA, snapB] = await Promise.all([
+      tx.get(reqRef),
+      tx.get(refA),
+      tx.get(refB),
+    ])
+
     if (!fresh.exists) {
       throw new AcceptFriendError('Pedido não encontrado.', 404)
     }
-    const freshData = fresh.data()!
-    const freshStatus = String(freshData.status ?? '')
+    const freshStatus = String(fresh.data()!.status ?? '')
     if (freshStatus !== 'pending') {
       throw new AcceptFriendError('Pedido não está pendente.', 409)
     }
 
     tx.update(reqRef, { status: 'accepted' })
-
-    const refA = friendshipEdgeRef(db, fromUserId, toUserId)
-    const refB = friendshipEdgeRef(db, toUserId, fromUserId)
-    const [snapA, snapB] = await Promise.all([tx.get(refA), tx.get(refB)])
     if (!snapA.exists) tx.set(refA, edge)
     if (!snapB.exists) tx.set(refB, edge)
   })

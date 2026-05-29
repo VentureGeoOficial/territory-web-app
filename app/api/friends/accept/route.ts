@@ -74,6 +74,15 @@ export async function POST(req: Request) {
     if (e instanceof ApiAuthError) {
       return NextResponse.json({ error: e.message }, { status: e.status })
     }
+    if (e instanceof Error && e.message.includes('FIREBASE_SERVICE_ACCOUNT')) {
+      return NextResponse.json(
+        {
+          error:
+            'Servidor não configurado. Adicione FIREBASE_SERVICE_ACCOUNT_JSON no ambiente.',
+        },
+        { status: 503 },
+      )
+    }
 
     log.error({
       scope: 'FriendsAcceptApi',

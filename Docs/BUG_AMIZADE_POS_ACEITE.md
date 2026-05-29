@@ -215,7 +215,14 @@ npm run build
 
 ---
 
-## 9. Veredito
+## Correção adicional (2026-05-29 — erro ao aceitar)
+
+**Sintoma:** toast `Falha ao aceitar pedido de amizade.` (HTTP 500).
+
+**Causa:** em `acceptFriendRequestWithGraph`, a transação Firestore fazia `tx.update` **antes** de `tx.get` nas arestas `friendships`. O Firestore exige **todas as leituras antes de qualquer escrita** — violação gera exceção interna → 500 genérico.
+
+**Fix:** reordenar transação — `get(reqRef)`, `get(refA)`, `get(refB)` primeiro; depois `update` + `set`.
+
 
 | Critério | Status |
 |----------|--------|
