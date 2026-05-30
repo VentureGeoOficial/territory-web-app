@@ -74,40 +74,6 @@ export async function login(
   }
 }
 
-export async function loginWithGoogle(): Promise<AuthSession> {
-  if (!isFirebaseConfigured()) {
-    throw new AuthError('Login social disponível apenas com Firebase configurado.')
-  }
-  const { GoogleAuthProvider, signInWithPopup } = await import('firebase/auth')
-  const { getFirebaseAuth } = await import('@/lib/firebase/client')
-  const { firebaseUserToSession } = await import('./firebase-session')
-
-  try {
-    const provider = new GoogleAuthProvider()
-    const auth = getFirebaseAuth()
-    const cred = await signInWithPopup(auth, provider)
-    log.info({
-      scope: 'auth',
-      event: 'auth_login_succeeded',
-      uid: cred.user.uid,
-      provider: 'google',
-    })
-    return firebaseUserToSession(cred.user)
-  } catch (e: unknown) {
-    const code =
-      e && typeof e === 'object' && 'code' in e
-        ? String((e as { code: string }).code)
-        : ''
-    log.error({
-      scope: 'auth',
-      event: 'auth_login_failed',
-      code: code || 'unknown',
-      provider: 'google',
-    })
-    throw new AuthError('Não foi possível entrar com Google. Tente novamente.')
-  }
-}
-
 export async function requestPasswordReset(
   data: ForgotPasswordFormValues,
 ): Promise<void> {
@@ -258,8 +224,14 @@ export async function registerWithFirebase(
     if (created) {
       try {
         await deleteUser(created)
-      } catch {
-        /* ignore */
+      } catch (deleteErr) {
+        log.critical({
+          scope: 'auth',
+          event: 'auth_signup_rollback_failed',
+          uid: created.uid,
+          message:
+            deleteErr instanceof Error ? deleteErr.message : String(deleteErr),
+        })
       }
     }
     const code =
@@ -309,6 +281,11 @@ export async function registerWithFirebase(
     if (msg === 'USERNAME_TAKEN' || msg.includes('USERNAME_TAKEN')) {
       throw new AuthError(
         'Este nome de usuário já está em uso. Escolha outro.',
+      )
+    }
+    if (msg === 'FIREBASE_NOT_CONFIGURED') {
+      throw new AuthError(
+        'Firebase não está configurado. Defina as variáveis NEXT_PUBLIC_FIREBASE_* no ambiente.',
       )
     }
     throw new AuthError('Não foi possível criar a conta. Tente novamente.')

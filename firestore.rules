@@ -41,6 +41,16 @@ service cloud.firestore {
       ]);
     }
 
+    /** Username imutável após definido; permite primeira atribuição (ex.: /completar-perfil). */
+    function usernameUnchangedOrFirstSet() {
+      return request.resource.data.username == resource.data.username
+        || (
+          resource.data.get('username', '') == ''
+          && request.resource.data.username is string
+          && request.resource.data.username.matches('^[a-z0-9_]{3,30}$')
+        );
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId);
 
@@ -58,7 +68,7 @@ service cloud.firestore {
         && optionalDistanceUnchanged()
         && optionalDurationUnchanged()
         && request.resource.data.email == resource.data.email
-        && request.resource.data.username == resource.data.username;
+        && usernameUnchangedOrFirstSet();
 
       allow delete: if false;
     }

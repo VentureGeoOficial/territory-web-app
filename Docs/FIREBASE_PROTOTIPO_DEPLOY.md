@@ -15,6 +15,8 @@ Se amigos já se veem no mapa e a captura funciona, este passo provavelmente já
 
 O **backfill** abaixo só é necessário para amizades aceites **antes** da Cloud Function existir, ou se captura retornar `403 NOT_FRIEND` com amizade visível na lista.
 
+Para **username**: após alterações de cadastro, publicar `firestore.rules` actualizado. Desactivar **Google** em Authentication → Sign-in method (login só por e-mail). Backfill `npm run backfill:usernames` só se existirem `users.username` sem doc `usernames/{slug}`.
+
 ## Ordem recomendada (só o que ainda faltar)
 
 1. Confirmar Cloud Function `onFriendRequestStatusChange` publicada (região `southamerica-east1`) — ou pular se aceites recentes já criam docs em `friendships/.../list/...`.

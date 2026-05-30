@@ -129,8 +129,9 @@ export type LookupFriendUidResult =
   | { kind: 'error'; code: 'firebase_not_configured' | 'internal' }
 
 /**
- * Resolve username (slug do registo) → uid via `usernames/{slug}` no Firestore.
- * Leitura pública nas rules — não requer API Admin nem Bearer token.
+ * Resolve username (slug do registo) → uid.
+ * Preferência: `POST /api/friends/lookup` (Admin + fallback `users.username`).
+ * Fallback local: `getDoc(usernames/{slug})` se Admin indisponível (503).
  */
 export async function lookupFriendUid(params: {
   username: string
@@ -144,13 +145,58 @@ export async function lookupFriendUid(params: {
     return { kind: 'not_found' }
   }
 
-  try {
-    const db = getFirestoreDb()
-    const snap = await getDoc(doc(db, USERNAMES, slug))
-    if (!snap.exists()) {
-      return { kind: 'not_found' }
+  async function lookupLocal(): Promise<LookupFriendUidResult> {
+    try {
+      const db = getFirestoreDb()
+      const snap = await getDoc(doc(db, USERNAMES, slug))
+      if (!snap.exists()) {
+        return { kind: 'not_found' }
+      }
+      const targetUid = String(snap.data()?.uid ?? '')
+      if (!targetUid) {
+        return { kind: 'not_found' }
+      }
+      return { kind: 'found', uid: targetUid }
+    } catch (e) {
+      console.warn(
+        '[lookupFriendUid]',
+        JSON.stringify({
+          event: 'lookup_local_failed',
+          slugPrefix: slug.slice(0, 4),
+          reason: e instanceof Error ? e.message : 'unknown',
+        }),
+      )
+      return { kind: 'error', code: 'internal' }
     }
-    const targetUid = String(snap.data()?.uid ?? '')
+  }
+
+  try {
+    const { getApiAuthHeaders } = await import('@/lib/auth/api-auth')
+    const headers = await getApiAuthHeaders()
+    const res = await fetch('/api/friends/lookup', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ username: slug }),
+    })
+
+    if (res.status === 503) {
+      return lookupLocal()
+    }
+
+    if (!res.ok) {
+      console.warn(
+        '[lookupFriendUid]',
+        JSON.stringify({
+          event: 'lookup_api_failed',
+          slugPrefix: slug.slice(0, 4),
+          status: res.status,
+        }),
+      )
+      return { kind: 'error', code: 'internal' }
+    }
+
+    const body = (await res.json()) as { uid?: string | null }
+    const targetUid = typeof body.uid === 'string' ? body.uid : null
     if (!targetUid) {
       return { kind: 'not_found' }
     }

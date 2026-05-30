@@ -14,7 +14,8 @@
     "test:territory-all": "vitest run __tests__/territory-buffer.test.ts __tests__/geoLogic-friends.test.ts __tests__/run-territory-social-layer.test.ts __tests__/capture-emoji-validation.test.ts __tests__/territory-capture-partial.test.ts __tests__/territory-visibility.test.ts",
     "test:visibility": "vitest run __tests__/territory-visibility.test.ts",
     "test:auth": "vitest run __tests__/auth-password-no-trim.test.ts __tests__/auth-rate-limit-logic.test.ts",
-    "backfill:friendships": "tsx scripts/backfill-friendships.ts"
+    "backfill:friendships": "tsx scripts/backfill-friendships.ts",
+    "backfill:usernames": "tsx scripts/backfill-usernames.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
