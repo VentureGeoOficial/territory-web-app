@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Eye, EyeOff, Map } from 'lucide-react'
 
-import { login, loginWithGoogle } from '@/lib/auth/auth-service'
+import { login } from '@/lib/auth/auth-service'
 import { loginSchema, type LoginFormValues } from '@/lib/auth/schemas'
 import { AuthError } from '@/lib/auth/types'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
@@ -35,7 +35,6 @@ export function LoginForm({ className }: { className?: string }) {
   const setSession = useAuthStore((s) => s.setSession)
   const isAuthenticated = useAuthStore(selectIsAuthenticated)
   const [showPassword, setShowPassword] = React.useState(false)
-  const [googleLoading, setGoogleLoading] = React.useState(false)
   const [failedAttempts, setFailedAttempts] = React.useState(0)
   
   // Rate limiting: max 5 tentativas por minuto, intervalo minimo de 1s
@@ -82,25 +81,6 @@ export function LoginForm({ className }: { className?: string }) {
   }
 
   const submitting = form.formState.isSubmitting
-  const canUseGoogle = isFirebaseConfigured()
-
-  async function handleGoogleLogin() {
-    setGoogleLoading(true)
-    form.clearErrors('root')
-    try {
-      const session = await loginWithGoogle()
-      setSession(session)
-      router.replace('/mapa')
-    } catch (err) {
-      const message =
-        err instanceof AuthError
-          ? err.message
-          : 'Não foi possível entrar com Google. Tente novamente.'
-      form.setError('root', { message })
-    } finally {
-      setGoogleLoading(false)
-    }
-  }
 
   return (
     <Form {...form}>
@@ -221,17 +201,6 @@ export function LoginForm({ className }: { className?: string }) {
             </>
           )}
         </Button>
-        {canUseGoogle && (
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            disabled={submitting || googleLoading}
-            onClick={handleGoogleLogin}
-          >
-            {googleLoading ? 'Conectando...' : 'Entrar com Google'}
-          </Button>
-        )}
       </form>
     </Form>
   )

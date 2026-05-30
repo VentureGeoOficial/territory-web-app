@@ -72,7 +72,9 @@ export async function createUserProfileAfterSignup(
   email: string,
   data: SignupProfilePayload,
 ): Promise<void> {
-  if (!isFirebaseConfigured()) return
+  if (!isFirebaseConfigured()) {
+    throw new Error('FIREBASE_NOT_CONFIGURED')
+  }
   const db = getFirestoreDb()
   const userRef = doc(db, USERS, uid)
   const publicRef = doc(db, PUBLIC_PROFILES, uid)
@@ -148,6 +150,71 @@ export async function createUserProfileAfterSignup(
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     })
+  })
+}
+
+/**
+ * Atribui username a perfil existente sem slug (cadastro interrompido / legado).
+ * Cria `usernames/{slug}` + actualiza `users` e `publicProfiles` na mesma transação.
+ */
+export async function claimUsernameSlug(
+  uid: string,
+  usernameSlug: string,
+): Promise<void> {
+  if (!isFirebaseConfigured()) {
+    throw new Error('FIREBASE_NOT_CONFIGURED')
+  }
+
+  const slug = usernameSlug.trim().toLowerCase()
+  if (!/^[a-z0-9_]{3,30}$/.test(slug)) {
+    throw new Error('USERNAME_INVALID')
+  }
+
+  const db = getFirestoreDb()
+
+  await runTransaction(db, async (trx) => {
+    const userRef = doc(db, USERS, uid)
+    const publicRef = doc(db, PUBLIC_PROFILES, uid)
+    const usernameRef = doc(db, USERNAMES, slug)
+
+    const [userSnap, publicSnap, taken] = await Promise.all([
+      trx.get(userRef),
+      trx.get(publicRef),
+      trx.get(usernameRef),
+    ])
+
+    if (!userSnap.exists()) {
+      throw new Error('USER_NOT_FOUND')
+    }
+
+    const existing = String(userSnap.data()?.username ?? '').trim()
+    if (existing) {
+      throw new Error('USERNAME_ALREADY_SET')
+    }
+
+    if (taken.exists()) {
+      throw new Error('USERNAME_TAKEN')
+    }
+
+    trx.set(usernameRef, { uid, createdAt: Date.now() })
+    trx.update(userRef, { username: slug, updatedAt: serverTimestamp() })
+
+    if (publicSnap.exists()) {
+      trx.update(publicRef, { username: slug, updatedAt: serverTimestamp() })
+    } else {
+      const displayName = String(userSnap.data()?.displayName ?? 'Corredor')
+      const color = String(userSnap.data()?.color ?? generateStableUserColor(uid))
+      trx.set(publicRef, {
+        displayName,
+        username: slug,
+        color,
+        totalAreaM2: 0,
+        territoriesCount: 0,
+        xp: 0,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+    }
   })
 }
 
