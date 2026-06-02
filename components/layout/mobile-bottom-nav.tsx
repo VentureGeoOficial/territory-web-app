@@ -14,10 +14,23 @@ export function MobileBottomNav() {
         {bottomNavItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
+          const tourAttr =
+            item.href === '/competicao'
+              ? 'nav-competicao'
+              : item.href === '/amigos'
+                ? 'nav-amigos'
+                : item.href === '/loja'
+                  ? 'nav-loja'
+                  : item.href === '/conta'
+                    ? 'nav-conta'
+                    : item.href === '/mapa'
+                      ? 'map-area'
+                      : undefined
           return (
             <Link
               key={item.href}
               href={item.href}
+              {...(tourAttr ? { 'data-tour': tourAttr } : {})}
               className={cn(
                 'flex flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-medium',
                 'active:scale-95 transition-transform',

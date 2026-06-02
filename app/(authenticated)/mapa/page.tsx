@@ -19,7 +19,7 @@ export default function MapaPage() {
   useUserPositionTracking()
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex min-h-[100dvh] h-[100dvh] flex-col overflow-hidden">
       <Header />
       <main className="relative min-h-0 flex-1 overflow-hidden pb-14">
         <MapWrapper friendIds={friendIds} />

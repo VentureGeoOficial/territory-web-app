@@ -24,7 +24,8 @@ import { useRunStore } from '@/lib/store/run-store'
 import type { Territory } from '@/lib/territory/types'
 import { formatArea } from '@/lib/territory/geo'
 import { Button } from '@/components/ui/button'
-import { Crosshair, MapPin, Shield, Swords } from 'lucide-react'
+import { Crosshair, MapPin, Shield, ShieldOff, Swords } from 'lucide-react'
+import { getTerritoryDisplayStatus } from '@/lib/territory/territory-display-status'
 import { getSuzanoMaxBounds } from '@/lib/territory/regions'
 import { filterTerritoriesByViewport } from '@/lib/firebase/territories'
 import { useAuthStore } from '@/lib/store/auth-store'
@@ -205,9 +206,12 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
   isSelected: boolean
   onClick: () => void
 }) {
+  const display = getTerritoryDisplayStatus(territory)
+
   const getColor = () => {
-    if (territory.status === 'disputed') return BRAND.dispute
-    if (territory.status === 'protected') return BRAND.success
+    if (display.kind === 'disputed') return BRAND.dispute
+    if (display.kind === 'protected') return BRAND.success
+    if (display.kind === 'expired') return '#8ba3c7'
     if (isOwn) return territory.userColor || BRAND.lime
     return territory.userColor || BRAND.electric
   }
@@ -220,35 +224,32 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
   const color = getColor()
   const fillOpacity = isSelected ? 0.5 : 0.35
   let weight = isSelected ? 3 : 2
-  if (isFriend && !isOwn && territory.status !== 'disputed') {
+  if (isFriend && !isOwn && display.kind !== 'disputed') {
     weight = isSelected ? 4 : 3
   }
 
   const StatusIcon =
-    territory.status === 'disputed'
+    display.kind === 'disputed'
       ? Swords
-      : territory.status === 'protected'
+      : display.kind === 'protected'
         ? Shield
-        : MapPin
+        : display.kind === 'unprotected'
+          ? ShieldOff
+          : MapPin
 
   const statusColor =
-    territory.status === 'disputed'
+    display.kind === 'disputed'
       ? BRAND.dispute
-      : territory.status === 'protected'
+      : display.kind === 'protected'
         ? BRAND.success
-        : BRAND.lime
+        : display.kind === 'expired'
+          ? '#8ba3c7'
+          : BRAND.lime
 
-  const statusLabel =
-    territory.status === 'active'
-      ? 'Ativo'
-      : territory.status === 'disputed'
-        ? 'Em Disputa'
-        : territory.status === 'protected'
-          ? 'Protegido'
-          : territory.status
+  const statusLabel = display.label
 
   const friendDash =
-    isFriend && !isOwn && territory.status !== 'disputed' ? '10, 8' : undefined
+    isFriend && !isOwn && display.kind !== 'disputed' ? '10, 8' : undefined
 
   return (
     <Polygon
@@ -260,9 +261,7 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
         weight,
         dashArray: friendDash,
         className:
-          territory.status === 'disputed'
-            ? 'territory-dispute'
-            : 'territory-pulse',
+          display.kind === 'disputed' ? 'territory-dispute' : 'territory-pulse',
       }}
       eventHandlers={{
         click: onClick,

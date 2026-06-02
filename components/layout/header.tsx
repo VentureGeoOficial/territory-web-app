@@ -235,6 +235,7 @@ export function Header() {
         >
           <Link
             href="/dashboard"
+            data-tour="nav-dashboard"
             aria-label="Abrir Dashboard"
             aria-current={pathname === '/dashboard' ? 'page' : undefined}
           >
@@ -243,7 +244,12 @@ export function Header() {
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-9 gap-2 px-2" aria-label="Abrir menu do usuário">
+            <Button
+              variant="ghost"
+              className="h-9 gap-2 px-2"
+              aria-label="Abrir menu do usuário"
+              data-tour="nav-trofeus"
+            >
               <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
                 <User className="h-4 w-4 text-primary" />
               </div>

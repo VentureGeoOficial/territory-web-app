@@ -7,4 +7,6 @@ Hooks: `useFirestoreTerritorySync`, `useCurrentUserPublicProfile(uid)`, `useUser
 
 `MapWrapper` recebe `friendIds` — [`TerritoryMap`](../../components/map/territory-map.tsx) destaca territórios de amigos (contorno tracejado mais espesso, badge «Amigo» no popup). Legenda no [`MapControlsOverlay`](../../components/map/map-controls.tsx) (desktop).
 
-Layout fullscreen: `Header`, sidebar desktop (`TerritorySidebar`), `MapWrapper`, `MobileBottomNav`.
+Layout fullscreen: `Header`, `MapWrapper`, `MobileBottomNav`. Altura `100dvh` + `overflow-hidden` para evitar scroll que desloca overlays.
+
+CTA de corrida fixo ao viewport (ver `DOC_MapControlsOverlay`). Âncora tutorial: `data-tour="map-area"` no `MapWrapper`.

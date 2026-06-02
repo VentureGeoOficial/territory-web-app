@@ -4,7 +4,11 @@ import { Card } from '@/components/ui/card'
 import type { Territory } from '@/lib/territory/types'
 import { formatArea } from '@/lib/territory/geo'
 import { cn } from '@/lib/utils'
-import { MapPin, Shield, Swords, Crown } from 'lucide-react'
+import { MapPin, Shield, Swords, Crown, ShieldOff } from 'lucide-react'
+import {
+  getTerritoryDisplayStatus,
+  type TerritoryDisplayKind,
+} from '@/lib/territory/territory-display-status'
 
 interface TerritoryCardProps {
   territory: Territory
@@ -13,28 +17,27 @@ interface TerritoryCardProps {
   onClick: () => void
 }
 
-const statusConfig = {
-  active: {
-    icon: MapPin,
-    label: 'Ativo',
-    color: '#CCFF00',
-    bgColor: 'rgba(204, 255, 0, 0.1)',
-  },
+const displayKindConfig: Record<
+  TerritoryDisplayKind,
+  { icon: typeof MapPin; color: string; bgColor: string }
+> = {
   protected: {
     icon: Shield,
-    label: 'Protegido',
     color: '#22c55e',
     bgColor: 'rgba(34, 197, 94, 0.1)',
   },
+  unprotected: {
+    icon: ShieldOff,
+    color: '#CCFF00',
+    bgColor: 'rgba(204, 255, 0, 0.1)',
+  },
   disputed: {
     icon: Swords,
-    label: 'Em Disputa',
     color: '#FF4D4D',
     bgColor: 'rgba(255, 77, 77, 0.1)',
   },
   expired: {
     icon: MapPin,
-    label: 'Expirado',
     color: '#8ba3c7',
     bgColor: 'rgba(139, 163, 199, 0.1)',
   },
@@ -54,7 +57,8 @@ export function TerritoryCard({
   isSelected,
   onClick,
 }: TerritoryCardProps) {
-  const status = statusConfig[territory.status]
+  const display = getTerritoryDisplayStatus(territory)
+  const status = displayKindConfig[display.kind]
   const StatusIcon = status.icon
   const dominance = dominanceConfig[territory.dominanceLevel]
 
@@ -129,7 +133,7 @@ export function TerritoryCard({
                 className="text-xs font-medium"
                 style={{ color: status.color }}
               >
-                {status.label}
+                {display.label}
               </span>
             </div>
             <span className="text-xs text-muted-foreground">{timeAgo}</span>
