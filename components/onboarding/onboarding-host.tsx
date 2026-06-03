@@ -25,6 +25,7 @@ export function OnboardingHost() {
   const [active, setActive] = React.useState(false)
   const [stepIndex, setStepIndex] = React.useState(0)
   const [finishing, setFinishing] = React.useState(false)
+  const hasInitializedRef = React.useRef(false)
 
   const pathHidden = HIDDEN_PATH_PREFIXES.some((p) => pathname.startsWith(p))
 
@@ -68,24 +69,29 @@ export function OnboardingHost() {
     return () => {
       cancelled = true
     }
-  }, [pathHidden, uid, pathname])
+  }, [pathHidden, uid])
 
   React.useEffect(() => {
     if (!eligible) {
       setActive(false)
+      hasInitializedRef.current = false
       return
     }
+    if (hasInitializedRef.current) return
+
     const timer = window.setTimeout(() => {
+      hasInitializedRef.current = true
       setStepIndex(0)
       const first = ONBOARDING_STEPS[0]
-      if (first?.route && pathname !== first.route) {
+      if (first?.route) {
         router.push(first.route)
       }
       setActive(true)
       log.info({ scope: 'OnboardingHost', event: 'shown', uid })
     }, 600)
+
     return () => window.clearTimeout(timer)
-  }, [eligible, uid, pathname, router])
+  }, [eligible, uid, router])
 
   const persistAndClose = React.useCallback(async () => {
     if (!uid) return
@@ -98,6 +104,7 @@ export function OnboardingHost() {
       setFinishing(false)
       setActive(false)
       setEligible(false)
+      hasInitializedRef.current = false
     }
   }, [uid])
 

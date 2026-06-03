@@ -9,7 +9,26 @@
 
 ## Objetivo
 
-Tutorial de primeiro acesso em 9 passos (mapa, corrida, navegação, conclusão). Exibido uma vez por utilizador.
+Tutorial de primeiro acesso em **8 passos**. Exibido uma vez por utilizador.
+
+## Fluxo dos passos
+
+1. Mapa (`/mapa`) — mapa + menção ao botão Iniciar corrida  
+2. Dashboard (`/dashboard`)  
+3. Competição (`/competicao`)  
+4. Amigos (`/amigos`)  
+5. Loja (`/loja`)  
+6. Perfil / Conta (`/conta`)  
+7. Troféus (`/mapa`, ícone do utilizador no Header)  
+8. Finalização (modal centrado, botão «Começar»)
+
+Navegação entre passos: apenas `goToStep` + `router.push`; **não** reiniciar `stepIndex` em mudanças de rota.
+
+## Correção: reset ao avançar (2026-06)
+
+**Causa:** o effect de inicialização dependia de `pathname` e chamava `setStepIndex(0)` + `router.push('/mapa')` em cada mudança de rota.
+
+**Correção:** `hasInitializedRef` — inicialização única quando `eligible` passa a `true`; `pathname` removido das deps do effect de elegibilidade e de inicialização.
 
 ## Persistência (híbrida)
 
@@ -44,5 +63,4 @@ Montado em [`app/(authenticated)/layout.tsx`](../../app/(authenticated)/layout.t
 ## Âncoras `data-tour`
 
 - `map-area` — `MapWrapper`
-- `run-cta` / `#tour-run-cta` — controlos de corrida
 - `nav-dashboard`, `nav-competicao`, `nav-amigos`, `nav-loja`, `nav-conta`, `nav-trofeus` — Header / bottom nav
