@@ -17,12 +17,16 @@ import {
   type CaptureReactionEmoji,
 } from '@/lib/territory/capture-reactions'
 
+export interface CaptureConfirmOptions {
+  withReaction: boolean
+}
+
 interface CaptureEmojiDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   selectedEmoji: CaptureReactionEmoji | null
   onSelectEmoji: (emoji: CaptureReactionEmoji) => void
-  onConfirm: () => void | Promise<void>
+  onConfirm: (options: CaptureConfirmOptions) => void | Promise<void>
   loading: boolean
 }
 
@@ -46,10 +50,7 @@ export function CaptureEmojiDialog({
           </AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-4 text-sm text-muted-foreground">
-              <p>
-                Escolha um emoji para enviar ao seu amigo antes de concluir a
-                conquista.
-              </p>
+              <p>Deseja enviar uma reação ao amigo?</p>
               <div className="flex justify-center gap-4">
                 {CAPTURE_REACTION_EMOJIS.map((emoji) => (
                   <button
@@ -72,16 +73,27 @@ export function CaptureEmojiDialog({
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
+        <AlertDialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
           <Button
             type="button"
             disabled={loading || !selectedEmoji}
-            onClick={() => void onConfirm()}
-            className="bg-[#CCFF00] text-[#19305A] hover:bg-[#CCFF00]/90"
+            onClick={() => void onConfirm({ withReaction: true })}
+            className="w-full bg-[#CCFF00] text-[#19305A] hover:bg-[#CCFF00]/90"
           >
-            {loading ? 'A processar…' : 'Concluir conquista'}
+            {loading ? 'A processar…' : 'Enviar reação e conquistar'}
           </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={loading}
+            onClick={() => void onConfirm({ withReaction: false })}
+            className="w-full"
+          >
+            Conquistar sem enviar reação
+          </Button>
+          <AlertDialogCancel disabled={loading} className="mt-0 w-full">
+            Cancelar
+          </AlertDialogCancel>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

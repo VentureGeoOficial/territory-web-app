@@ -21,6 +21,7 @@ import { createTerritoryFromRunTrack } from '@/lib/territory/run-territory'
 import { CAPTURE_REACTION_EMOJIS } from '@/lib/territory/capture-reactions'
 import type { Territory, TrackPoint } from '@/lib/territory/types'
 import { isPositionInsideBox, SUZANO_BOUNDING_BOX } from '@/lib/territory/regions'
+import { sendCaptureNotifications } from '@/lib/firebase/admin-capture-notifications'
 import { log } from '@/lib/logging/logger'
 
 const MAX_AREA_M2 = 10_000_000
@@ -42,7 +43,7 @@ const bodySchema = z.object({
   distanceMeters: z.number().nonnegative(),
   durationSeconds: z.number().nonnegative(),
   routeJson: z.string().max(400_000),
-  reactionEmoji: z.enum(CAPTURE_REACTION_EMOJIS),
+  reactionEmoji: z.enum(CAPTURE_REACTION_EMOJIS).optional(),
 })
 
 function resolveRunId(req: Request, bodyRunId: string): string {
@@ -166,7 +167,6 @@ export async function POST(req: Request) {
 
     const victimOutcomes = await executeCaptureTransaction({
       attackerUid: uid,
-      attackerName: currentUser.displayName,
       newTerritory: territoryForCapture,
       xpCost: impact.xpCost,
       xpGain,
@@ -182,6 +182,25 @@ export async function POST(req: Request) {
         routeJson: body.routeJson,
       },
     })
+
+    try {
+      await sendCaptureNotifications({
+        outcomes: victimOutcomes,
+        reactionEmoji: body.reactionEmoji,
+        attackerUid: uid,
+        attackerName: currentUser.displayName,
+        attackerTerritoryId: territoryForCapture.id,
+      })
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Erro desconhecido.'
+      log.warn({
+        scope: 'TerritoryCaptureApi',
+        event: 'notification_failed',
+        uid,
+        runIdPrefix: runId.slice(0, 8),
+        message,
+      })
+    }
 
     log.info({
       scope: 'TerritoryCaptureApi',
