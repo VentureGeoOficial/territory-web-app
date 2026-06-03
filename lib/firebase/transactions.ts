@@ -16,11 +16,6 @@ import {
   TERRITORY_EVENTS_SUBCOLLECTION,
   type TerritoryEventDoc,
 } from '@/lib/firebase/territory-events'
-import {
-  territoryCapturedMessage,
-  USER_NOTIFICATIONS_SUBCOLLECTION,
-  type TerritoryCapturedNotificationDoc,
-} from '@/lib/firebase/notifications'
 import * as turf from '@turf/turf'
 
 const TERRITORIES = 'territories'
@@ -41,13 +36,12 @@ export interface CaptureRunPayload {
 
 export interface ExecuteCaptureTransactionInput {
   attackerUid: string
-  attackerName: string
   newTerritory: Territory
   xpCost: number
   xpGain: number
   overlappedTerritoryIds: string[]
   friendOwnerIds: Set<string>
-  reactionEmoji: CaptureReactionEmoji
+  reactionEmoji?: CaptureReactionEmoji
   run: CaptureRunPayload
 }
 
@@ -89,7 +83,6 @@ export async function executeCaptureTransaction(
 ): Promise<CaptureVictimOutcome[]> {
   const {
     attackerUid,
-    attackerName,
     newTerritory,
     xpCost,
     xpGain,
@@ -208,7 +201,7 @@ export async function executeCaptureTransaction(
             actorUid: attackerUid,
             runId: run.runId,
             lostAreaM2: data.areaM2,
-            reactionEmoji,
+            ...(reactionEmoji !== undefined ? { reactionEmoji } : {}),
           }
           trx.set(eventRef, event)
         }
@@ -248,48 +241,9 @@ export async function executeCaptureTransaction(
           runId: run.runId,
           lostAreaM2: subtraction.lostAreaM2,
           remainderAreaM2: subtraction.remainderAreaM2,
-          reactionEmoji,
+          ...(reactionEmoji !== undefined ? { reactionEmoji } : {}),
         }
         trx.set(eventRef, event)
-      }
-
-      const outcomeMode =
-        subtraction.fullCapture || !subtraction.remainder
-          ? subtraction.intersectionAreaM2 > 0
-            ? 'full_expire'
-            : null
-          : 'partial_shrink'
-
-      if (outcomeMode === 'partial_shrink' || outcomeMode === 'full_expire') {
-        const victimUserSnap = await trx.get(db.collection(USERS).doc(victimId))
-        const prefs = victimUserSnap.data()?.notificationPreferences as
-          | { app?: boolean }
-          | undefined
-        const appEnabled = prefs?.app !== false
-
-        if (appEnabled) {
-          const notifRef = db
-            .collection(USERS)
-            .doc(victimId)
-            .collection(USER_NOTIFICATIONS_SUBCOLLECTION)
-            .doc()
-          const notif: TerritoryCapturedNotificationDoc = {
-            type: 'territory_captured',
-            createdAt: now,
-            actorUid: attackerUid,
-            actorName: attackerName,
-            attackerTerritoryId: newTerritory.id,
-            victimTerritoryId: expectedId,
-            mode: outcomeMode,
-            lostAreaM2:
-              outcomeMode === 'full_expire'
-                ? data.areaM2
-                : subtraction.lostAreaM2,
-            reactionEmoji,
-            message: territoryCapturedMessage(outcomeMode),
-          }
-          trx.set(notifRef, notif)
-        }
       }
     }
 

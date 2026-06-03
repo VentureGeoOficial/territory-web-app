@@ -130,7 +130,7 @@ export interface SubmitTerritoryCaptureParams {
   distanceMeters: number
   durationSeconds: number
   routeJson: string
-  reactionEmoji: CaptureReactionEmoji
+  reactionEmoji?: CaptureReactionEmoji
 }
 
 /**
@@ -142,7 +142,10 @@ export async function submitTerritoryCaptureViaApi(
   if (!isFirebaseConfigured()) {
     throw new Error('Firebase não configurado.')
   }
-  if (!isCaptureReactionEmoji(params.reactionEmoji)) {
+  if (
+    params.reactionEmoji !== undefined &&
+    !isCaptureReactionEmoji(params.reactionEmoji)
+  ) {
     throw new Error('Emoji de reação inválido.')
   }
 
@@ -168,7 +171,9 @@ export async function submitTerritoryCaptureViaApi(
       distanceMeters: params.distanceMeters,
       durationSeconds: params.durationSeconds,
       routeJson: params.routeJson,
-      reactionEmoji: params.reactionEmoji,
+      ...(params.reactionEmoji !== undefined
+        ? { reactionEmoji: params.reactionEmoji }
+        : {}),
     }),
   })
 

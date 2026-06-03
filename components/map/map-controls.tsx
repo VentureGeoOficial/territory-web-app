@@ -167,8 +167,10 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     startRun()
   }, [permission, setPermission, startRun])
 
-  const handleConfirmCapture = useCallback(async () => {
-    if (!captureDraft || !selectedReactionEmoji) return
+  const handleConfirmCapture = useCallback(
+    async ({ withReaction }: { withReaction: boolean }) => {
+      if (!captureDraft) return
+      if (withReaction && !selectedReactionEmoji) return
     const pts = useRunStore.getState().points
     if (pts.length < 2) {
       toast.error('Dados da corrida em falta.')
@@ -194,7 +196,9 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         distanceMeters: captureDraft.distanceMeters,
         durationSeconds: captureDraft.durationSeconds,
         routeJson,
-        reactionEmoji: selectedReactionEmoji,
+        ...(withReaction && selectedReactionEmoji
+          ? { reactionEmoji: selectedReactionEmoji }
+          : {}),
       })
       selectTerritory(territoryId)
       setCaptureDraft(null)
@@ -211,7 +215,8 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     } finally {
       setCaptureLoading(false)
     }
-  }, [
+  },
+  [
     captureDraft,
     ensureReadyForApiSave,
     resetRunState,
