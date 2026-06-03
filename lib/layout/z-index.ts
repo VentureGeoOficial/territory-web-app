@@ -2,6 +2,9 @@
  * Escala de z-index da app (mapa, nav, overlays).
  * Ordem crescente: mapa → controlos → bottom nav → header → menus → modais críticos.
  */
+
+/** Altura útil da barra inferior (h-14); safe-area é adicional no padding do nav. */
+export const NAV_BAR_HEIGHT_REM = '3.5rem' as const
 export const Z_MAP_CONTROLS = 1000
 export const Z_BOTTOM_NAV = 1100
 export const Z_HEADER = 1200

@@ -22,3 +22,10 @@ Configuração central: [`lib/navigation/nav-config.ts`](../../lib/navigation/na
 - Login sucesso → `/mapa` ([`login-form`](../../components/auth/login-form.tsx)).
 - Logout header → `/`.
 - AuthGuard sem sessão → `/login`.
+
+## Alinhamento visual (Header + bottom nav)
+
+- **Header mobile:** logo centralizada com posicionamento absoluto (`pointer-events-none`); menu e ações em slots simétricos `min-w-[4.5rem]`; ícones `h-10 w-10`.
+- **Header desktop (`lg+`):** layout flex — logo + título, estatísticas (`md+`), dashboard e menu do utilizador.
+- **Bottom nav:** `grid grid-cols-5`, `px-4`, `max-w-2xl`, labels truncadas, `min-h-[48px]` por item, `pb-[env(safe-area-inset-bottom)]` no iOS.
+- **CTA corrida no mapa:** offset `3.5rem` + safe-area (ver [`lib/layout/z-index.ts`](../../lib/layout/z-index.ts) — `NAV_BAR_HEIGHT_REM`).

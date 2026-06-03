@@ -44,26 +44,18 @@ export function Header() {
 
   const closeSheet = React.useCallback(() => setMobileMenuOpen(false), [])
 
-  return (
-    <header
-      className={cn(
-        'relative h-14 bg-card border-b border-border px-4 flex items-center justify-between shrink-0',
-        zHeader,
-      )}
-    >
-      {/* Mobile Menu Button */}
-      <div className="lg:hidden">
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9"
-              aria-label="Abrir menu"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
+  const mobileMenuSheet = (
+    <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 shrink-0"
+          aria-label="Abrir menu"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      </SheetTrigger>
           <SheetContent side="left" className="w-72 flex flex-col p-0">
             <SheetHeader className="border-b border-border p-4">
               <div className="flex items-center gap-3">
@@ -177,106 +169,127 @@ export function Header() {
                 </Button>
               </div>
             </div>
-          </SheetContent>
-        </Sheet>
-      </div>
+      </SheetContent>
+    </Sheet>
+  )
 
-      {/* Logo */}
-      <div className="flex items-center gap-3">
-        <VentureGeoBrandLogo height={42} className="hidden lg:block" />
-        <VentureGeoBrandLogo height={36} className="lg:hidden" />
-        <div className="hidden sm:block">
-          <h1 className="text-lg font-bold text-foreground leading-none">
-            TerritoryRun
-          </h1>
-          <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
-            Conquiste seu caminho
-          </p>
-        </div>
-      </div>
-
-      {/* Quick stats */}
-      <div className="hidden md:flex items-center gap-6">
-        <div className="flex items-center gap-2">
-          <Trophy className="h-4 w-4 text-primary" />
-          <div>
-            <span className="text-sm font-mono font-semibold text-foreground">
-              {myTerritories.length}
-            </span>
-            <span className="text-xs text-muted-foreground ml-1">
-              territorios
-            </span>
-          </div>
-        </div>
-        <div className="h-4 w-px bg-border" />
-        <div className="flex items-center gap-2">
-          <Map className="h-4 w-4 text-accent" />
-          <div>
-            <span className="text-sm font-mono font-semibold text-foreground">
-              {formatArea(myTotalArea)}
-            </span>
-            <span className="text-xs text-muted-foreground ml-1">
-              conquistados
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Acesso rápido + menu do usuário */}
-      <div className="flex items-center gap-2">
+  const profileDropdown = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
-          className={cn(
-            'h-9 w-9 shrink-0',
-            pathname === '/dashboard' && 'bg-primary/10 text-primary',
-          )}
-          asChild
+          className="h-10 w-10 shrink-0 p-0 lg:h-9 lg:w-auto lg:gap-2 lg:px-2"
+          aria-label="Abrir menu do usuário"
+          data-tour="nav-trofeus"
         >
-          <Link
-            href="/dashboard"
-            data-tour="nav-dashboard"
-            aria-label="Abrir Dashboard"
-            aria-current={pathname === '/dashboard' ? 'page' : undefined}
-          >
-            <LayoutDashboard className="h-5 w-5" />
-          </Link>
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/20">
+            <User className="h-4 w-4 text-primary" />
+          </div>
+          <span className="hidden max-w-[100px] truncate text-sm font-medium lg:inline">
+            {currentUser?.displayName || 'Demo'}
+          </span>
         </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-9 gap-2 px-2"
-              aria-label="Abrir menu do usuário"
-              data-tour="nav-trofeus"
-            >
-              <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
-                <User className="h-4 w-4 text-primary" />
-              </div>
-              <span className="hidden sm:inline text-sm font-medium truncate max-w-[100px]">
-                {currentUser?.displayName || 'Demo'}
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{currentUser?.displayName || 'Conta'}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {profileMenuItems.map((item) => {
-              const Icon = item.icon
-              return (
-                <DropdownMenuItem key={item.href} onClick={() => router.push(item.href)}>
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </DropdownMenuItem>
-              )
-            })}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-              Sair
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>{currentUser?.displayName || 'Conta'}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {profileMenuItems.map((item) => {
+          const Icon = item.icon
+          return (
+            <DropdownMenuItem key={item.href} onClick={() => router.push(item.href)}>
+              <Icon className="h-4 w-4" />
+              {item.label}
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          )
+        })}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+          <LogOut className="h-4 w-4" />
+          Sair
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+
+  const dashboardButton = (
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn(
+        'h-10 w-10 shrink-0 lg:h-9 lg:w-9',
+        pathname === '/dashboard' && 'bg-primary/10 text-primary',
+      )}
+      asChild
+    >
+      <Link
+        href="/dashboard"
+        data-tour="nav-dashboard"
+        aria-label="Abrir Dashboard"
+        aria-current={pathname === '/dashboard' ? 'page' : undefined}
+      >
+        <LayoutDashboard className="h-5 w-5" />
+      </Link>
+    </Button>
+  )
+
+  return (
+    <header
+      className={cn(
+        'relative h-14 shrink-0 border-b border-border bg-card px-4',
+        zHeader,
+      )}
+    >
+      <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 lg:hidden">
+        <VentureGeoBrandLogo height={36} />
+      </div>
+
+      <div className="relative z-10 flex h-full w-full items-center justify-between lg:hidden">
+        <div className="flex min-w-[4.5rem] items-center justify-start">
+          {mobileMenuSheet}
+        </div>
+        <div className="flex min-w-[4.5rem] items-center justify-end gap-0.5">
+          {dashboardButton}
+          {profileDropdown}
+        </div>
+      </div>
+
+      <div className="hidden h-full w-full items-center justify-between gap-4 lg:flex">
+        <div className="flex min-w-0 items-center gap-3">
+          <VentureGeoBrandLogo height={42} />
+          <div className="hidden sm:block">
+            <h1 className="text-lg font-bold leading-none text-foreground">TerritoryRun</h1>
+            <p className="mt-0.5 text-[10px] leading-none text-muted-foreground">
+              Conquiste seu caminho
+            </p>
+          </div>
+        </div>
+
+        <div className="hidden items-center gap-6 md:flex">
+          <div className="flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-primary" />
+            <div>
+              <span className="text-sm font-mono font-semibold text-foreground">
+                {myTerritories.length}
+              </span>
+              <span className="ml-1 text-xs text-muted-foreground">territorios</span>
+            </div>
+          </div>
+          <div className="h-4 w-px bg-border" />
+          <div className="flex items-center gap-2">
+            <Map className="h-4 w-4 text-accent" />
+            <div>
+              <span className="text-sm font-mono font-semibold text-foreground">
+                {formatArea(myTotalArea)}
+              </span>
+              <span className="ml-1 text-xs text-muted-foreground">conquistados</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
+          {dashboardButton}
+          {profileDropdown}
+        </div>
       </div>
     </header>
   )
