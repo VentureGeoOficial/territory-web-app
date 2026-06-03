@@ -1,16 +1,10 @@
 import 'server-only'
 
 import type { CaptureReactionEmoji } from '@/lib/territory/capture-reactions'
-import { getAdminFirestore } from '@/lib/firebase/admin-app'
 import type { CaptureVictimOutcome } from '@/lib/firebase/transactions'
-import {
-  territoryCapturedMessage,
-  USER_NOTIFICATIONS_SUBCOLLECTION,
-  type TerritoryCapturedNotificationDoc,
-} from '@/lib/firebase/notifications'
+import { createUserNotification } from '@/lib/firebase/admin-notifications'
+import { territoryCapturedMessage } from '@/lib/firebase/notifications'
 import { log } from '@/lib/logging/logger'
-
-const USERS = 'users'
 
 export interface SendCaptureNotificationsInput {
   outcomes: CaptureVictimOutcome[]
@@ -34,30 +28,24 @@ export async function sendCaptureNotifications(
     return
   }
 
-  const db = getAdminFirestore()
-  const now = Date.now()
-
   for (const outcome of outcomes) {
     if (outcome.mode !== 'partial_shrink' && outcome.mode !== 'full_expire') {
       continue
     }
 
-    try {
-      const victimRef = db.collection(USERS).doc(outcome.victimUid)
-      const victimSnap = await victimRef.get()
-      const prefs = victimSnap.data()?.notificationPreferences as
-        | { app?: boolean }
-        | undefined
-      const appEnabled = prefs?.app !== false
+    const title =
+      outcome.mode === 'full_expire' ? 'Território conquistado' : 'Território dominado'
+    const baseMessage = territoryCapturedMessage(outcome.mode)
+    const message = `${attackerName} enviou ${reactionEmoji}. ${baseMessage}`
 
-      if (!appEnabled) {
-        continue
-      }
-
-      const notifRef = victimRef.collection(USER_NOTIFICATIONS_SUBCOLLECTION).doc()
-      const notif: TerritoryCapturedNotificationDoc = {
-        type: 'territory_captured',
-        createdAt: now,
+    const docId = await createUserNotification({
+      uid: outcome.victimUid,
+      type: 'territory_captured',
+      category: 'territory',
+      title,
+      message,
+      metadata: {
+        territoryId: outcome.territoryId,
         actorUid: attackerUid,
         actorName: attackerName,
         attackerTerritoryId,
@@ -65,25 +53,17 @@ export async function sendCaptureNotifications(
         mode: outcome.mode,
         lostAreaM2: outcome.lostAreaM2,
         reactionEmoji,
-        message: territoryCapturedMessage(outcome.mode),
-      }
-      await notifRef.set(notif)
+        href: '/mapa',
+      },
+    })
 
+    if (docId) {
       log.info({
         scope: 'CaptureNotifications',
         event: 'notification_sent',
         victimUidPrefix: outcome.victimUid.slice(0, 8),
         territoryId: outcome.territoryId,
         mode: outcome.mode,
-      })
-    } catch (e) {
-      const message = e instanceof Error ? e.message : 'Erro desconhecido.'
-      log.warn({
-        scope: 'CaptureNotifications',
-        event: 'notification_failed',
-        victimUidPrefix: outcome.victimUid.slice(0, 8),
-        territoryId: outcome.territoryId,
-        message,
       })
     }
   }

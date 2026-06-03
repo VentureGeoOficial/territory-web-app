@@ -6,11 +6,12 @@ import { toast } from 'sonner'
 import { getFirestoreDb } from '@/lib/firebase/client'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
 import { USER_NOTIFICATIONS_SUBCOLLECTION } from '@/lib/firebase/notifications'
-import type { TerritoryCapturedNotificationDoc } from '@/lib/firebase/notifications'
+import { presentNotification } from '@/lib/notifications/notification-presenter'
 import { useAuthStore } from '@/lib/store/auth-store'
+import { getApiAuthHeaders } from '@/lib/auth/api-auth'
 
 /**
- * Escuta notificações in-app do utilizador autenticado e exibe toast para novas capturas.
+ * Escuta notificações in-app do utilizador autenticado e exibe toast para novas entradas.
  */
 export function useNotificationsListener(): void {
   const uid = useAuthStore((s) => s.user?.id)
@@ -44,11 +45,13 @@ export function useNotificationsListener(): void {
           if (seenIdsRef.current.has(id)) continue
           seenIdsRef.current.add(id)
 
-          const data = change.doc.data() as TerritoryCapturedNotificationDoc
-          if (data.type !== 'territory_captured') continue
+          const presented = presentNotification(
+            id,
+            change.doc.data() as Record<string, unknown>,
+          )
 
-          toast.info(data.message, {
-            description: `${data.actorName} enviou ${data.reactionEmoji}`,
+          toast.info(presented.title, {
+            description: presented.description ?? presented.message,
             duration: 8000,
           })
         }
@@ -67,5 +70,33 @@ export function useNotificationsListener(): void {
       seenIdsRef.current.clear()
       initialLoadRef.current = true
     }
+  }, [uid])
+}
+
+/** Envia notificação de boas-vindas idempotente na primeira visita à central (por sessão). */
+export function useWelcomeNotificationOnce(): void {
+  const uid = useAuthStore((s) => s.user?.id)
+  const attemptedRef = useRef(false)
+
+  useEffect(() => {
+    if (!uid || !isFirebaseConfigured() || attemptedRef.current) return
+    attemptedRef.current = true
+
+    const key = `tr_welcome_notif_${uid}`
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem(key)) {
+      return
+    }
+
+    void (async () => {
+      try {
+        const headers = await getApiAuthHeaders()
+        const res = await fetch('/api/notifications/welcome', { method: 'POST', headers })
+        if (res.ok && typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem(key, '1')
+        }
+      } catch {
+        // opcional
+      }
+    })()
   }, [uid])
 }

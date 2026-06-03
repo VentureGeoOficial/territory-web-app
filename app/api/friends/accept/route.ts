@@ -7,6 +7,7 @@ import {
   AcceptFriendError,
   acceptFriendRequestWithGraph,
 } from '@/lib/firebase/admin-friendship-sync'
+import { notifyFriendRequestAccepted } from '@/lib/firebase/admin-notifications'
 import { log } from '@/lib/logging/logger'
 
 const bodySchema = z.object({
@@ -46,6 +47,21 @@ export async function POST(req: Request) {
 
     const result = await acceptFriendRequestWithGraph(requestId, uid)
     const friendIds = [...(await getFriendOwnerIds(uid))]
+
+    try {
+      await notifyFriendRequestAccepted({
+        fromUserId: result.fromUserId,
+        toUserId: result.toUserId,
+        requestId,
+      })
+    } catch (e) {
+      log.warn({
+        scope: 'FriendsAcceptApi',
+        event: 'notification_failed',
+        requestIdPrefix: requestId.slice(0, 8),
+        message: e instanceof Error ? e.message : 'unknown',
+      })
+    }
 
     log.info({
       scope: 'FriendsAcceptApi',
