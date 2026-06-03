@@ -1,12 +1,11 @@
 export type OnboardingStepId =
   | 'map'
-  | 'run-cta'
   | 'dashboard'
   | 'competition'
   | 'friends'
-  | 'trophies'
   | 'store'
   | 'profile'
+  | 'trophies'
   | 'finish'
 
 export interface OnboardingStepConfig {
@@ -23,16 +22,9 @@ export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
   {
     id: 'map',
     title: 'Mapa principal',
-    body: 'Este é o mapa principal. Aqui você domina territórios e acompanha sua evolução.',
+    body: 'Este é o mapa principal. Aqui você domina territórios, acompanha sua evolução e usa o botão Iniciar corrida para registrar seu percurso.',
     route: '/mapa',
     targetSelector: '[data-tour="map-area"]',
-  },
-  {
-    id: 'run-cta',
-    title: 'Iniciar corrida',
-    body: 'Inicie uma corrida para registrar seu percurso e conquistar novos territórios.',
-    route: '/mapa',
-    targetSelector: '#tour-run-cta',
   },
   {
     id: 'dashboard',
@@ -56,13 +48,6 @@ export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
     targetSelector: '[data-tour="nav-amigos"]',
   },
   {
-    id: 'trophies',
-    title: 'Troféus',
-    body: 'Acompanhe suas conquistas e evolução dentro do jogo.',
-    route: '/mapa',
-    targetSelector: '[data-tour="nav-trofeus"]',
-  },
-  {
     id: 'store',
     title: 'Loja',
     body: 'Confira promoções, parceiros e benefícios exclusivos.',
@@ -75,6 +60,13 @@ export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
     body: 'Gerencie suas informações e acompanhe seu progresso.',
     route: '/conta',
     targetSelector: '[data-tour="nav-conta"]',
+  },
+  {
+    id: 'trophies',
+    title: 'Troféus',
+    body: 'Aqui você acompanha suas conquistas, medalhas e evolução dentro do TerritoryRun.',
+    route: '/mapa',
+    targetSelector: '[data-tour="nav-trofeus"]',
   },
   {
     id: 'finish',

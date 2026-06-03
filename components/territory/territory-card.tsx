@@ -9,6 +9,7 @@ import {
   getTerritoryDisplayStatus,
   type TerritoryDisplayKind,
 } from '@/lib/territory/territory-display-status'
+import { TerritoryProtectionCountdown } from '@/components/territory/territory-protection-countdown'
 
 interface TerritoryCardProps {
   territory: Territory
@@ -122,21 +123,25 @@ export function TerritoryCard({
           </div>
 
           <div className="flex items-center justify-between">
-            <div 
-              className="flex items-center gap-1 px-2 py-1 rounded-md"
-              style={{ 
-                background: status.bgColor,
-              }}
-            >
-              <StatusIcon className="h-3 w-3" style={{ color: status.color }} />
-              <span 
-                className="text-xs font-medium"
-                style={{ color: status.color }}
+            <div className="flex flex-col min-w-0">
+              <div
+                className="flex items-center gap-1 px-2 py-1 rounded-md w-fit"
+                style={{
+                  background: status.bgColor,
+                }}
               >
-                {display.label}
-              </span>
+                <StatusIcon className="h-3 w-3" style={{ color: status.color }} />
+                <span className="text-xs font-medium" style={{ color: status.color }}>
+                  {display.label}
+                </span>
+              </div>
+              <TerritoryProtectionCountdown
+                protectedUntil={territory.protectedUntil}
+                displayKind={display.kind}
+                compact
+              />
             </div>
-            <span className="text-xs text-muted-foreground">{timeAgo}</span>
+            <span className="text-xs text-muted-foreground shrink-0">{timeAgo}</span>
           </div>
         </div>
       </div>

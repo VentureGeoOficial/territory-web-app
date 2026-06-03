@@ -58,7 +58,7 @@ export function OnboardingOverlay({
   React.useEffect(() => {
     if (!open) return
     refreshSpot()
-    const t1 = window.setTimeout(refreshSpot, 350)
+    const t1 = window.setTimeout(refreshSpot, 450)
     const onResize = () => refreshSpot()
     window.addEventListener('resize', onResize)
     window.addEventListener('scroll', onResize, true)

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { Territory } from '@/lib/territory/types'
-import { getTerritoryDisplayStatus } from '@/lib/territory/territory-display-status'
+import {
+  formatProtectionRemaining,
+  getTerritoryDisplayStatus,
+} from '@/lib/territory/territory-display-status'
 
 function baseTerritory(overrides: Partial<Territory> = {}): Territory {
   return {
@@ -73,5 +76,29 @@ describe('getTerritoryDisplayStatus', () => {
   it('mostra Expirado', () => {
     const t = baseTerritory({ status: 'expired' })
     expect(getTerritoryDisplayStatus(t, now).label).toBe('Expirado')
+  })
+})
+
+describe('formatProtectionRemaining', () => {
+  const now = 1_000_000
+
+  it('retorna null quando expirado ou ausente', () => {
+    expect(formatProtectionRemaining(undefined, now)).toBeNull()
+    expect(formatProtectionRemaining(now - 1, now)).toBeNull()
+  })
+
+  it('formata horas e minutos', () => {
+    const twoH15 = now + 2 * 3_600_000 + 15 * 60_000
+    expect(formatProtectionRemaining(twoH15, now)).toBe('2h 15min')
+  })
+
+  it('formata só minutos abaixo de 1h', () => {
+    const fortyFive = now + 45 * 60_000
+    expect(formatProtectionRemaining(fortyFive, now)).toBe('45 min')
+  })
+
+  it('formata dias e horas', () => {
+    const oneDayThreeH = now + 86_400_000 + 3 * 3_600_000
+    expect(formatProtectionRemaining(oneDayThreeH, now)).toBe('1 dia 3h')
   })
 })

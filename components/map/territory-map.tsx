@@ -26,6 +26,7 @@ import { formatArea } from '@/lib/territory/geo'
 import { Button } from '@/components/ui/button'
 import { Crosshair, MapPin, Shield, ShieldOff, Swords } from 'lucide-react'
 import { getTerritoryDisplayStatus } from '@/lib/territory/territory-display-status'
+import { TerritoryProtectionCountdown } from '@/components/territory/territory-protection-countdown'
 import { getSuzanoMaxBounds } from '@/lib/territory/regions'
 import { filterTerritoriesByViewport } from '@/lib/firebase/territories'
 import { useAuthStore } from '@/lib/store/auth-store'
@@ -328,6 +329,11 @@ const TerritoryPolygon = memo(function TerritoryPolygon({
                 </span>
               </div>
             </div>
+
+            <TerritoryProtectionCountdown
+              protectedUntil={territory.protectedUntil}
+              displayKind={display.kind}
+            />
 
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Conquistas</span>
