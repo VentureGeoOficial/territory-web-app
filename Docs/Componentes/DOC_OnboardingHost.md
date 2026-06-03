@@ -30,12 +30,22 @@ Navegação entre passos: apenas `goToStep` + `router.push`; **não** reiniciar 
 
 **Correção:** `hasInitializedRef` — inicialização única quando `eligible` passa a `true`; `pathname` removido das deps do effect de elegibilidade e de inicialização.
 
+## Quem vê o tutorial
+
+| Perfil Firestore | Comportamento |
+|------------------|---------------|
+| `hasCompletedOnboarding: false` | Conta **nova** (cadastro) — tutorial exibido uma vez |
+| `hasCompletedOnboarding: true` | Já concluiu ou saltou — nunca mais |
+| Campo **ausente** | Conta **legada** (antes do onboarding) — **não** exibe |
+
+Cadastro em `createUserProfileAfterSignup` grava `hasCompletedOnboarding: false`.
+
 ## Persistência (híbrida)
 
 | Camada | Campo/chave |
 |--------|-------------|
 | Firestore `users/{uid}` | `hasCompletedOnboarding`, `onboardingCompletedAt` |
-| localStorage | `territoryrun_onboarding_completed` = `1` |
+| localStorage | `territoryrun_onboarding_completed_{uid}` = `1` (por utilizador) |
 
 Função: `markOnboardingCompleted(uid)` em [`lib/firebase/user-profile.ts`](../../lib/firebase/user-profile.ts).
 

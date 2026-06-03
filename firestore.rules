@@ -33,7 +33,8 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly([
         'displayName', 'nomeCompleto', 'email', 'username', 'dataNascimento', 'sexo',
         'peso', 'altura', 'notificationPreferences', 'legalAcceptance', 'color',
-        'totalAreaM2', 'territoriesCount', 'xp', 'createdAt', 'updatedAt'
+        'totalAreaM2', 'territoriesCount', 'xp', 'hasCompletedOnboarding',
+        'createdAt', 'updatedAt'
       ])
       || request.resource.data.keys().hasOnly([
         'displayName', 'email', 'color', 'totalAreaM2', 'territoriesCount', 'xp',
@@ -61,7 +62,9 @@ service cloud.firestore {
         && request.resource.data.color is string
         && request.resource.data.xp == 0
         && request.resource.data.totalAreaM2 == 0
-        && request.resource.data.territoriesCount == 0;
+        && request.resource.data.territoriesCount == 0
+        && (!request.resource.data.keys().hasAny(['hasCompletedOnboarding'])
+            || request.resource.data.hasCompletedOnboarding == false);
 
       allow update: if isOwner(userId)
         && statsUnchangedUsers()

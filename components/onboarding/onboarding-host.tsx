@@ -10,6 +10,10 @@ import {
   isOnboardingCompletedCached,
 } from '@/lib/onboarding/onboarding-storage'
 import { completeOnboarding } from '@/lib/onboarding/onboarding-completion'
+import {
+  hasOnboardingBeenCompleted,
+  isOnboardingPending,
+} from '@/lib/onboarding/onboarding-eligibility'
 import { getUserProfile } from '@/lib/firebase/user-profile'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
@@ -34,7 +38,7 @@ export function OnboardingHost() {
       setEligible(false)
       return
     }
-    if (isOnboardingCompletedCached()) {
+    if (isOnboardingCompletedCached(uid)) {
       setEligible(false)
       return
     }
@@ -43,14 +47,18 @@ export function OnboardingHost() {
 
     ;(async () => {
       if (!isFirebaseConfigured()) {
-        setEligible(true)
+        setEligible(false)
         return
       }
       try {
         const profile = await getUserProfile(uid)
         if (cancelled) return
-        if (profile?.hasCompletedOnboarding) {
-          cacheOnboardingCompleted()
+        if (hasOnboardingBeenCompleted(profile)) {
+          cacheOnboardingCompleted(uid)
+          setEligible(false)
+          return
+        }
+        if (!isOnboardingPending(profile)) {
           setEligible(false)
           return
         }
@@ -99,7 +107,7 @@ export function OnboardingHost() {
     try {
       await completeOnboarding(uid)
     } catch {
-      cacheOnboardingCompleted()
+      cacheOnboardingCompleted(uid)
     } finally {
       setFinishing(false)
       setActive(false)

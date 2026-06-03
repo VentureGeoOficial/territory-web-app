@@ -120,6 +120,7 @@ export async function createUserProfileAfterSignup(
       totalAreaM2: 0,
       territoriesCount: 0,
       xp: 0,
+      hasCompletedOnboarding: false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     })
