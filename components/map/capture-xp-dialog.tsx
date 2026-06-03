@@ -10,6 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { zModal } from '@/lib/layout/z-index'
+import { cn } from '@/lib/utils'
 import { formatArea } from '@/lib/territory/geo'
 import type { CaptureImpactOk } from '@/lib/territory/geoLogic'
 import { computeXpFromRun } from '@/lib/territory/scoring'
@@ -39,7 +41,10 @@ export function CaptureXpDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={loading ? undefined : onOpenChange}>
-      <AlertDialogContent className="border-border bg-card/95 backdrop-blur-md sm:max-w-md">
+      <AlertDialogContent
+        overlayClassName={cn(zModal)}
+        className={cn(zModal, 'border-border bg-card/95 backdrop-blur-md sm:max-w-md')}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle className="font-mono text-base">
             Conquista inimiga

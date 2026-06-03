@@ -10,6 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { zModal } from '@/lib/layout/z-index'
+import { cn } from '@/lib/utils'
 import {
   CAPTURE_REACTION_EMOJIS,
   type CaptureReactionEmoji,
@@ -34,7 +36,10 @@ export function CaptureEmojiDialog({
 }: CaptureEmojiDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={loading ? undefined : onOpenChange}>
-      <AlertDialogContent className="border-border bg-card/95 backdrop-blur-md sm:max-w-md">
+      <AlertDialogContent
+        overlayClassName={cn(zModal)}
+        className={cn(zModal, 'border-border bg-card/95 backdrop-blur-md sm:max-w-md')}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle className="font-mono text-base">
             Enviar reação ao amigo
