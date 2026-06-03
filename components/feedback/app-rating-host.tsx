@@ -9,6 +9,7 @@ import { isAppRatingPromptDismissed } from '@/lib/feedback/app-rating-prompt-sto
 import { fetchAppRatingStatus } from '@/lib/feedback/submit-app-rating'
 import { trackAppRatingEvent } from '@/lib/feedback/track-app-rating'
 import { isOnboardingCompletedCached } from '@/lib/onboarding/onboarding-storage'
+import { isOnboardingPending } from '@/lib/onboarding/onboarding-eligibility'
 import { getUserProfile } from '@/lib/firebase/user-profile'
 import { useAuthStore } from '@/lib/store/auth-store'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
@@ -43,12 +44,14 @@ export function AppRatingHost() {
     let cancelled = false
 
     ;(async () => {
-      if (!isOnboardingCompletedCached() && uid && isFirebaseConfigured()) {
-        const profile = await getUserProfile(uid)
-        if (cancelled) return
-        if (!profile?.hasCompletedOnboarding) {
-          setEligible(false)
-          return
+      if (uid && isFirebaseConfigured()) {
+        if (!isOnboardingCompletedCached(uid)) {
+          const profile = await getUserProfile(uid)
+          if (cancelled) return
+          if (isOnboardingPending(profile)) {
+            setEligible(false)
+            return
+          }
         }
       }
       try {

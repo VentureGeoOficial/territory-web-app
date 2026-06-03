@@ -3,7 +3,7 @@ import { cacheOnboardingCompleted } from '@/lib/onboarding/onboarding-storage'
 import { log } from '@/lib/logging/logger'
 
 export async function completeOnboarding(uid: string): Promise<void> {
-  cacheOnboardingCompleted()
+  cacheOnboardingCompleted(uid)
   try {
     await markOnboardingCompleted(uid)
     log.info({
