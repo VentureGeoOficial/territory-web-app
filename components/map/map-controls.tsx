@@ -9,7 +9,10 @@ import { useAuthStore } from '@/lib/store/auth-store'
 import { AuthReadyContext } from '@/components/auth/auth-provider'
 import { getFirebaseAuth } from '@/lib/firebase/client'
 import { isFirebaseConfigured } from '@/lib/firebase/config'
-import { createTerritoryFromRunTrack } from '@/lib/territory/run-territory'
+import {
+  createTerritoryFromRunTrack,
+  validateRunTrack,
+} from '@/lib/territory/run-territory'
 import {
   calculateCaptureImpact,
   hasFriendCaptureOverlap,
@@ -33,6 +36,7 @@ import { Play, Square, X, MapPin, Loader2 } from 'lucide-react'
 import { formatDistance, formatDuration } from '@/lib/territory/geo'
 import { cn } from '@/lib/utils'
 import { zMapControls } from '@/lib/layout/z-index'
+import { log } from '@/lib/logging/logger'
 
 const BRAND = {
   lime: '#CCFF00',
@@ -86,6 +90,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
   const [selectedReactionEmoji, setSelectedReactionEmoji] =
     useState<CaptureReactionEmoji | null>(null)
   const [captureLoading, setCaptureLoading] = useState(false)
+  const [lastFinishError, setLastFinishError] = useState<string | null>(null)
   const pendingRunIdRef = useRef<string | null>(null)
 
   const hasPendingTrack = !isRunning && points.length >= 2
@@ -158,6 +163,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       }
     }
     pendingRunIdRef.current = null
+    setLastFinishError(null)
     startRun()
   }, [permission, setPermission, startRun])
 
@@ -195,6 +201,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       setCaptureStep(null)
       setSelectedReactionEmoji(null)
       pendingRunIdRef.current = null
+      setLastFinishError(null)
       resetRunState()
       setMapMode('view')
       toast.success('Conquista inimiga concluída!')
@@ -231,6 +238,23 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       toast.error('Percorra mais para gerar um território.')
       return
     }
+
+    const preflight = validateRunTrack(points)
+    if (!preflight.isValid) {
+      const msg = preflight.errors.join(' ')
+      setLastFinishError(msg)
+      toast.error(msg)
+      log.warn({
+        scope: 'MapControlsOverlay',
+        event: 'finish_validation_fail',
+        source: 'components/map/map-controls.tsx',
+        pointCount: points.length,
+        distanceMeters: Math.round(preflight.stats.distanceMeters),
+        durationSeconds: Math.round(preflight.stats.durationSeconds),
+      })
+      return
+    }
+
     setFinishing(true)
     stopWatching()
     const endedAt = Date.now()
@@ -294,11 +318,19 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
 
       if (friendOverlap) {
         if (!impact.ok) {
+          setLastFinishError(impact.message)
           toast.error(impact.message)
           pauseRunKeepTrack()
           setFinishing(false)
+          log.warn({
+            scope: 'MapControlsOverlay',
+            event: 'finish_capture_blocked',
+            source: 'components/map/map-controls.tsx',
+            pointCount: points.length,
+          })
           return
         }
+        setLastFinishError(null)
         setCaptureDraft({
           impact,
           newTerritoryAreaM2: newTerritory.areaM2,
@@ -308,7 +340,15 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
           durationSeconds,
         })
         setCaptureStep('xp')
+        pauseRunKeepTrack()
         setFinishing(false)
+        log.info({
+          scope: 'MapControlsOverlay',
+          event: 'finish_capture_dialog',
+          source: 'components/map/map-controls.tsx',
+          pointCount: points.length,
+          distanceMeters: Math.round(distanceMeters),
+        })
         return
       }
 
@@ -318,7 +358,18 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       })
 
       if (!ensureReadyForApiSave()) {
+        pauseRunKeepTrack()
+        const authMsg = !firebaseAuthReady
+          ? 'A restaurar sessão… Tente novamente em instantes.'
+          : 'Inicie sessão novamente.'
+        setLastFinishError(authMsg)
         setFinishing(false)
+        log.warn({
+          scope: 'MapControlsOverlay',
+          event: 'finish_auth_not_ready',
+          source: 'components/map/map-controls.tsx',
+          uid: user?.id,
+        })
         return
       }
 
@@ -334,9 +385,19 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
 
       selectTerritory(territoryId)
       pendingRunIdRef.current = null
+      setLastFinishError(null)
       resetRunState()
       setMapMode('view')
       toast.success('Corrida concluída! Território conquistado.')
+      log.info({
+        scope: 'MapControlsOverlay',
+        event: 'finish_api_ok',
+        source: 'components/map/map-controls.tsx',
+        pointCount: points.length,
+        distanceMeters: Math.round(distanceMeters),
+        durationSeconds: Math.round(durationSeconds),
+        uid: user?.id,
+      })
     } catch (e) {
       console.error(e)
       if (
@@ -378,6 +439,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
           )
           if (impact.ok) {
             pauseRunKeepTrack()
+            setLastFinishError(null)
             setCaptureDraft({
               impact,
               newTerritoryAreaM2: newTerritory.areaM2,
@@ -388,8 +450,15 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
             })
             setCaptureStep('xp')
             toast.info('Sobreposição com amigo detectada — confirme a conquista.')
+            log.info({
+              scope: 'MapControlsOverlay',
+              event: 'finish_capture_dialog',
+              source: 'components/map/map-controls.tsx',
+              pointCount: points.length,
+            })
             return
           }
+          setLastFinishError(impact.message)
           toast.error(impact.message)
         } catch (inner) {
           const msg =
@@ -398,8 +467,17 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         }
       }
       const msg = e instanceof Error ? e.message : 'Não foi possível salvar.'
+      setLastFinishError(msg)
       toast.error(msg)
       pauseRunKeepTrack()
+      log.warn({
+        scope: 'MapControlsOverlay',
+        event: 'finish_api_fail',
+        source: 'components/map/map-controls.tsx',
+        pointCount: points.length,
+        message: msg,
+        uid: user?.id,
+      })
     } finally {
       setFinishing(false)
     }
@@ -418,7 +496,13 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     friendOwnerIds,
     territories,
     user,
+    firebaseAuthReady,
   ])
+
+  const handleCancelRun = useCallback(() => {
+    setLastFinishError(null)
+    cancelRun()
+  }, [cancelRun])
 
   const canStart =
     isFirebaseConfigured() &&
@@ -528,7 +612,13 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         )}
 
         {hasPendingTrack ? (
-          <div className="flex w-full max-w-sm flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex w-full max-w-sm flex-col gap-2">
+            {lastFinishError && (
+              <p className="text-center text-xs text-amber-400 px-2">
+                {lastFinishError}
+              </p>
+            )}
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
             <Button
               type="button"
               onClick={() => void handleFinish()}
@@ -546,7 +636,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
             <Button
               type="button"
               variant="outline"
-              onClick={cancelRun}
+              onClick={handleCancelRun}
               disabled={finishing}
               className="h-14 flex-1 gap-2 font-semibold text-base"
               style={{ borderColor: BRAND.border, color: '#FF4D4D' }}
@@ -554,6 +644,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
               <X className="h-5 w-5" />
               Encerrar corrida
             </Button>
+            </div>
           </div>
         ) : !isRunning ? (
           <Button
@@ -583,7 +674,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
               size="icon"
               className="h-12 w-12 rounded-xl hover:bg-[#FF4D4D]/10 shrink-0"
               style={{ color: '#FF4D4D' }}
-              onClick={cancelRun}
+              onClick={handleCancelRun}
               disabled={finishing}
             >
               <X className="h-5 w-5" />
