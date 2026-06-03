@@ -20,6 +20,7 @@ import {
 import { formatArea } from '@/lib/territory/geo'
 import { mobileSheetNavItems, profileMenuItems } from '@/lib/navigation/nav-config'
 import { LayoutDashboard, LogOut, Map, Trophy, User, Menu } from 'lucide-react'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 import { cn } from '@/lib/utils'
 import { zHeader } from '@/lib/layout/z-index'
 
@@ -249,6 +250,7 @@ export function Header() {
         </div>
         <div className="flex min-w-[4.5rem] items-center justify-end gap-0.5">
           {dashboardButton}
+          <NotificationBell />
           {profileDropdown}
         </div>
       </div>
@@ -288,6 +290,7 @@ export function Header() {
 
         <div className="flex shrink-0 items-center gap-2">
           {dashboardButton}
+          <NotificationBell />
           {profileDropdown}
         </div>
       </div>

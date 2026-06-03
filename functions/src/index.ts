@@ -1,7 +1,13 @@
 import * as admin from 'firebase-admin'
 import { FieldValue, getFirestore } from 'firebase-admin/firestore'
-import { onDocumentUpdated } from 'firebase-functions/v2/firestore'
+import { onDocumentCreated, onDocumentUpdated } from 'firebase-functions/v2/firestore'
 import { onSchedule } from 'firebase-functions/v2/scheduler'
+import {
+  isProtectionExpiredWindow,
+  notifyFriendRequestReceivedCf,
+  notifyTerritoryUnprotectedCf,
+  protectionExpiredDocId,
+} from './notifications'
 
 admin.initializeApp()
 const db = getFirestore()
@@ -122,6 +128,109 @@ export const onFriendRequestStatusChange = onDocumentUpdated(
         message: e instanceof Error ? e.message : 'unknown',
       })
       throw e
+    }
+  },
+)
+
+/**
+ * Notifica destinatário quando um pedido de amizade é criado.
+ */
+export const onFriendRequestCreated = onDocumentCreated(
+  {
+    document: `${FRIEND_REQUESTS}/{requestId}`,
+    region: 'southamerica-east1',
+  },
+  async (event) => {
+    const data = event.data?.data()
+    if (!data) return
+
+    const status = String(data.status ?? '')
+    if (status !== 'pending') return
+
+    const fromUserId = String(data.fromUserId ?? '')
+    const toUserId = String(data.toUserId ?? '')
+    const requestId = event.params.requestId
+
+    if (!fromUserId || !toUserId || fromUserId === toUserId) return
+
+    try {
+      await notifyFriendRequestReceivedCf({
+        db,
+        toUserId,
+        fromUserId,
+        requestId,
+      })
+    } catch (e) {
+      logFriendship('WARNING', 'friend_request_notification_failed', {
+        requestIdPrefix: requestId.slice(0, 8),
+        message: e instanceof Error ? e.message : 'unknown',
+      })
+    }
+  },
+)
+
+const PROTECTION_NOTIFY_WINDOW_MS = 20 * 60 * 1000
+
+/**
+ * A cada 15 min: notifica donos cujo território acabou de perder proteção.
+ */
+export const notifyExpiredProtection = onSchedule(
+  {
+    schedule: 'every 15 minutes',
+    timeZone: 'America/Sao_Paulo',
+    region: 'southamerica-east1',
+  },
+  async () => {
+    const now = Date.now()
+    const windowStart = now - PROTECTION_NOTIFY_WINDOW_MS
+
+    const snap = await db
+      .collection('territories')
+      .where('protectedUntil', '>', windowStart)
+      .where('protectedUntil', '<=', now)
+      .get()
+
+    if (snap.empty) return
+
+    for (const doc of snap.docs) {
+      const data = doc.data()
+      const status = String(data.status ?? '')
+      if (status === 'expired') continue
+
+      const protectedUntil = Number(data.protectedUntil ?? 0)
+      if (!isProtectionExpiredWindow(protectedUntil, now, PROTECTION_NOTIFY_WINDOW_MS)) {
+        continue
+      }
+
+      const ownerUid = String(data.userId ?? '')
+      if (!ownerUid) continue
+
+      const territoryId = doc.id
+      const docId = protectionExpiredDocId(territoryId)
+      const existing = await db
+        .collection('users')
+        .doc(ownerUid)
+        .collection('notifications')
+        .doc(docId)
+        .get()
+      if (existing.exists) continue
+
+      try {
+        await notifyTerritoryUnprotectedCf({
+          db,
+          ownerUid,
+          territoryId,
+        })
+      } catch (e) {
+        console.warn(
+          JSON.stringify({
+            scope: 'CloudNotifications',
+            event: 'protection_notify_failed',
+            territoryId,
+            message: e instanceof Error ? e.message : 'unknown',
+          }),
+        )
+      }
     }
   },
 )
