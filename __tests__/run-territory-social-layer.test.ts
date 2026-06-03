@@ -72,7 +72,7 @@ describe('createTerritoryFromRunTrack social layer', () => {
       existingTerritories: existing,
       friendOwnerIds: new Set(['friend-1']),
     })
-    expect(newTerritory.status).toBe('active')
+    expect(newTerritory.status).toBe('protected')
   })
 
   it('disputed só quando intersecta amigo', () => {
@@ -102,6 +102,6 @@ describe('createTerritoryFromRunTrack social layer', () => {
       existingTerritories: existing,
       friendOwnerIds: new Set(['friend-1']),
     })
-    expect(newTerritory.status).toBe('active')
+    expect(newTerritory.status).toBe('protected')
   })
 })

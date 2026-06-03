@@ -31,6 +31,8 @@ import { getCurrentPositionOnce } from '@/lib/services/location-service'
 import { getUserProfile } from '@/lib/services/account-settings-service'
 import { Play, Square, X, MapPin, Loader2 } from 'lucide-react'
 import { formatDistance, formatDuration } from '@/lib/territory/geo'
+import { cn } from '@/lib/utils'
+import { zMapControls } from '@/lib/layout/z-index'
 
 const BRAND = {
   lime: '#CCFF00',
@@ -84,11 +86,9 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
   const [selectedReactionEmoji, setSelectedReactionEmoji] =
     useState<CaptureReactionEmoji | null>(null)
   const [captureLoading, setCaptureLoading] = useState(false)
-  const [lastFailedRun, setLastFailedRun] = useState<{
-    message: string
-    canRetry: boolean
-  } | null>(null)
   const pendingRunIdRef = useRef<string | null>(null)
+
+  const hasPendingTrack = !isRunning && points.length >= 2
 
   const ensureReadyForApiSave = useCallback((): boolean => {
     if (!firebaseAuthReady) {
@@ -157,7 +157,6 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         return
       }
     }
-    setLastFailedRun(null)
     pendingRunIdRef.current = null
     startRun()
   }, [permission, setPermission, startRun])
@@ -297,7 +296,6 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         if (!impact.ok) {
           toast.error(impact.message)
           pauseRunKeepTrack()
-          setLastFailedRun({ message: impact.message, canRetry: true })
           setFinishing(false)
           return
         }
@@ -335,7 +333,6 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       })
 
       selectTerritory(territoryId)
-      setLastFailedRun(null)
       pendingRunIdRef.current = null
       resetRunState()
       setMapMode('view')
@@ -403,7 +400,6 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
       const msg = e instanceof Error ? e.message : 'Não foi possível salvar.'
       toast.error(msg)
       pauseRunKeepTrack()
-      setLastFailedRun({ message: msg, canRetry: true })
     } finally {
       setFinishing(false)
     }
@@ -493,7 +489,17 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1000] max-w-[95vw]">
+      <div
+        id="tour-run-cta"
+        data-tour="run-cta"
+        className={cn(
+          'fixed inset-x-0 mx-auto flex max-w-[95vw] flex-col items-center px-4',
+          zMapControls,
+        )}
+        style={{
+          bottom: 'calc(3.5rem + env(safe-area-inset-bottom, 0px) + 0.75rem)',
+        }}
+      >
         {!isFirebaseConfigured() && (
           <p className="text-center text-xs text-amber-400 mb-2 px-2">
             Defina NEXT_PUBLIC_FIREBASE_* nas variáveis de ambiente (painel Vercel) para usar o mapa com dados reais.
@@ -521,32 +527,35 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
           </div>
         )}
 
-        {lastFailedRun && !isRunning && points.length >= 2 && (
-          <div className="flex flex-col items-center gap-2 mb-2 w-full max-w-sm">
-            <p className="text-center text-xs text-amber-400 px-2">
-              {lastFailedRun.message}
-            </p>
-            {lastFailedRun.canRetry && (
-              <Button
-                type="button"
-                size="sm"
-                className="gap-2"
-                style={{ background: BRAND.lime, color: '#19305A' }}
-                onClick={() => void handleFinish()}
-                disabled={finishing}
-              >
-                {finishing ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Square className="h-4 w-4 fill-current" />
-                )}
-                Tentar novamente
-              </Button>
-            )}
+        {hasPendingTrack ? (
+          <div className="flex w-full max-w-sm flex-col gap-2 sm:flex-row sm:items-center">
+            <Button
+              type="button"
+              onClick={() => void handleFinish()}
+              disabled={finishing}
+              className="h-14 flex-1 gap-2 font-semibold text-base shadow-lg"
+              style={{ background: BRAND.lime, color: '#19305A' }}
+            >
+              {finishing ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Square className="h-5 w-5 fill-current" />
+              )}
+              Finalizar corrida
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={cancelRun}
+              disabled={finishing}
+              className="h-14 flex-1 gap-2 font-semibold text-base"
+              style={{ borderColor: BRAND.border, color: '#FF4D4D' }}
+            >
+              <X className="h-5 w-5" />
+              Encerrar corrida
+            </Button>
           </div>
-        )}
-
-        {!isRunning ? (
+        ) : !isRunning ? (
           <Button
             type="button"
             onClick={() => void handleStart()}

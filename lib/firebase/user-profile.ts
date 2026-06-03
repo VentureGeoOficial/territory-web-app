@@ -46,6 +46,9 @@ export interface UserProfileDoc {
   }
   createdAt?: Timestamp
   updatedAt?: Timestamp
+  /** Tutorial de primeiro acesso concluído (ou ignorado) */
+  hasCompletedOnboarding?: boolean
+  onboardingCompletedAt?: Timestamp
 }
 
 const USERS = 'users'
@@ -372,6 +375,15 @@ export async function updateNotificationPreferences(
   })
   await updateDoc(doc(getFirestoreDb(), USERS_PRIVATE, uid), {
     notificationPreferences: preferences,
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function markOnboardingCompleted(uid: string): Promise<void> {
+  if (!isFirebaseConfigured()) return
+  await updateDoc(doc(getFirestoreDb(), USERS, uid), {
+    hasCompletedOnboarding: true,
+    onboardingCompletedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
 }

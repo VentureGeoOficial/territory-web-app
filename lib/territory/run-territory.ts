@@ -217,7 +217,7 @@ export function createTerritoryFromRunTrack(
 
   const now = nowMs ?? Date.now()
   const socialFriends = friendOwnerIds ?? new Set<string>()
-  let status: TerritoryStatus = 'active'
+  let status: TerritoryStatus = 'protected'
   for (const existing of existingTerritories) {
     if (existing.userId === currentUserId) continue
     if (!socialFriends.has(existing.userId)) continue
