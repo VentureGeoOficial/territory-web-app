@@ -85,6 +85,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
     endedAt: number
     distanceMeters: number
     durationSeconds: number
+    currentXp: number
   } | null>(null)
   const [captureStep, setCaptureStep] = useState<'xp' | 'emoji' | null>(null)
   const [selectedReactionEmoji, setSelectedReactionEmoji] =
@@ -336,6 +337,10 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
           return
         }
         setLastFinishError(null)
+        const profileXp =
+          user?.id != null
+            ? (await getUserProfile(user.id))?.xp ?? 0
+            : 0
         setCaptureDraft({
           impact,
           newTerritoryAreaM2: newTerritory.areaM2,
@@ -343,6 +348,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
           endedAt,
           distanceMeters,
           durationSeconds,
+          currentXp: profileXp,
         })
         setCaptureStep('xp')
         pauseRunKeepTrack()
@@ -445,6 +451,10 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
           if (impact.ok) {
             pauseRunKeepTrack()
             setLastFinishError(null)
+            const profileXp =
+              user?.id != null
+                ? (await getUserProfile(user.id))?.xp ?? 0
+                : 0
             setCaptureDraft({
               impact,
               newTerritoryAreaM2: newTerritory.areaM2,
@@ -452,6 +462,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
               endedAt,
               distanceMeters,
               durationSeconds,
+              currentXp: profileXp,
             })
             setCaptureStep('xp')
             toast.info('Sobreposição com amigo detectada — confirme a conquista.')
@@ -528,6 +539,7 @@ export const MapControlsOverlay = memo(function MapControlsOverlay() {
         impact={captureDraft?.impact ?? null}
         distanceMeters={captureDraft?.distanceMeters ?? 0}
         newTerritoryAreaM2={captureDraft?.newTerritoryAreaM2 ?? 0}
+        currentXp={captureDraft?.currentXp ?? 0}
         onConfirm={handleXpConfirmed}
         loading={false}
       />

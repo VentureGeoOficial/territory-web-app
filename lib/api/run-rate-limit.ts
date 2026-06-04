@@ -13,21 +13,32 @@ export class RunRateLimitError extends Error {
 }
 
 /**
- * Limita finalização de corrida: 1 por uid a cada 60 s (Firestore, compatível serverless).
+ * Verifica intervalo mínimo entre finalizações (sem gravar).
+ * Permite repetir tentativa se a anterior falhou.
  */
-export async function assertRunRateLimit(uid: string): Promise<void> {
+export async function checkRunRateLimit(uid: string): Promise<void> {
+  const db = getAdminFirestore()
+  const snap = await db.collection(RATE_LIMITS).doc(uid).get()
+  const last = snap.exists
+    ? Number((snap.data() as { lastRunCompleteAt?: number }).lastRunCompleteAt ?? 0)
+    : 0
+  const now = Date.now()
+  if (now - last < MIN_INTERVAL_MS) {
+    throw new RunRateLimitError()
+  }
+}
+
+/**
+ * Regista finalização bem-sucedida (corrida normal ou conquista).
+ */
+export async function recordRunRateLimit(uid: string): Promise<void> {
   const db = getAdminFirestore()
   const ref = db.collection(RATE_LIMITS).doc(uid)
-  const now = Date.now()
+  await ref.set({ lastRunCompleteAt: Date.now() }, { merge: true })
+}
 
-  await db.runTransaction(async (trx) => {
-    const snap = await trx.get(ref)
-    const last = snap.exists
-      ? Number((snap.data() as { lastRunCompleteAt?: number }).lastRunCompleteAt ?? 0)
-      : 0
-    if (now - last < MIN_INTERVAL_MS) {
-      throw new RunRateLimitError()
-    }
-    trx.set(ref, { lastRunCompleteAt: now }, { merge: true })
-  })
+/** @deprecated Use checkRunRateLimit + recordRunRateLimit on success only. */
+export async function assertRunRateLimit(uid: string): Promise<void> {
+  await checkRunRateLimit(uid)
+  await recordRunRateLimit(uid)
 }
