@@ -14,7 +14,7 @@ import { zModal } from '@/lib/layout/z-index'
 import { cn } from '@/lib/utils'
 import { formatArea } from '@/lib/territory/geo'
 import type { CaptureImpactOk } from '@/lib/territory/geoLogic'
-import { computeXpFromRun } from '@/lib/territory/scoring'
+import { canAffordCapture, computeXpFromRun } from '@/lib/territory/scoring'
 
 interface CaptureXpDialogProps {
   open: boolean
@@ -22,6 +22,7 @@ interface CaptureXpDialogProps {
   impact: CaptureImpactOk | null
   distanceMeters: number
   newTerritoryAreaM2: number
+  currentXp: number
   onConfirm: () => void | Promise<void>
   loading: boolean
 }
@@ -32,12 +33,14 @@ export function CaptureXpDialog({
   impact,
   distanceMeters,
   newTerritoryAreaM2,
+  currentXp,
   onConfirm,
   loading,
 }: CaptureXpDialogProps) {
   const xpGain = impact ? computeXpFromRun(distanceMeters, newTerritoryAreaM2) : 0
   const xpCost = impact?.xpCost ?? 0
-  const netXp = xpGain - xpCost
+  const xpAfter = currentXp + xpGain - xpCost
+  const affordable = impact ? canAffordCapture(currentXp, xpGain, xpCost) : false
 
   return (
     <AlertDialog open={open} onOpenChange={loading ? undefined : onOpenChange}>
@@ -61,6 +64,10 @@ export function CaptureXpDialog({
                   </p>
                   <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2 font-mono text-xs space-y-1.5">
                     <div className="flex justify-between gap-2">
+                      <span>Seu XP atual</span>
+                      <span className="text-foreground">{currentXp} XP</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
                       <span>Custo fixo</span>
                       <span className="text-foreground">10 XP</span>
                     </div>
@@ -76,19 +83,24 @@ export function CaptureXpDialog({
                     </div>
                   </div>
                   <p className="text-xs">
-                    Ganho estimado nesta corrida:{' '}
-                    <span className="text-foreground font-medium">{xpGain} XP</span>
+                    Ganho desta corrida:{' '}
+                    <span className="text-foreground font-medium">+{xpGain} XP</span>
                     {' · '}
-                    Saldo líquido aproximado:{' '}
+                    Saldo após conquista:{' '}
                     <span
                       className={
-                        netXp >= 0 ? 'text-emerald-400' : 'text-amber-400'
+                        xpAfter >= 0 ? 'text-emerald-400 font-medium' : 'text-amber-400 font-medium'
                       }
                     >
-                      {netXp >= 0 ? '+' : ''}
-                      {netXp} XP
+                      {xpAfter} XP
                     </span>
                   </p>
+                  {!affordable && (
+                    <p className="text-xs text-amber-400">
+                      XP insuficiente para esta conquista. Corra mais ou conquiste áreas
+                      menores antes de tentar novamente.
+                    </p>
+                  )}
                 </>
               )}
             </div>
@@ -98,7 +110,7 @@ export function CaptureXpDialog({
           <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
           <Button
             type="button"
-            disabled={loading || !impact}
+            disabled={loading || !impact || !affordable}
             onClick={() => void onConfirm()}
             className="bg-[#CCFF00] text-[#19305A] hover:bg-[#CCFF00]/90"
           >

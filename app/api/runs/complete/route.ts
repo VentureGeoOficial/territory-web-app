@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-import { assertRunRateLimit, RunRateLimitError } from '@/lib/api/run-rate-limit'
+import {
+  checkRunRateLimit,
+  recordRunRateLimit,
+  RunRateLimitError,
+} from '@/lib/api/run-rate-limit'
 import { ApiAuthError, verifyAuthOrFail } from '@/lib/firebase/admin-auth'
 import { executeNormalRunCompleteTransaction } from '@/lib/firebase/admin-normal-run'
 import { getIdempotentRunResult } from '@/lib/firebase/idempotent-run'
@@ -86,7 +90,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Intervalo de tempo inválido.' }, { status: 400 })
     }
 
-    await assertRunRateLimit(uid)
+    await checkRunRateLimit(uid)
 
     const points = body.points as TrackPoint[]
     const db = getAdminFirestore()
@@ -163,6 +167,8 @@ export async function POST(req: Request) {
       durationSeconds: body.durationSeconds,
       routeJson: body.routeJson,
     })
+
+    await recordRunRateLimit(uid)
 
     log.info({
       scope: 'RunCompleteApi',

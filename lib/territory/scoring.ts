@@ -12,3 +12,12 @@ export function computeXpFromRun(distanceM: number, areaM2: number): number {
   const fromArea = Math.max(50, Math.round(areaM2 / 100) * XP_PER_100M2_AREA)
   return Math.max(50, fromDist + fromArea)
 }
+
+/** Mesma regra do servidor: `prevXp + xpGain >= xpCost`. */
+export function canAffordCapture(
+  currentXp: number,
+  xpGain: number,
+  xpCost: number,
+): boolean {
+  return currentXp + xpGain >= xpCost
+}

@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-import { assertRunRateLimit, RunRateLimitError } from '@/lib/api/run-rate-limit'
+import {
+  checkRunRateLimit,
+  recordRunRateLimit,
+  RunRateLimitError,
+} from '@/lib/api/run-rate-limit'
 import { ApiAuthError, verifyAuthOrFail } from '@/lib/firebase/admin-auth'
 import { getIdempotentRunResult } from '@/lib/firebase/idempotent-run'
 import { queryTerritoriesForGameplay } from '@/lib/firebase/admin-territories-query'
@@ -85,7 +89,7 @@ export async function POST(req: Request) {
       return NextResponse.json(existing)
     }
 
-    await assertRunRateLimit(uid)
+    await checkRunRateLimit(uid)
 
     const points = body.points as TrackPoint[]
     const db = getAdminFirestore()
@@ -164,6 +168,25 @@ export async function POST(req: Request) {
     }
 
     const xpGain = computeXpFromRun(body.distanceMeters, territoryForCapture.areaM2)
+    const prevXp = Number((userSnap.data() as { xp?: number } | undefined)?.xp ?? 0)
+
+    if (prevXp + xpGain < impact.xpCost) {
+      log.warn({
+        scope: 'TerritoryCaptureApi',
+        event: 'insufficient_xp_preflight',
+        uid,
+        prevXp,
+        xpGain,
+        xpCost: impact.xpCost,
+      })
+      return NextResponse.json(
+        {
+          error: `XP insuficiente. Você tem ${prevXp} XP; esta conquista custa ${impact.xpCost} XP (ganho da corrida: +${xpGain} XP).`,
+          code: 'INSUFFICIENT_XP',
+        },
+        { status: 402 },
+      )
+    }
 
     const victimOutcomes = await executeCaptureTransaction({
       attackerUid: uid,
@@ -201,6 +224,8 @@ export async function POST(req: Request) {
         message,
       })
     }
+
+    await recordRunRateLimit(uid)
 
     log.info({
       scope: 'TerritoryCaptureApi',
