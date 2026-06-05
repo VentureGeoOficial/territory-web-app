@@ -6,6 +6,7 @@ import { AuthenticatedShell } from '@/components/layout/authenticated-shell'
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { ActivityTimeline } from '@/components/dashboard/activity-timeline'
 import { DashboardEmptyState } from '@/components/dashboard/dashboard-empty-state'
+import { DashboardExportButton } from '@/components/dashboard/dashboard-export-button'
 import { DashboardHeader } from '@/components/dashboard/dashboard-header'
 import { DistanceWidget } from '@/components/dashboard/distance-widget'
 import { MovementMetricsSection } from '@/components/dashboard/movement-metrics-section'
@@ -47,7 +48,19 @@ export default function DashboardPage() {
   return (
     <AuthenticatedShell>
       <main className="space-y-8 max-w-6xl w-full pb-16">
-        <DashboardHeader displayName={displayName} />
+        <DashboardHeader
+          displayName={displayName}
+          actions={
+            !isLoading && !showEmpty && !error ? (
+              <DashboardExportButton
+                uid={uid}
+                displayName={displayName}
+                metrics={metrics}
+                recentRuns={recentRuns}
+              />
+            ) : undefined
+          }
+        />
 
         {error && (
           <p className="text-sm text-amber-500 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
