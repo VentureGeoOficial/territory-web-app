@@ -9,6 +9,8 @@
 | `page_view` | INFO | `DashboardPage` | Entrada na rota Dashboard (uid mascarado) |
 | `subscribe_error` | ERROR | `dashboard-runs` | Falha ao subscrever coleção `runs` |
 
+Exportação do dashboard: ver [`DOC_export-report.md`](./DOC_export-report.md).
+
 **Não registra:** `routeJson`, coordenadas GPS, tokens ou email completo.
 
 ## Contexto típico
